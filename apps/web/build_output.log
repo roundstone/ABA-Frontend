@@ -1,0 +1,520 @@
+
+> web@0.1.0 build
+> next build
+
+▲ Next.js 16.3.5 (Turbopack)
+✓ Running next.config.ts took 15ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 652ms
+  Running TypeScript ...
+  Finished TypeScript in 1353ms ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/71) ...
+  Generating static pages using 9 workers (17/71) 
+  Generating static pages using 9 workers (35/71) 
+  Generating static pages using 9 workers (53/71) 
+⨯ useSearchParams() should be wrapped in a suspense boundary at page "/track-order". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at Object.X (/Users/macbookpro/Documents/Web/aba_project/apps/web/.next/server/chunks/ssr/node_modules_next_06lxapa._.js:121:3038)
+    at q (/Users/macbookpro/Documents/Web/aba_project/apps/web/.next/server/chunks/ssr/node_modules_next_06lxapa._.js:1:9742)
+    at /Users/macbookpro/Documents/Web/aba_project/apps/web/.next/server/chunks/ssr/_1w8uqm-._.js:1:1221
+    at al (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:85944)
+    at ac (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:87760)
+    at ah (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:109623)
+    at af (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:106940)
+    at au (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:86296)
+    at ac (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:87805)
+    at ac (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:106280)
+    at ah (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:109623)
+    at af (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:106940)
+    at aS (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:114685)
+    at ap (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:111684)
+    at ah (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:109897)
+    at af (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:106940)
+    at ac (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:100962)
+    at ah (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:109623)
+    at af (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:106940)
+    at ac (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:105898)
+    at ah (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:109623)
+    at af (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:106940)
+    at au (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:86296)
+    at ac (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:87805)
+    at ah (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:109623)
+    at af (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:106940)
+    at aS (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:114685)
+    at ap (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:111684)
+    at ah (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:109897)
+    at af (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:106940)
+    at ac (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:87724)
+    at ah (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:109623)
+    at af (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:106940)
+    at au (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:86296)
+    at ac (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:87805)
+    at ah (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:109623)
+    at af (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:106940)
+    at ac (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:100962)
+    at ah (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:109623)
+    at af (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:106940)
+    at au (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:86296)
+    at ac (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:87805)
+    at ah (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:109623)
+    at af (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:106940)
+    at ac (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:100962)
+    at ah (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:109623)
+    at af (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:106940)
+    at au (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:86296)
+    at ac (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:87805)
+    at ah (/Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:2:109623)
+Error occurred prerendering page "/track-order". Read more: https://nextjs.org/docs/messages/prerender-error
+Export encountered an error on /(public)/track-order/page: /track-order, exiting the build.
+⨯ Next.js build worker exited with code: 1 and signal: null
+Turbopack build encountered 26 warnings:
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: 417 repetitive deprecation warnings omitted.
+Run in verbose mode to see all warnings.
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 0, column 8 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/bootstrap.scss:0:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+0 | @import "mixins/banner";
+
+
+node_modules/bootstrap/scss/bootstrap.scss 1:9  @import
+src/app/globals.scss 1:9                        root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 0, column 8 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/src/app/globals.scss:0:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+0 | @import "bootstrap/scss/bootstrap";
+
+
+src/app/globals.scss 1:9  root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 1, column 8 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/src/app/globals.scss:1:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+1 | @import "../styles/style.scss";
+
+
+src/app/globals.scss 2:9  root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 10, column 29 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_functions.scss:10:29:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use math.unit instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+10 |     @if $prev-num == null or unit($num) == "%" or unit($prev-num) == "%" {
+
+
+node_modules/bootstrap/scss/_functions.scss 11:30  -assert-ascending()
+node_modules/bootstrap/scss/_variables.scss 494:1  @import
+node_modules/bootstrap/scss/bootstrap.scss 8:9     @import
+src/app/globals.scss 1:9                           root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 10, column 50 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_functions.scss:10:50:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use math.unit instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+10 |     @if $prev-num == null or unit($num) == "%" or unit($prev-num) == "%" {
+
+
+node_modules/bootstrap/scss/_functions.scss 11:51  -assert-ascending()
+node_modules/bootstrap/scss/_variables.scss 494:1  @import
+node_modules/bootstrap/scss/bootstrap.scss 8:9     @import
+src/app/globals.scss 1:9                           root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 176, column 10 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_functions.scss:176:10:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass($l1 > $l2): divide($l1 + 0.05, $l2 + 0.05); else: divide($l2 + 0.05, $l1 + 0.05))
+
+More info: https://sass-lang.com/d/if-function
+
+176 |   @return if($l1 > $l2, divide($l1 + .05, $l2 + .05), divide($l2 + .05, $l1 + .05));
+
+
+node_modules/bootstrap/scss/_functions.scss 177:11  @import
+node_modules/bootstrap/scss/bootstrap.scss 7:9      @import
+src/app/globals.scss 1:9                            root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 184, column 9 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_functions.scss:184:9:
+red() is deprecated. Suggestion:
+
+color.channel($color, "red", $space: rgb)
+
+More info: https://sass-lang.com/d/color-functions
+
+184 |     "r": red($color),
+
+
+node_modules/bootstrap/scss/_functions.scss 185:10  luminance()
+node_modules/bootstrap/scss/_functions.scss 174:8   contrast-ratio()
+node_modules/bootstrap/scss/_functions.scss 159:22  color-contrast()
+node_modules/bootstrap/scss/_variables.scss 846:42  @import
+node_modules/bootstrap/scss/bootstrap.scss 8:9      @import
+src/app/globals.scss 1:9                            root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 185, column 9 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_functions.scss:185:9:
+green() is deprecated. Suggestion:
+
+color.channel($color, "green", $space: rgb)
+
+More info: https://sass-lang.com/d/color-functions
+
+185 |     "g": green($color),
+
+
+node_modules/bootstrap/scss/_functions.scss 186:10  luminance()
+node_modules/bootstrap/scss/_functions.scss 174:8   contrast-ratio()
+node_modules/bootstrap/scss/_functions.scss 159:22  color-contrast()
+node_modules/bootstrap/scss/_variables.scss 846:42  @import
+node_modules/bootstrap/scss/bootstrap.scss 8:9      @import
+src/app/globals.scss 1:9                            root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 186, column 9 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_functions.scss:186:9:
+blue() is deprecated. Suggestion:
+
+color.channel($color, "blue", $space: rgb)
+
+More info: https://sass-lang.com/d/color-functions
+
+186 |     "b": blue($color)
+
+
+node_modules/bootstrap/scss/_functions.scss 187:10  luminance()
+node_modules/bootstrap/scss/_functions.scss 174:8   contrast-ratio()
+node_modules/bootstrap/scss/_functions.scss 159:22  color-contrast()
+node_modules/bootstrap/scss/_variables.scss 846:42  @import
+node_modules/bootstrap/scss/bootstrap.scss 8:9      @import
+src/app/globals.scss 1:9                            root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 190, column 12 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_functions.scss:190:12:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass(divide($value, 255) < 0.04045): divide(divide($value, 255), 12.92); else: nth($_luminance-list, $value + 1))
+
+More info: https://sass-lang.com/d/if-function
+
+190 |     $value: if(divide($value, 255) < .04045, divide(divide($value, 255), 12.92), nth($_luminance-list, $value + 1));
+
+
+node_modules/bootstrap/scss/_functions.scss 191:13  @import
+node_modules/bootstrap/scss/bootstrap.scss 7:9      @import
+src/app/globals.scss 1:9                            root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 206, column 10 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_functions.scss:206:10:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.mix instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+206 |   @return mix(white, $color, $weight);
+
+
+node_modules/bootstrap/scss/_functions.scss 207:11  tint-color()
+node_modules/bootstrap/scss/_variables.scss 79:12   @import
+node_modules/bootstrap/scss/bootstrap.scss 8:9      @import
+src/app/globals.scss 1:9                            root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 211, column 10 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_functions.scss:211:10:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.mix instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+211 |   @return mix(black, $color, $weight);
+
+
+node_modules/bootstrap/scss/_functions.scss 212:11  shade-color()
+node_modules/bootstrap/scss/_variables.scss 84:12   @import
+node_modules/bootstrap/scss/bootstrap.scss 8:9      @import
+src/app/globals.scss 1:9                            root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 216, column 10 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_functions.scss:216:10:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass($weight > 0): shade-color($color, $weight); else: tint-color($color, -$weight))
+
+More info: https://sass-lang.com/d/if-function
+
+216 |   @return if($weight > 0, shade-color($color, $weight), tint-color($color, -$weight));
+
+
+node_modules/bootstrap/scss/_functions.scss 217:11  @import
+node_modules/bootstrap/scss/bootstrap.scss 7:9      @import
+src/app/globals.scss 1:9                            root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 341, column 26 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_variables.scss:341:26:
+Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+Use color.mix instead.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+341 | $light-bg-subtle:         mix($gray-100, $white) !default;
+
+
+node_modules/bootstrap/scss/_variables.scss 342:27  @import
+node_modules/bootstrap/scss/bootstrap.scss 8:9      @import
+src/app/globals.scss 1:9                            root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 348, column 31 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/src/styles/layout/_menu.scss:348:31:
+Using / for division outside of calc() is deprecated and will be removed in Dart Sass 2.0.0.
+
+Recommendation: math.div($theme-default__toggle-size, 2) or calc($theme-default__toggle-size / 2)
+
+More info and automated migrator: https://sass-lang.com/d/slash-div
+
+348 |             margin-top: -(ceil($theme-default__toggle-size / 2));
+
+
+src/styles/layout/_menu.scss 349:32  @import
+src/styles/style.scss 190:9          @import
+src/app/globals.scss 2:9             root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 36, column 10 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_functions.scss:36:10:
+red() is deprecated. Suggestion:
+
+color.channel($color, "red", $space: rgb)
+
+More info: https://sass-lang.com/d/color-functions
+
+36 |   @return red($value), green($value), blue($value);
+
+
+node_modules/bootstrap/scss/_functions.scss 37:11   to-rgb()
+node_modules/bootstrap/scss/_variables.scss 846:31  @import
+node_modules/bootstrap/scss/bootstrap.scss 8:9      @import
+src/app/globals.scss 1:9                            root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 36, column 23 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_functions.scss:36:23:
+green() is deprecated. Suggestion:
+
+color.channel($color, "green", $space: rgb)
+
+More info: https://sass-lang.com/d/color-functions
+
+36 |   @return red($value), green($value), blue($value);
+
+
+node_modules/bootstrap/scss/_functions.scss 37:24   to-rgb()
+node_modules/bootstrap/scss/_variables.scss 846:31  @import
+node_modules/bootstrap/scss/bootstrap.scss 8:9      @import
+src/app/globals.scss 1:9                            root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 57, column 29 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_functions.scss:57:29:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass($arg == "$key"): $key; else: if($arg == "$value", $value, $arg))
+
+More info: https://sass-lang.com/d/if-function
+
+57 |       $_args: append($_args, if($arg == "$key", $key, if($arg == "$value", $value, $arg)));
+
+
+node_modules/bootstrap/scss/_functions.scss 58:30  @import
+node_modules/bootstrap/scss/bootstrap.scss 7:9     @import
+src/app/globals.scss 1:9                           root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 57, column 54 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/_functions.scss:57:54:
+The Sass if() syntax is deprecated in favor of the modern CSS syntax.
+
+Suggestion: if(sass($arg == "$value"): $value; else: $arg)
+
+More info: https://sass-lang.com/d/if-function
+
+57 |       $_args: append($_args, if($arg == "$key", $key, if($arg == "$value", $value, $arg)));
+
+
+node_modules/bootstrap/scss/_functions.scss 58:55  @import
+node_modules/bootstrap/scss/bootstrap.scss 7:9     @import
+src/app/globals.scss 1:9                           root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 6, column 8 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/bootstrap.scss:6:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+6 | @import "functions";
+
+
+node_modules/bootstrap/scss/bootstrap.scss 7:9  @import
+src/app/globals.scss 1:9                        root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 7, column 8 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/node_modules/bootstrap/scss/bootstrap.scss:7:8:
+Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+7 | @import "variables";
+
+
+node_modules/bootstrap/scss/bootstrap.scss 8:9  @import
+src/app/globals.scss 1:9                        root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 825, column 14 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/src/styles/pages/_product-details-page.scss:825:14:
+Using / for division outside of calc() is deprecated and will be removed in Dart Sass 2.0.0.
+
+Recommendation: math.div(20px, 2) or calc(20px / 2)
+
+More info and automated migrator: https://sass-lang.com/d/slash-div
+
+825 |         top: (20px / 2) - 3px;
+
+
+src/styles/pages/_product-details-page.scss 826:15  @import
+src/styles/style.scss 202:9                         @import
+src/app/globals.scss 2:9                            root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 826, column 15 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/src/styles/pages/_product-details-page.scss:826:15:
+Using / for division outside of calc() is deprecated and will be removed in Dart Sass 2.0.0.
+
+Recommendation: math.div(20px, 2) or calc(20px / 2)
+
+More info and automated migrator: https://sass-lang.com/d/slash-div
+
+826 |         left: (20px / 2) - 3px;
+
+
+src/styles/pages/_product-details-page.scss 827:16  @import
+src/styles/style.scss 202:9                         @import
+src/app/globals.scss 2:9                            root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 829, column 16 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/src/styles/pages/_product-details-page.scss:829:16:
+Using / for division outside of calc() is deprecated and will be removed in Dart Sass 2.0.0.
+
+Recommendation: math.div(20px, 2.5) or calc(20px / 2.5)
+
+More info and automated migrator: https://sass-lang.com/d/slash-div
+
+829 |         width: (20px / 2.5);
+
+
+src/styles/pages/_product-details-page.scss 830:17  @import
+src/styles/style.scss 202:9                         @import
+src/app/globals.scss 2:9                            root stylesheet
+
+
+
+./src/app/globals.scss
+Warning: Issue while running loader
+SassWarning: Deprecation Warning on line 845, column 14 of file:///Users/macbookpro/Documents/Web/aba_project/apps/web/src/styles/pages/_product-details-page.scss:845:14:
+Using / for division outside of calc() is deprecated and will be removed in Dart Sass 2.0.0.
+
+Recommendation: math.div(20px, 2) or calc(20px / 2)
+
+More info and automated migrator: https://sass-lang.com/d/slash-div
+
+845 |         top: (20px / 2) - 3px;
+
+
+src/styles/pages/_product-details-page.scss 846:15  @import
+src/styles/style.scss 202:9                         @import
+src/app/globals.scss 2:9                            root stylesheet
+
+
+
