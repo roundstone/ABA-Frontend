@@ -28,7 +28,7 @@ export default function Header() {
             <div className="col-lg-6">
               <div className="header-contact">
                 <ul>
-                  <li>Welcome to Our store Multikart</li>
+                  <li>Welcome to Our store ABA</li>
                   <li>
                     <i className="ri-phone-fill"></i>Call Us: 123 - 456 - 7890
                   </li>
@@ -86,7 +86,7 @@ export default function Header() {
                 </div>
                 <div className="brand-logo">
                   <Link href="/">
-                    <img alt="Multikart" className="img-fluid" src="/images/logo.png" />
+                    <img alt="ABA" className="img-fluid" src="/images/logo.png" style={{ height: '50px', objectFit: 'contain' }} />
                   </Link>
                 </div>
               </div>

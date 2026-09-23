@@ -33,7 +33,9 @@ export function ProductSliders({ products }: ProductSlidersProps) {
                   <div>
                     {products.slice(0, 4).map((p) => (
                       <div className="media" key={`new-${p.id}`}>
-                        <a href={`/product/${p.id}`}><img alt={p.name} className="img-fluid  lazyload" src={p.imageUrl} /></a>
+                        <a href={`/product/${p.id}`}>
+                          <img alt={p.name} className="img-fluid lazyload" src={p.imageUrl} style={{ height: '80px', width: '80px', objectFit: 'contain' }} />
+                        </a>
                         <div className="media-body align-self-center mt-0">
                           <div className="rating">
                             {[...Array(5)].map((_, i) => <i key={`nstar-${i}`} className={i < p.rating ? "ri-star-fill" : "ri-star-line"}></i>)}
@@ -62,7 +64,9 @@ export function ProductSliders({ products }: ProductSlidersProps) {
                     <div key={`sale-${product.id}`}>
                       <div className="basic-product theme-product-5">
                         <div className="img-wrapper">
-                          <a href={`/product/${product.id}`}><img alt={product.name} className="img-fluid  lazyload m-auto" src={product.imageUrl} /></a>
+                          <a href={`/product/${product.id}`}>
+                            <img alt={product.name} className="img-fluid lazyload m-auto" src={product.imageUrl} style={{ height: '280px', width: '100%', objectFit: 'contain' }} />
+                          </a>
                           <div className="cart-info">
                             <button onClick={() => console.log('openCart')} title="Add to cart"><i className="ri-shopping-cart-line"></i></button>
                             <a href="#!" title="Add to Wishlist"><i className="ri-heart-line"></i></a>
@@ -96,7 +100,9 @@ export function ProductSliders({ products }: ProductSlidersProps) {
                   <div>
                     {products.slice(4, 8).map((p) => (
                       <div className="media" key={`feat-${p.id}`}>
-                        <a href={`/product/${p.id}`}><img alt={p.name} className="img-fluid  lazyload" src={p.imageUrl} /></a>
+                        <a href={`/product/${p.id}`}>
+                          <img alt={p.name} className="img-fluid lazyload" src={p.imageUrl} style={{ height: '80px', width: '80px', objectFit: 'contain' }} />
+                        </a>
                         <div className="media-body align-self-center mt-0">
                           <div className="rating">
                             {[...Array(5)].map((_, i) => <i key={`fstar-${i}`} className={i < p.rating ? "ri-star-fill" : "ri-star-line"}></i>)}

@@ -55,19 +55,12 @@ export default function HomePage() {
       {/* Home Slider */}
       <section className="p-0">
         <a href="#!">
-          <img alt="" className="img-fluid lazyload" src="/images/bags/full-banner/1.png"/>
+          <img alt="Hero Banner" className="img-fluid lazyload w-100" src="/images/home/hero-1.jpg"/>
         </a>
       </section>
 
       <TrendingProducts products={products} categories={categories} />
       <CategoryButtons categories={categories} />
-
-      {/* Parallax banner */}
-      <section className="p-0">
-        <a href="#!">
-          <img alt="" className="img-fluid lazyload" src="/images/bags/full-banner/2.png"/>
-        </a>
-      </section>
 
       <ProductSliders products={products} />
       <ServicesSection />

@@ -16,7 +16,7 @@ export default function Footer() {
                 </div>
                 <div className="footer-content">
                   <Link href="/" className="footer-logo d-block">
-                    <Image src="/images/bags/logo-white.png" alt="Logo" width={150} height={40} />
+                    <Image src="/images/logo.png" alt="Logo" width={50} height={80} style={{ borderRadius: '50%' }} />
                   </Link>
                   <p>
                     Discover the latest fashion trends and enjoy seamless shopping with our carefully curated exclusive collections, designed to elevate your wardrobe.
