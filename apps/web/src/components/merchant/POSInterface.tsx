@@ -141,7 +141,7 @@ export default function POSInterface() {
                   >
                     {/* Using a placeholder image or product image */}
                     <div className="bg-white text-center p-2 border-bottom">
-                      <img src={product.images?.[0] || '/images/pro3/1.jpg'} alt={product.name} style={{ height: '100px', objectFit: 'contain' }} />
+                      <img src={product.imageUrl || '/images/pro3/1.jpg'} alt={product.name} style={{ height: '100px', objectFit: 'contain' }} />
                     </div>
                     <div className="card-body p-2 text-center">
                       <h6 className="mb-1 text-truncate" title={product.name}>{product.name}</h6>
