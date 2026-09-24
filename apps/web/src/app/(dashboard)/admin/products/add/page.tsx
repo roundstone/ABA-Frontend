@@ -64,7 +64,7 @@ export default function AdminAddProduct() {
                         <ul className="file-upload-product">
                           {[...Array(6)].map((_, i) => (
                             <li key={i}>
-                              <div className="box-input-file">
+                              <div className="box-input-file bg-white">
                                 <input className="upload" type="file" />
                                 <Plus size={16} />
                               </div>

@@ -1,4 +1,4 @@
-import { Archive, Box, DollarSign, Home, Network, Percent, Users, ShoppingCart, Layers } from 'lucide-react';
+import { Archive, Box, DollarSign, Home, Network, Percent, Users, ShoppingCart, Layers, Phone, BarChart, Settings } from 'lucide-react';
 import React from 'react';
 
 export type SubMenuItem = {
@@ -28,17 +28,14 @@ export const ADMIN_SIDEBAR_MENU: MenuItem[] = [
     icon: <Box />,
     submenu: [
       { title: 'Category', href: '/admin/products/category' },
-      { title: 'Product List', href: '/admin/products' },
-      { title: 'Add Product', href: '/admin/products/add' },
+      { title: 'Product', href: '/admin/products' },
     ],
   },
   {
     id: 'orders',
     title: 'Orders',
     icon: <Archive />,
-    submenu: [
-      { title: 'Order List', href: '/admin/orders' },
-    ],
+    href: '/admin/orders',
   },
   {
     id: 'network',
@@ -65,36 +62,30 @@ export const ADMIN_SIDEBAR_MENU: MenuItem[] = [
     id: 'users',
     title: 'Users',
     icon: <Users />,
-    submenu: [
-      { title: 'User List', href: '/admin/users' },
-      { title: 'Create User', href: '/admin/users/create' },
-    ],
+    href: '/admin/users',
   },
   {
     id: 'merchants',
     title: 'Merchants',
     icon: <Users />,
-    submenu: [
-      { title: 'Merchant List', href: '/admin/merchants' },
-      { title: 'Create Merchant', href: '/admin/merchants/create' },
-    ],
+    href: '/admin/merchants',
   },
   {
     id: 'support-tickets',
     title: 'Support Ticket',
-    featherIcon: 'phone',
+    icon: <Phone />,
     href: '/admin/support-tickets',
   },
   {
     id: 'reports',
     title: 'Reports',
-    featherIcon: 'bar-chart',
+    icon: <BarChart />,
     href: '/admin/reports',
   },
   {
     id: 'invoice',
     title: 'Invoice',
-    featherIcon: 'archive',
+    icon: <Archive />,
     href: '/admin/invoice',
   },
   {
@@ -140,7 +131,7 @@ export const ADMIN_SIDEBAR_MENU: MenuItem[] = [
   {
     id: 'settings',
     title: 'Settings',
-    featherIcon: 'settings',
+    icon: <Settings />,
     submenu: [
       { title: 'Profile', href: '/admin/settings' },
     ],

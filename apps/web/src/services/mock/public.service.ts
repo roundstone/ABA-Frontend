@@ -125,7 +125,7 @@ export const ABA_PRODUCTS: PublicProduct[] = [
     price: 12000,
     rating: 5,
     reviewCount: 89,
-    imageUrl: 'https://images.unsplash.com/photo-1515347619362-e670460c384e?w=600&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=600&q=80',
     isTrending: true,
     sizes: ['5 Yards', '10 Yards'],
     colors: ['Blue', 'White'],
