@@ -1,4 +1,3 @@
 
-export default function StubPage() {
-  return <div className="p-8"><h1 className="text-h1">STUB — Phase N</h1><p>Route: /admin/audit-logs</p></div>;
-}
+import { AuditList } from '@/features/audit/components/AuditList';
+export default function AuditLogsPage() { return <AuditList />; }
