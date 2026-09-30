@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const PERMISSIONS = {
@@ -11,17 +10,16 @@ export const ROLES = {
   USER: [PERMISSIONS.VIEW_DASHBOARD],
 };
 
-export function usePermission(permission: string) {
-  // stub
+export function usePermission(_permission: string) {
   return true;
 }
 
-export function Can({ I, children }: { I: string, children: React.ReactNode }) {
+export function Can({ I, children }: { I: string; children: React.ReactNode }) {
   const allowed = usePermission(I);
   return allowed ? <>{children}</> : null;
 }
 
-export function RequirePermission({ I, children }: { I: string, children: React.ReactNode }) {
+export function RequirePermission({ I, children }: { I: string; children: React.ReactNode }) {
   const allowed = usePermission(I);
   if (!allowed) return <div>No Permission</div>;
   return <>{children}</>;
