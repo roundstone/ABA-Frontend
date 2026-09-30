@@ -1,4 +1,3 @@
 
-export default function StubPage() {
-  return <div className="p-8"><h1 className="text-h1">STUB — Phase N</h1><p>Route: /payouts</p></div>;
-}
+import { PayoutsTable } from '@/features/payouts/components/PayoutsTable';
+export default function PayoutsDashboardPage() { return <PayoutsTable />; }
