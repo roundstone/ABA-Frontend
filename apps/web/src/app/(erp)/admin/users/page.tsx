@@ -1,4 +1,3 @@
 
-export default function StubPage() {
-  return <div className="p-8"><h1 className="text-h1">STUB — Phase N</h1><p>Route: /admin/users</p></div>;
-}
+import { UsersTable } from '@/features/users/components/UsersTable';
+export default function AdminUsersPage() { return <UsersTable />; }
