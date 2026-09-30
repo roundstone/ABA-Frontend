@@ -1,4 +1,6 @@
 
-export default function StubPage() {
-  return <div className="p-8"><h1 className="text-h1">STUB — Phase N</h1><p>Route: /dashboard</p></div>;
+import { DashboardView } from '@/features/dashboard/components/DashboardView';
+export default function ErpDashboardPage() { 
+  // Normally we would get the user role from session
+  return <DashboardView role="super-admin" />; 
 }
