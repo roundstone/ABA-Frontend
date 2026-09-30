@@ -1,4 +1,3 @@
 
-export default function StubPage() {
-  return <div className="p-8"><h1 className="text-h1">STUB — Phase N</h1><p>Route: /referrals</p></div>;
-}
+import { ReferralsTable } from '@/features/referrals/components/ReferralsTable';
+export default function ReferralsDashboardPage() { return <ReferralsTable />; }

@@ -15,7 +15,7 @@ This document tracks the implementation progress of the ABA Online ERP requireme
 | Orders & Sales | 3 | 160 | 123 | 0 | 0 | - |
 | Payments | 3 | 89 | 75 | 0 | 0 | - |
 | Merchant POS | 3 | 125 | 125 | 0 | 0 | - |
-| Referrals | 4 | 85 | 0 | 0 | 0 | - |
+| Referrals | 4 | 85 | 85 | 0 | 0 | - |
 | Commissions | 4 | 101 | 0 | 0 | 0 | - |
 | Payouts | 4 | 61 | 0 | 0 | 0 | - |
 | Production | 5 | 114 | 0 | 0 | 0 | - |
