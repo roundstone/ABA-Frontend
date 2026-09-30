@@ -1,4 +1,3 @@
 
-export default function StubPage() {
-  return <div className="p-8"><h1 className="text-h1">STUB — Phase N</h1><p>Route: /inventory</p></div>;
-}
+import { InventoryTable } from '@/features/inventory/components/InventoryTable';
+export default function InventoryDashboard() { return <InventoryTable />; }
