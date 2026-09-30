@@ -1,0 +1,213 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-900: var(--brand-900);
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-sidebar-text: var(--sidebar-text);
+
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-success-border: var(--success-border);
+
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+
+  --color-error: var(--error);
+  --color-error-bg: var(--error-bg);
+  --color-error-border: var(--error-border);
+
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-info-border: var(--info-border);
+
+  --color-neutral: var(--neutral);
+  --color-neutral-bg: var(--neutral-bg);
+  --color-neutral-border: var(--neutral-border);
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px rgba(16,24,40,.06);
+  --shadow-md: 0 4px 12px rgba(16,24,40,.10);
+  --shadow-lg: 0 16px 40px rgba(16,24,40,.16);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+:root {
+  --brand-50: #EEF4FF;
+  --brand-100: #DCE8FF;
+  --brand-500: #2F6BFF;
+  --brand-600: #1F55E0;
+  --brand-700: #1843B3;
+  --brand-900: #0F2A6B;
+
+  --bg: #F6F7F9;
+  --surface: #FFFFFF;
+  --surface-2: #F1F3F6;
+  --border: #E3E6EB;
+  --border-strong: #C9CED6;
+  --text: #111827;
+  --text-muted: #5B6472;
+  --text-subtle: #8A93A0;
+  --sidebar-bg: #0F172A;
+  --sidebar-text: #CBD5E1;
+
+  --success: #15803D;
+  --success-bg: #ECFDF3;
+  --success-border: #ABEFC6;
+  
+  --warning: #B45309;
+  --warning-bg: #FFFAEB;
+  --warning-border: #FEDF89;
+  
+  --error: #B42318;
+  --error-bg: #FEF3F2;
+  --error-border: #FECDCA;
+  
+  --info: #175CD3;
+  --info-bg: #EFF8FF;
+  --info-border: #B2DDFF;
+  
+  --neutral: #475467;
+  --neutral-bg: #F2F4F7;
+  --neutral-border: #E4E7EC;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+@layer utilities {
+  .text-h1 {
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  @media (max-width: 639px) {
+    .text-h1 {
+      font-size: 20px;
+      line-height: 28px;
+    }
+  }
+
+  .text-h2 {
+    font-size: 18px;
+    line-height: 28px;
+    font-weight: 600;
+  }
+
+  .text-h3 {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+
+  .text-h4 {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+  }
+
+  .text-body {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+  }
+
+  .text-body-lg {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+  }
+
+  .text-label {
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 500;
+  }
+
+  .text-table-header {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .text-table-cell {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+  }
+
+  .text-caption {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+  }
+
+  .text-helper {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .text-error {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    color: var(--error);
+  }
+
+  .text-button {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+  }
+
+  .text-kpi {
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  @media (max-width: 639px) {
+    .text-kpi {
+      font-size: 24px;
+      line-height: 32px;
+    }
+  }
+
+  .text-pos-total {
+    font-size: 36px;
+    line-height: 44px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}

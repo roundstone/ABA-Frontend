@@ -1,40 +1,33 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import "./globals.scss";
-import BootstrapProvider from "@/components/BootstrapProvider";
-import RoleSwitcher from "@/components/RoleSwitcher";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import "./globals.css";
 
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Aba E-commerce",
-  description: "Aba E-commerce template",
+  title: "ABA Online ERP",
+  description: "ABA Online ERP Platform",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"
-      className={`${montserrat.variable} h-full antialiased`}
-      suppressHydrationWarning
+      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <head>
-        <link href="/assets/css/vendors/font-awesome.css" rel="stylesheet" type="text/css" />
-        <link href="/assets/css/vendors/remixicon.css" rel="stylesheet" type="text/css" />
-        <link href="/assets/css/vendors/themify-icons.css" rel="stylesheet" type="text/css" />
-        <link href="/assets/css/vendors/price-range.css" rel="stylesheet" type="text/css" />
-      </head>
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        {children}
-        {/* <RoleSwitcher /> */}
-        <BootstrapProvider />
-      </body>
+      <body className="min-h-full flex flex-col bg-bg text-text">{children}</body>
     </html>
   );
 }
