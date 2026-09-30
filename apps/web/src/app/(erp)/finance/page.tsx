@@ -1,4 +1,3 @@
 
-export default function StubPage() {
-  return <div className="p-8"><h1 className="text-h1">STUB — Phase N</h1><p>Route: /finance</p></div>;
-}
+import { FinanceDashboard } from '@/features/finance/components/FinanceDashboard';
+export default function FinancePage() { return <FinanceDashboard />; }
