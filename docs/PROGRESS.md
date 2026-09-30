@@ -4,7 +4,7 @@ This document tracks the implementation progress of the ABA Online ERP requireme
 
 | Module | Phase | Total REQ | Done | Partial | Not done | Last audit |
 |---|---|---|---|---|---|---|
-| Foundation | 0 | 988 | 123 | 0 | 0 | - |
+| Foundation | 0 | 988 | 350 | 0 | 0 | - |
 | Auth & Users | 1 | 176 | 0 | 0 | 0 | - |
 | Customers | 1 | 98 | 0 | 0 | 0 | - |
 | Products | 1 | 90 | 0 | 0 | 0 | - |
