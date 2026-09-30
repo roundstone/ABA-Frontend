@@ -1,4 +1,3 @@
 
-export default function StubPage() {
-  return <div className="p-8"><h1 className="text-h1">STUB — Phase N</h1><p>Route: /products</p></div>;
-}
+import { ProductsTable } from '@/features/products/components/ProductsTable';
+export default function ProductsPage() { return <ProductsTable />; }

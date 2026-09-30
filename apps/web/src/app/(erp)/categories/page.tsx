@@ -1,4 +1,3 @@
 
-export default function StubPage() {
-  return <div className="p-8"><h1 className="text-h1">STUB — Phase N</h1><p>Route: /categories</p></div>;
-}
+import { CategoriesTree } from '@/features/products/components/CategoriesTree';
+export default function CategoriesPage() { return <CategoriesTree />; }
