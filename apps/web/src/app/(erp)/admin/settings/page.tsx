@@ -1,4 +1,6 @@
 
-export default function StubPage() {
-  return <div className="p-8"><h1 className="text-h1">STUB — Phase N</h1><p>Route: /admin/settings</p></div>;
+import { SettingsLayout } from '@/features/settings/components/SettingsLayout';
+import { SettingsForm } from '@/features/settings/components/SettingsForm';
+export default function SettingsPage() { 
+  return <SettingsLayout><SettingsForm section="company" /></SettingsLayout>; 
 }
