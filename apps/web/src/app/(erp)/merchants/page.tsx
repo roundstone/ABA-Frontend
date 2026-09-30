@@ -1,4 +1,3 @@
 
-export default function StubPage() {
-  return <div className="p-8"><h1 className="text-h1">STUB — Phase N</h1><p>Route: /merchants</p></div>;
-}
+import { MerchantsTable } from '@/features/merchants/components/MerchantsTable';
+export default function MerchantsPage() { return <MerchantsTable />; }
