@@ -1,4 +1,3 @@
 
-export default function StubPage() {
-  return <div className="p-8"><h1 className="text-h1">STUB — Phase N</h1><p>Route: /orders</p></div>;
-}
+import { OrdersTable } from '@/features/orders/components/OrdersTable';
+export default function OrdersPage() { return <OrdersTable />; }

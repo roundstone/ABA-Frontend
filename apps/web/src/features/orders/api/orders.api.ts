@@ -1,0 +1,2 @@
+
+export const getOrders = async () => [];

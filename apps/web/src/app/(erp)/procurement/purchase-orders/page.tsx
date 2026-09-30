@@ -1,4 +1,3 @@
 
-export default function StubPage() {
-  return <div className="p-8"><h1 className="text-h1">STUB — Phase N</h1><p>Route: /procurement/purchase-orders</p></div>;
-}
+import { ProcurementTable } from '@/features/procurement/components/ProcurementTable';
+export default function ProcurementPage() { return <ProcurementTable />; }

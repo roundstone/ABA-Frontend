@@ -1,5 +1,6 @@
 
 import React from 'react';
+import Link from 'next/link';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -9,12 +10,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 p-4 space-y-2">
           {/* Stub Sidebar Navigation */}
           <div className="text-sm font-semibold uppercase opacity-60">Sales</div>
-          <a href="/dashboard" className="block p-2 hover:bg-white/10 rounded">Dashboard</a>
-          <a href="/orders" className="block p-2 hover:bg-white/10 rounded">Orders</a>
-          <a href="/customers" className="block p-2 hover:bg-white/10 rounded">Customers</a>
+          <Link href="/dashboard" className="block p-2 hover:bg-white/10 rounded">Dashboard</Link>
+          <Link href="/orders" className="block p-2 hover:bg-white/10 rounded">Orders</Link>
+          <Link href="/customers" className="block p-2 hover:bg-white/10 rounded">Customers</Link>
           <div className="text-sm font-semibold uppercase opacity-60 mt-4">Catalog</div>
-          <a href="/products" className="block p-2 hover:bg-white/10 rounded">Products</a>
-          <a href="/merchants" className="block p-2 hover:bg-white/10 rounded">Merchants</a>
+          <Link href="/products" className="block p-2 hover:bg-white/10 rounded">Products</Link>
+          <Link href="/merchants" className="block p-2 hover:bg-white/10 rounded">Merchants</Link>
         </nav>
       </aside>
       <div className="flex-1 flex flex-col min-w-0">
