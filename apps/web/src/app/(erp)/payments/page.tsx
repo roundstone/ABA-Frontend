@@ -1,4 +1,3 @@
 
-export default function StubPage() {
-  return <div className="p-8"><h1 className="text-h1">STUB — Phase N</h1><p>Route: /payments</p></div>;
-}
+import { PaymentTable } from '@/features/payments/components/PaymentTable';
+export default function PaymentsPage() { return <PaymentTable />; }
