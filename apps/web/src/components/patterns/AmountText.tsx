@@ -31,7 +31,7 @@ export function AmountText({
 
   // Combine classes. text-error is red in our globals.css, font-variant-numeric: tabular-nums is applied if needed, but let's apply a utility class.
   const colorClass = isNegative ? 'text-error' : '';
-  const classes = `tabular-nums ${colorClass} ${className}`.trim();
+  const classes = `tabular-nums text-right ${colorClass} ${className}`.trim();
 
   return (
     <span className={classes} {...props}>

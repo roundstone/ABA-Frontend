@@ -6,8 +6,9 @@ import { Product } from '@/data/products';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { useQuickViewStore } from '@/store/useQuickViewStore';
+import { toast } from 'sonner';
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCardx({ product }: { product: Product }) {
   const addToCart = useCartStore(state => state.addToCart);
   const addToWishlist = useWishlistStore(state => state.toggleWishlist);
   const setQuickViewProduct = useQuickViewStore(state => state.setProduct);
@@ -21,6 +22,9 @@ export default function ProductCard({ product }: { product: Product }) {
       image: product.image,
       quantity: 1
     });
+    console.log('added');
+    
+    toast.success(`${product.name} added to cart!`);
   };
 
   const handleAddToWishlist = (e: React.MouseEvent) => {

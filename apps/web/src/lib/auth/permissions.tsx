@@ -10,7 +10,9 @@ export const ROLES = {
   USER: [PERMISSIONS.VIEW_DASHBOARD],
 };
 
-export function usePermission(_permission: string) {
+export function usePermission(_permission?: string) {
+  console.log(_permission);
+  
   return true;
 }
 

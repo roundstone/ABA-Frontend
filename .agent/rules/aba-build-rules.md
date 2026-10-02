@@ -27,7 +27,7 @@ Requirement checklists live in `/docs/checklist/` (`REQ-<doc>-<nnn>`), and progr
 ## 2. Before writing any code
 
 1. Read the spec sections for the task, fully, not a summary. Quote the section numbers you are implementing.
-2. Read the matching REQ items in `/docs/checklist/`.
+2. Read the matching REQ items in `/docs/checklist/`. Also include mock-data lines tagged "Mock §<this module's number>" and any lines marked [SPLIT] or appended at the end for this section.
 3. Search the repo for existing pages, components, hooks and types that already cover the need. Reuse or extend them. Do not duplicate.
 4. State a short plan: files to create or change, and which REQ IDs they satisfy.
 

@@ -1,0 +1,188 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createMerchantSchema, CreateMerchantInput } from '@/features/merchants/schemas';
+import { PageHeader } from '@/components/patterns/PageHeader';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+import { createMerchant } from '@/features/merchant/api';
+
+export default function NewMerchantPage() {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { register, handleSubmit, formState: { errors } } = useForm<CreateMerchantInput>({
+    resolver: zodResolver(createMerchantSchema) as any,
+    defaultValues: {
+      type: 'Partner',
+      settlementFrequency: 'Weekly',
+      priceList: 'Default',
+      discountLimit: 0,
+      creditLimit: 0,
+      createOwnerLogin: true,
+    }
+  });
+
+  const onSubmit = async (data: CreateMerchantInput) => {
+    setIsSubmitting(true);
+    try {
+      const newMerchant = await createMerchant(data);
+      toast.success('Merchant created and submitted for approval');
+      router.push(`/erp/merchants/${newMerchant?.data?.id}`);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to onboard merchant');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6 max-w-4xl pb-20">
+      <PageHeader 
+        title="Onboard Merchant" 
+        description="Register a new retail outlet or partner."
+        backHref="/erp/merchants"
+      />
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        
+        {/* Business */}
+        <div className="bg-surface rounded-xl border border-border overflow-hidden">
+          <div className="bg-surface-2 px-6 py-4 border-b border-border">
+            <h3 className="font-medium text-lg">Business Details</h3>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Store Name <span className="text-error">*</span></label>
+                <Input {...register('name')} placeholder="e.g. Aba Hub Ikeja" error={errors.name?.message} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Legal Name <span className="text-error">*</span></label>
+                <Input {...register('legalName')} placeholder="Aba Hub Nigeria Ltd" error={errors.legalName?.message} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Merchant Type <span className="text-error">*</span></label>
+                <select {...register('type')} className="w-full flex h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                  <option value="Own outlet">Own outlet</option>
+                  <option value="Franchise">Franchise</option>
+                  <option value="Partner">Partner</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">RC / Tax ID (Optional)</label>
+                <Input {...register('rcNumber')} placeholder="RC123456" error={errors.rcNumber?.message} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Contact */}
+        <div className="bg-surface rounded-xl border border-border overflow-hidden">
+          <div className="bg-surface-2 px-6 py-4 border-b border-border">
+            <h3 className="font-medium text-lg">Contact Information</h3>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Owner Name <span className="text-error">*</span></label>
+                <Input {...register('ownerName')} placeholder="John Doe" error={errors.ownerName?.message} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Phone Number <span className="text-error">*</span></label>
+                <Input {...register('phone')} placeholder="+2348000000000" error={errors.phone?.message} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Email Address <span className="text-error">*</span></label>
+                <Input type="email" {...register('email')} placeholder="store@example.com" error={errors.email?.message} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Website (Optional)</label>
+                <Input {...register('website')} placeholder="https://..." error={errors.website?.message} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Location */}
+        <div className="bg-surface rounded-xl border border-border overflow-hidden">
+          <div className="bg-surface-2 px-6 py-4 border-b border-border">
+            <h3 className="font-medium text-lg">Physical Location</h3>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Street Address <span className="text-error">*</span></label>
+              <Input {...register('address')} placeholder="123 Main Street" error={errors.address?.message} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">City <span className="text-error">*</span></label>
+                <Input {...register('city')} placeholder="Ikeja" error={errors.city?.message} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">State <span className="text-error">*</span></label>
+                <Input {...register('state')} placeholder="Lagos" error={errors.state?.message} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">LGA (Optional)</label>
+                <Input {...register('lga')} placeholder="Ikeja LGA" error={errors.lga?.message} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Settlement */}
+        <div className="bg-surface rounded-xl border border-border overflow-hidden">
+          <div className="bg-surface-2 px-6 py-4 border-b border-border">
+            <h3 className="font-medium text-lg">Bank & Settlement</h3>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Bank Name <span className="text-error">*</span></label>
+                <select {...register('bankName')} className="w-full flex h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                  <option value="">Select Bank</option>
+                  <option value="GTBank">GTBank</option>
+                  <option value="Zenith Bank">Zenith Bank</option>
+                  <option value="First Bank">First Bank</option>
+                </select>
+                {errors.bankName && <p className="text-xs text-error">{errors.bankName.message}</p>}
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Account Number <span className="text-error">*</span></label>
+                <Input {...register('accountNumber')} placeholder="10 Digits" maxLength={10} error={errors.accountNumber?.message} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Frequency <span className="text-error">*</span></label>
+                <select {...register('settlementFrequency')} className="w-full flex h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                  <option value="Daily">Daily</option>
+                  <option value="Weekly">Weekly</option>
+                  <option value="On request">On Request</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 border-t border-border pt-6">
+          <Button type="button" variant="outline" onClick={() => router.push('/merchants')} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting...' : 'Submit for Approval'}
+          </Button>
+        </div>
+
+      </form>
+    </div>
+  );
+}

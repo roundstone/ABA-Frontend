@@ -1,2 +1,2 @@
 
-export const getWidgetData = async (widgetId: string) => ({});
+export const getWidgetData = async () => ({});

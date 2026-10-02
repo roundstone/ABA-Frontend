@@ -89,10 +89,10 @@ Customer → Product → Sales Order → (Approval) → Payment → Inventory �
 | # | Actor | Screen | Action | System effects | Modules |
 |---|---|---|---|---|---|
 | 1 | Sales officer | `/orders/new` | Select customer, merchant, add items | Live stock check per line, price list applied, credit/wallet shown | Customers, Products, Inventory |
-| 2 | Sales officer | Order form | **Place order** | Order `Pending` (or `Awaiting Approval` if discount/credit beyond limit); stock **reserved**; `order.placed` | Orders, Inventory, Audit |
+| 2 | Sales officer | Order form | **Place order** | Order `Pending` (or `Awaiting Approval` if discount/credit beyond limit); stock **reserved**; `order.placed`. **WhatsApp alert** sent to Merchant/Vendor for instant fulfillment prep | Orders, Inventory, Audit |
 | 2a | Approver | Approval drawer / Action Center | Approve/Reject | Approve → `Pending`; reject → `Cancelled` w/ reason; requester notified | Orders, Notifications |
-| 3 | Cashier/Finance | Order detail → Record payment | Enter payment | `payment.completed`; order Paid/Partially Paid; JE Dr Cash/Cr AR; receipt | Payments, Orders, Finance, Customers |
-| 4 | Warehouse | Order detail → Fulfil | Pack/ship/deliver (partial allowed) | `order.fulfilled`; stock **issued** (reservation → movement); JE Dr COGS/Cr Inventory | Inventory, Finance |
+| 3 | Cashier/Finance | Order detail → Record payment | Enter payment | `payment.completed`; order Paid/Partially Paid; JE Dr Cash/Cr AR; receipt. **WhatsApp update** to Customer ("Payment confirmed") | Payments, Orders, Finance, Customers |
+| 4 | Warehouse | Order detail → Fulfil | Pack/ship/deliver (partial allowed) | `order.fulfilled`; stock **issued** (reservation → movement); JE Dr COGS/Cr Inventory. **WhatsApp update** to Customer ("Order Shipped/Delivered") | Inventory, Finance |
 | 5 | System | — | Order fully paid + delivered ⇒ `Completed` | `order.completed`; revenue recognised (Dr AR/Cash…Cr Sales/VAT); referral qualification check; commission engine | Finance, Referrals, Commissions |
 | 6 | Manager | `/sales`, `/reports` | Review | Dashboards/reports refresh via invalidation | Reports |
 

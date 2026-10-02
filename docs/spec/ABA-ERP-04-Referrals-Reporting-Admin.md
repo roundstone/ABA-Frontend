@@ -26,7 +26,7 @@ Referrers (customers with portal access), Sales/Partnerships Manager, Admin, Fra
 /referrals/flags                  Suspicious referrals (review queue)
 /referrals/settings               Program rules
 /referrals/[id]                   Referral detail
-Portal: /account/referrals        My referrals   |   /account/referrals/share  Share tools
+Portal: /account/referrals        My referrals   |   /account/referrals/share  Share tools   |   /account/referrals/leaderboard  Top Earners Spotlight
 ```
 
 ## 1.5 Dashboard
@@ -58,7 +58,13 @@ Each customer with referral eligibility gets a unique code (`ABA-XXXXXX`, non-gu
 - **Reassign upline (Admin):** drawer: customer, current upline, new upline, reason* — shows impact preview ("Affects 14 downline members; 6 pending commissions will be recalculated; paid commissions unaffected"). Blocked if the customer has any qualified order (setting override with dual approval). Loop detection.
 - Mobile: tree becomes indented accordion list.
 
-## 1.10 Qualification
+## 1.10 Unattributed Sales & Round-Robin Allocation
+Organic or "orphan" signups (users registering or purchasing without a referral code) still generate a commission structure.
+- **First-Line Pool:** A configured pool of "first-line" chief promoters (e.g., core shareholders/partners).
+- **Round-Robin Assignment:** Unattributed sales are automatically assigned to one of the first-line promoters using a round-robin algorithm.
+- **Benefit:** Ensures that all sales contribute to the MLM structure and provides ongoing incentives to the platform's core promoters.
+
+## 1.11 Qualification
 Configured in Settings (defaults come from the commission plan's trigger). Referral lifecycle:
 ```text
 Link click/code → Signed up (Registered) → First order placed (Ordered)
@@ -68,10 +74,10 @@ Fraud check hit → Flagged → Reviewed → Qualified / Disqualified
 ```
 Manual mode: qualification requires `referrals.approve`.
 
-## 1.11 Suspicious referral queue `/referrals/flags`
+## 1.12 Suspicious referral queue `/referrals/flags`
 Signals (auto): same phone/device/IP/bank account as referrer or within chain, burst of signups from one IP, new accounts with immediate orders then refunds, mismatched names on payout bank accounts, unusually high velocity. Each flag has severity (Low/Med/High) and evidence. Actions: **Clear** (note), **Hold commissions** (sets linked commissions `on_hold`), **Disqualify** (reason; cascades commission reversal), **Escalate**. Decisions audited.
 
-## 1.12 Program settings `/referrals/settings`
+## 1.13 Program settings `/referrals/settings`
 | Setting | Options |
 |---|---|
 | Program status | On/Off |
@@ -83,20 +89,23 @@ Signals (auto): same phone/device/IP/bank account as referrer or within chain, b
 | Limits | Max referrals/day per referrer; block same-device chains |
 | Terms & conditions | Rich text shown at portal enrollment; versioned; acceptance logged |
 | Messaging | Share message templates, SMS/email templates |
+| Round-Robin Pool | Manage the list of "first-line" promoters for unattributed sales |
 
-## 1.13 Statuses
+## 1.14 Statuses
 Registered (info), Ordered (info), Pending Qualification (warning), Qualified (success), Expired (neutral), Flagged (warning), Disqualified (error).
 
-## 1.14 Workflow
+## 1.15 Workflow
 See Doc 5 (Referral workflow): Customer → Code/Link → Referred customer → Order → Qualified → Commission → Approval → Payout → Finance → Reporting.
 
-## 1.15 Relationships
+## 1.16 Relationships
 Customers (referred-by, code), Orders/Payments (qualification events), Commissions (engine), Payouts, Finance, Reports, Audit.
 
-## 1.16 Notifications & states
-Referrer (SMS/push/email): someone signed up with your code, referral qualified, commission earned, referral expired. Staff: high-severity flag, reassign approval needed. Empty portal state: "Share your link to start earning" with share tools. Empty admin list standard. Invalid/disabled code at signup → inline message "This referral code isn't valid. Continue without a code or check with your referrer."
+## 1.17 Notifications & states
+Referrer (SMS/push/email): someone signed up with your code, referral qualified, commission earned, referral expired. 
+Round-Robin Winner (Email/In-app): "Congratulations on your new sale; your topline person that facilitated this trade is XYZ."
+Staff: high-severity flag, reassign approval needed. Empty portal state: "Share your link to start earning" with share tools. Empty admin list standard. Invalid/disabled code at signup → inline message "This referral code isn't valid. Continue without a code or check with your referrer."
 
-**Audited:** code generation/regeneration/disable, attribution set/changed, qualification decisions, flags, reassignments, settings changes.
+**Audited:** code generation/regeneration/disable, attribution set/changed, qualification decisions, flags, reassignments, settings changes, round-robin assignments.
 
 ---
 
@@ -240,7 +249,7 @@ The main dashboard (Doc 1 §8) renders a **role template**: a fixed layout of wi
 | **Production Manager** | WOs In Progress, Units Produced, Plan Attainment %, Yield %, Scrap %, Overdue WOs | Output planned vs actual, Yield trend, Orders by stage | Material shortages, today's schedule |
 | **Merchant Owner / Manager** | Today's Sales, Orders, Stock Value, Low Stock, Commission Earned, Balance Owed/To Receive | Sales over time, Top products, Payment methods | Open POS sessions, pending transfers, settlements |
 | **Cashier** | *No ERP dashboard* — lands on POS session gate (`/pos`) | | |
-| **Referrer / Customer (portal)** | Wallet Balance, Commission Available, Pending Commission, Total Referrals, Qualified, Orders | Earnings over time, Referrals funnel | Recent orders, latest commissions, share link CTA |
+| **Referrer / Customer (portal)** | Wallet Balance, Commission Available, Pending Commission, Total Referrals, Qualified, Orders | Earnings over time, Referrals funnel, **Promoter Leaderboard (Top 10)** | Recent orders, latest commissions, share link CTA |
 | **Auditor** | Audit events today, Overrides this week, Failed logins, Period status | Activity by module, Overrides trend | Recent high-risk events |
 
 Widgets fetch independently (`GET /dashboard/{widget}`), so one failure never breaks the page. Widget-level permission: if the user lacks the underlying module view permission, the widget is omitted (not shown as an error).
@@ -359,12 +368,12 @@ The UI shows a tooltip when an action is disabled for these reasons: "You can't 
 | **Tax** | Tax classes (VAT 7.5%, exempt), inclusive/exclusive default, tax accounts |
 | **Payment methods** | See Doc 3 §4.12 |
 | **Approvals** | Chains and thresholds per document type (PR, PO, adjustment, refund, commission, payout, journal, expense); approver roles; escalation timeouts |
-| **Notifications** | Event × channel matrix (In-app, Email, SMS, Push) with role defaults; templates (subject/body with variables, preview, test send) |
+| **Notifications** | Event × channel matrix (In-app, Email, SMS, Push, WhatsApp) with role defaults; templates (subject/body with variables, preview, test send) |
 | **Referral & commission** | Links to Referral settings (§1.12) and Commission plans (Doc 3 §6.6) |
 | **POS defaults** | Links to per-merchant POS settings; global defaults |
 | **Inventory** | Valuation method, negative stock allowed, reservation behavior, reorder defaults, expiry alerts |
 | **Security** | Password policy, 2FA enforcement by role, session timeout, IP allow-list (optional), login attempt limits, audit alert rules |
-| **Integrations** | Payment gateway status, SMS/email providers, bank verification, webhooks (status, masked keys, Test connection, event logs) |
+| **Integrations** | Payment gateway status, SMS/email/WhatsApp providers (e.g., Twilio, Meta), bank verification, webhooks (status, masked keys, Test connection, event logs) |
 | **Data** | Import history, export limits, retention info |
 Each settings form: standard form system, "Save changes" sticky footer, dirty guard, audit on save with before/after diff, sensitive keys masked with "Replace" action.
 

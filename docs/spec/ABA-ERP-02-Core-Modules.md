@@ -306,6 +306,7 @@ KPIs: Today's sales · Orders · Stock value · Low-stock items · Commission ea
 | Location | Address*, City*, State*, LGA, Map pin (optional) |
 | Settlement | Bank (select)*, Account number* (10 digits, name resolved via API and shown read-only for confirmation), Settlement frequency (Daily/Weekly/On request) |
 | Commercial | Price list (Default/Wholesale), Discount limit % (max cashier discount), Commission override (optional), Credit limit ₦ |
+| Spotlight | **Featured Vendor** toggle (for Storefront), **Vendor Story/Bio** (rich text), Banner image |
 | Warehouse | Linked warehouse/location (auto-created "Shop stock" location) |
 | Access | Create owner login (switch), Initial staff (repeat: name, phone, role Cashier/Manager) |
 Submit: **Submit for approval** (status `pending`) or **Save & activate** for users with `merchants.approve`.
@@ -313,6 +314,7 @@ Submit: **Submit for approval** (status `pending`) or **Save & activate** for us
 ## 4.8 Merchant detail
 Header: logo, name, status, type; actions: Edit, Suspend, Open POS, More. Cards: Sales (period) · Orders · Stock value · Outstanding balance · Commission earned.
 - **Overview:** contact/settlement, performance score (sales growth, fulfilment time, return rate), map.
+- **Spotlight:** storefront visibility settings (featured status, bio, media).
 - **Products:** merchant-specific availability & price overrides table (Product, Default price, Merchant price, Enabled); bulk edit.
 - **Orders & Sales:** DataTable of orders/POS sales + sales chart.
 - **Inventory:** stock at merchant location with reorder/transfer request actions.
