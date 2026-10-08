@@ -2,8 +2,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-
-
 @theme {
   --color-brand-50: var(--brand-50);
   --color-brand-100: var(--brand-100);
@@ -54,12 +52,14 @@
   --radius-xl: 16px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 1px 2px rgba(16,24,40,.06);
-  --shadow-md: 0 4px 12px rgba(16,24,40,.10);
-  --shadow-lg: 0 16px 40px rgba(16,24,40,.16);
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.1);
+  --shadow-lg: 0 16px 40px rgba(16, 24, 40, 0.16);
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-mono:
+    var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 :root {
@@ -75,36 +75,36 @@
   --red-robin: #7f4522;
   --copper: #bd8939;
 
-  --bg: #F6F7F9;
-  --surface: #FFFFFF;
-  --surface-2: #F1F3F6;
-  --border: #E3E6EB;
-  --border-strong: #C9CED6;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f1f3f6;
+  --border: #e3e6eb;
+  --border-strong: #c9ced6;
   --text: #111827;
-  --text-muted: #5B6472;
-  --text-subtle: #8A93A0;
-  --sidebar-bg: #0F172A;
-  --sidebar-text: #CBD5E1;
+  --text-muted: #5b6472;
+  --text-subtle: #8a93a0;
+  --sidebar-bg: #0f172a;
+  --sidebar-text: #cbd5e1;
 
-  --success: #15803D;
-  --success-bg: #ECFDF3;
-  --success-border: #ABEFC6;
+  --success: #15803d;
+  --success-bg: #ecfdf3;
+  --success-border: #abefc6;
 
-  --warning: #B45309;
-  --warning-bg: #FFFAEB;
-  --warning-border: #FEDF89;
+  --warning: #b45309;
+  --warning-bg: #fffaeb;
+  --warning-border: #fedf89;
 
-  --error: #B42318;
-  --error-bg: #FEF3F2;
-  --error-border: #FECDCA;
+  --error: #b42318;
+  --error-bg: #fef3f2;
+  --error-border: #fecdca;
 
-  --info: #175CD3;
-  --info-bg: #EFF8FF;
-  --info-border: #B2DDFF;
+  --info: #175cd3;
+  --info-bg: #eff8ff;
+  --info-border: #b2ddff;
 
   --neutral: #475467;
-  --neutral-bg: #F2F4F7;
-  --neutral-border: #E4E7EC;
+  --neutral-bg: #f2f4f7;
+  --neutral-border: #e4e7ec;
   --background: var(--bg);
   --foreground: var(--text);
   --card: var(--surface);
@@ -112,7 +112,7 @@
   --popover: var(--surface);
   --popover-foreground: var(--text);
   --primary: var(--brand-500);
-  --primary-foreground: #FFFFFF;
+  --primary-foreground: #ffffff;
   --secondary: var(--surface-2);
   --secondary-foreground: var(--text);
   --muted: var(--surface-2);
@@ -122,23 +122,23 @@
   --destructive: var(--error);
   --input: var(--border);
   --ring: var(--brand-500);
-  --chart-1: #2F6BFF;
-  --chart-2: #12B76A;
-  --chart-3: #F79009;
-  --chart-4: #7A5AF8;
-  --chart-5: #06AED4;
-  --chart-6: #F04438;
+  --chart-1: #2f6bff;
+  --chart-2: #12b76a;
+  --chart-3: #f79009;
+  --chart-4: #7a5af8;
+  --chart-5: #06aed4;
+  --chart-6: #f04438;
   --chart-7: #667085;
   --radius: var(--radius-md);
   --sidebar: var(--sidebar-bg);
   --sidebar-foreground: var(--sidebar-text);
   --sidebar-primary: var(--brand-500);
-  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: var(--sidebar-bg);
-  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-accent-foreground: #ffffff;
   --sidebar-border: var(--border-strong);
   --sidebar-ring: var(--brand-500);
-  --scrim: rgba(15,23,42,0.4);
+  --scrim: rgba(15, 23, 42, 0.4);
   --overlay: var(--surface);
 }
 
@@ -316,11 +316,11 @@ body {
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-
-
 @layer base {
   @media (max-width: 639px) {
-    input, select, textarea {
+    input,
+    select,
+    textarea {
       font-size: 16px !important;
     }
     body {
@@ -341,7 +341,7 @@ body {
 
 @layer utilities {
   .animate-marquee {
-    animation: marquee 30s linear infinite;
+    animation: marquee 100s linear infinite;
   }
   .animate-marquee:hover {
     animation-play-state: paused;
@@ -349,6 +349,10 @@ body {
 }
 
 @keyframes marquee {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }

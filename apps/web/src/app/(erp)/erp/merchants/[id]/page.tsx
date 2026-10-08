@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -257,7 +259,7 @@ export default function MerchantDetailsPage() {
               <div className="bg-surface p-6 rounded-xl border border-border">
                 <h4 className="text-text-muted text-xs font-medium uppercase tracking-wider mb-2">Referral Code</h4>
                 <div className="flex items-center gap-4">
-                  <span className="text-2xl font-mono font-bold text-text">ABA-{merchant.name.substring(0, 3).toUpperCase()}-7X9</span>
+                  <span className="text-2xl font-mono font-bold text-text">${brand.shortName}-{merchant.name.substring(0, 3).toUpperCase()}-7X9</span>
                   <Button variant="outline" size="sm">Copy</Button>
                 </div>
                 <p className="text-sm text-text-muted mt-2">Share this code to earn commissions.</p>
@@ -266,7 +268,7 @@ export default function MerchantDetailsPage() {
               <div className="bg-surface p-6 rounded-xl border border-border">
                 <h4 className="text-text-muted text-xs font-medium uppercase tracking-wider mb-2">Referred By (Upline)</h4>
                 <div className="flex flex-col">
-                  <span className="text-lg font-semibold text-text">ABA SuperStore Ikeja</span>
+                  <span className="text-lg font-semibold text-text">{brand.name} SuperStore Ikeja</span>
                   <span className="text-sm text-text-muted">ID: MER-23948</span>
                 </div>
               </div>

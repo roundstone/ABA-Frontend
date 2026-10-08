@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -18,6 +20,7 @@ export default function CartPage() {
     removeFromCart, 
     isSyncing 
   } = useCartStore();
+  const totalItems = useCartStore(state => state.getTotalItems());
 
   // Avoid hydration mismatch by only rendering after mount
   useEffect(() => {
@@ -34,7 +37,7 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center mt-10">
         <div className="w-24 h-24 bg-surface-2 rounded-full flex items-center justify-center mx-auto mb-6">
           <Trash2 className="w-10 h-10 text-text-muted opacity-50" />
         </div>
@@ -137,7 +140,7 @@ export default function CartPage() {
             
             <div className="space-y-4 text-sm mb-6">
               <div className="flex justify-between">
-                <span className="text-text-muted">Subtotal ({useCartStore(state => state.getTotalItems())} items)</span>
+                <span className="text-text-muted">Subtotal ({totalItems} items)</span>
                 <span className="font-medium text-text"><AmountText amountInKobo={subtotal} /></span>
               </div>
               <div className="flex justify-between">
@@ -162,7 +165,7 @@ export default function CartPage() {
 
             <div className="mt-6 flex items-center gap-2 text-xs text-text-muted justify-center">
               <ShieldCheck className="w-4 h-4 text-success-main" />
-              <span>Secure Checkout Powered by ABA Online</span>
+              <span>Secure Checkout {brand.receiptFooter}</span>
             </div>
           </div>
         </div>

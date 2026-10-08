@@ -1,21 +1,18 @@
-'use client';
-
 import { PageHeader } from '@/components/patterns/PageHeader';
 import { Button } from '@/components/ui/button';
+import { RefundsTable } from '@/features/payments/components/RefundsTable';
 
 export default function RefundsPage() {
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-20 mx-auto">
       <PageHeader 
         title="Refunds" 
-        description="Manage customer refunds, returns, and reversals."
-        action={
-          <Button>Process New Refund</Button>
-        }
+        description="Manage refund requests, approvals, and processing."
+        backHref="/erp/payments"
+        action={<Button>Process Approved</Button>}
       />
-      <div className="bg-surface rounded-xl border border-border p-12 text-center text-text-muted">
-        <p>Refunds list tracking requested, approved, and processed refunds.</p>
-        <p className="text-sm mt-2">Requires integration with Orders returns workflow.</p>
+      <div className="bg-surface rounded-xl border border-border p-6">
+        <RefundsTable />
       </div>
     </div>
   );

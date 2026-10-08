@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import { PageHeader } from '@/components/patterns/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -35,7 +37,7 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-medium">Legal Company Name</label>
-                <Input defaultValue="ABA Enterprises Ltd." />
+                <Input defaultValue="${brand.shortName} Enterprises Ltd." />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Tax ID / TIN</label>
@@ -43,7 +45,7 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Support Email</label>
-                <Input defaultValue="support@aba.com.ng" type="email" />
+                <Input defaultValue="support@${brand.domain}" type="email" />
               </div>
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-medium">Headquarters Address</label>

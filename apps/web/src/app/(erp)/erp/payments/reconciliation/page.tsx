@@ -1,141 +1,133 @@
 'use client';
 
-import { useState } from 'react';
 import { PageHeader } from '@/components/patterns/PageHeader';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AmountText } from '@/components/patterns/AmountText';
+import { useState } from 'react';
 
-// Mock un-reconciled statement lines (from bank CSV)
-const STATEMENT_LINES = [
-  { id: 'st-1', date: '2026-09-30', description: 'NIP/TRF/JOHN DOE/ORD-10482', amount: 16625000, type: 'Credit' },
-  { id: 'st-2', date: '2026-09-30', description: 'POS SETTLEMENT REF:1903', amount: 2652500, type: 'Credit' },
-  { id: 'st-3', date: '2026-09-30', description: 'MAINTENANCE FEE', amount: 500000, type: 'Debit' },
-];
-
-// Mock pending internal payments
-const INTERNAL_PAYMENTS = [
-  { id: 'pay-1', ref: 'PAY-89234', date: '2026-09-30', amount: 16625000, method: 'Transfer', status: 'Pending', party: 'Aisha Bello' },
-  { id: 'pay-2', ref: 'PAY-89235', date: '2026-09-30', amount: 2687500, fee: 35000, net: 2652500, method: 'Card', status: 'Completed', party: 'Walk-in' },
-];
-
-export default function ReconciliationPage() {
-  const [activeAccount, setActiveAccount] = useState('acc-gtb');
+export default function BankReconciliationPage() {
+  const [step, setStep] = useState(1);
+  const [difference] = useState(2500000); // Mock difference
 
   return (
-    <div className="space-y-6 pb-20 max-w-7xl mx-auto">
+    <div className="space-y-6 pb-20 mx-auto max-w-6xl">
       <PageHeader 
-        title="Bank Reconciliation" 
-        description="Match imported bank statements against internal payment records."
-        action={
-          <div className="flex gap-2">
-            <Button variant="outline">Import CSV</Button>
-            <Button>Auto-Match</Button>
-          </div>
-        }
+        title="Bank & Gateway Reconciliation" 
+        description="Upload statements and match lines against recorded system payments."
+        backHref="/erp/payments"
+        action={<Button onClick={() => setStep(prev => Math.min(prev + 1, 3))}>{step === 3 ? 'Complete Reconciliation' : 'Next Step'}</Button>}
       />
-
-      {/* Account Selector & Summary */}
-      <div className="bg-surface rounded-xl border border-border p-6 flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
-        <div className="flex gap-4 items-center">
-          <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl">
-            🏦
-          </div>
-          <div>
-            <select 
-              value={activeAccount} 
-              onChange={(e) => setActiveAccount(e.target.value)}
-              className="text-lg font-bold bg-transparent border-none focus:ring-0 p-0 hover:text-primary cursor-pointer"
-            >
-              <option value="acc-gtb">GTBank Corporate Main (**** 1234)</option>
-              <option value="acc-zen">Zenith Operating (**** 9876)</option>
-              <option value="acc-pos">POS Settlement Gateway</option>
-            </select>
-            <p className="text-sm text-text-muted mt-1">Last synced: 2 hours ago</p>
-          </div>
-        </div>
-        
-        <div className="flex gap-8 text-sm">
-          <div>
-            <p className="text-text-muted mb-1">Statement Balance</p>
-            <p className="font-bold text-lg"><AmountText amountInKobo={450000000} /></p>
-          </div>
-          <div>
-            <p className="text-text-muted mb-1">Ledger Balance</p>
-            <p className="font-bold text-lg"><AmountText amountInKobo={430722500} /></p>
-          </div>
-          <div>
-            <p className="text-text-muted mb-1">Unreconciled Difference</p>
-            <p className="font-bold text-lg text-error"><AmountText amountInKobo={19277500} /></p>
-          </div>
-        </div>
+      
+      {/* Stepper */}
+      <div className="flex gap-2 mb-6">
+        {[1, 2, 3].map(s => (
+          <div key={s} className={`flex-1 h-2 rounded-full ${step >= s ? 'bg-brand-500' : 'bg-border'}`} />
+        ))}
       </div>
 
-      {/* Reconciliation Split View */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Left Side: Bank Statement */}
-        <div className="bg-surface rounded-xl border border-border overflow-hidden flex flex-col h-[600px]">
-          <div className="bg-surface-2 px-6 py-4 border-b border-border flex justify-between items-center shrink-0">
-            <h3 className="font-medium">Bank Statement Lines</h3>
-            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-medium">{STATEMENT_LINES.length} Unmatched</span>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {STATEMENT_LINES.map(line => (
-              <div key={line.id} className="p-4 rounded-xl border border-border hover:border-primary cursor-pointer transition-colors group">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs font-mono text-text-muted">{line.date}</span>
-                  <span className={`font-bold ${line.type === 'Credit' ? 'text-success' : 'text-text'}`}>
-                    {line.type === 'Credit' ? '+' : '-'}<AmountText amountInKobo={line.amount} />
-                  </span>
-                </div>
-                <p className="text-sm font-medium">{line.description}</p>
-                <div className="mt-3 pt-3 border-t border-border flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="outline" size="sm" className="h-7 text-xs">Create Payment</Button>
-                  <Button size="sm" className="h-7 text-xs">Find Match →</Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right Side: Internal Ledger */}
-        <div className="bg-surface rounded-xl border border-border overflow-hidden flex flex-col h-[600px]">
-          <div className="bg-surface-2 px-6 py-4 border-b border-border flex justify-between items-center shrink-0">
-            <h3 className="font-medium">Internal Payments</h3>
-            <div className="relative w-48">
-              <input type="text" placeholder="Search amounts or refs..." className="w-full h-8 text-xs px-3 rounded border border-border bg-surface" />
+      {step === 1 && (
+        <div className="bg-surface rounded-xl border border-border p-12 text-center max-w-2xl mx-auto space-y-6">
+          <h2 className="text-xl font-bold">Select Account & Period</h2>
+          <div className="grid grid-cols-2 gap-4 text-left">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Bank Account</label>
+              <Select defaultValue="gtb-main">
+                <SelectTrigger><SelectValue placeholder="Select Account" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gtb-main">GTBank Main Account</SelectItem>
+                  <SelectItem value="paystack">Paystack Gateway</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Period</label>
+              <Select defaultValue="sep-2026">
+                <SelectTrigger><SelectValue placeholder="Select Period" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sep-2026">September 2026</SelectItem>
+                  <SelectItem value="aug-2026">August 2026</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {INTERNAL_PAYMENTS.map(pay => (
-              <div key={pay.id} className="p-4 rounded-xl border border-border hover:border-primary transition-colors flex flex-col justify-between group">
-                <div>
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="text-xs font-mono font-medium text-primary">{pay.ref}</span>
-                    <span className="font-bold text-success">
-                      +<AmountText amountInKobo={pay.net || pay.amount} />
-                    </span>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="bg-surface rounded-xl border border-border p-12 text-center max-w-2xl mx-auto space-y-6">
+          <h2 className="text-xl font-bold">Upload Statement</h2>
+          <div className="border-2 border-dashed border-border rounded-xl p-12 hover:bg-surface-2 transition-colors cursor-pointer flex flex-col items-center gap-4">
+            <span className="text-4xl text-brand-500">📄</span>
+            <div>
+              <p className="font-medium text-lg">Click to upload statement file</p>
+              <p className="text-sm text-text-muted">Supports CSV, XLSX (Max 10MB)</p>
+            </div>
+          </div>
+          <p className="text-sm text-text-muted">Or fetch automatically via gateway API</p>
+          <Button variant="outline" className="w-full">Fetch from Gateway Integration</Button>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-surface border border-border p-4 rounded-xl">
+              <p className="text-sm text-text-muted">Statement Balance</p>
+              <p className="text-2xl font-bold"><AmountText amountInKobo={52500000} /></p>
+            </div>
+            <div className="bg-surface border border-border p-4 rounded-xl">
+              <p className="text-sm text-text-muted">Book Balance</p>
+              <p className="text-2xl font-bold"><AmountText amountInKobo={50000000} /></p>
+            </div>
+            <div className={`border p-4 rounded-xl ${difference === 0 ? 'bg-success-light border-success-dark' : 'bg-error-light border-error'}`}>
+              <p className="text-sm font-medium">Difference</p>
+              <p className="text-2xl font-bold"><AmountText amountInKobo={difference} /></p>
+              {difference !== 0 && <p className="text-xs mt-1">Must be ₦0 to complete</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6 h-[500px]">
+            {/* Statement Lines (Left) */}
+            <div className="bg-surface border border-border rounded-xl flex flex-col overflow-hidden">
+              <div className="p-4 border-b border-border bg-surface-2 font-bold text-sm">Statement Lines (Bank)</div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="p-3 border border-border rounded-lg flex justify-between items-center hover:border-brand-500 cursor-pointer">
+                    <div>
+                      <p className="font-medium text-sm">Sep 1{i}, 2026</p>
+                      <p className="text-xs text-text-muted">TRF/GTB/CUSTOMER {i}</p>
+                    </div>
+                    <span className="font-bold text-success-dark">+ <AmountText amountInKobo={i * 1000000} /></span>
                   </div>
-                  <p className="text-sm">{pay.party}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-[10px] bg-surface-2 border border-border px-1.5 py-0.5 rounded text-text-muted">{pay.method}</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded border ${pay.status === 'Pending' ? 'bg-warning-bg text-warning-dark border-warning-border' : 'bg-success-bg text-success border-success-border'}`}>
-                      {pay.status}
-                    </span>
+                ))}
+              </div>
+            </div>
+
+            {/* System Payments (Right) */}
+            <div className="bg-surface border border-border rounded-xl flex flex-col overflow-hidden">
+              <div className="p-4 border-b border-border bg-surface-2 font-bold text-sm flex justify-between">
+                <span>System Payments (Book)</span>
+                <span className="text-brand-500 cursor-pointer">Auto-match ✨</span>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                {[1, 2].map(i => (
+                  <div key={i} className="p-3 border border-border rounded-lg flex justify-between items-center hover:border-brand-500 cursor-pointer">
+                    <div>
+                      <p className="font-medium text-sm">PAY-2026-00{i}</p>
+                      <p className="text-xs text-text-muted">Order ORD-00{i}</p>
+                    </div>
+                    <span className="font-bold text-success-dark">+ <AmountText amountInKobo={i * 1000000} /></span>
                   </div>
-                </div>
-                <div className="mt-3 pt-3 border-t border-border flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button size="sm" className="h-7 text-xs bg-success hover:bg-success-dark text-white w-full">
-                    Confirm Match
-                  </Button>
+                ))}
+                <div className="p-4 border border-dashed border-border rounded-lg text-center text-sm text-text-muted mt-4">
+                  Drag statement lines here to match, or select multiple and click "Match".
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
-
-      </div>
-
+      )}
     </div>
   );
 }

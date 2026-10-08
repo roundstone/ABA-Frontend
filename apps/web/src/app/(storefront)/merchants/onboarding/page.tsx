@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -76,7 +78,7 @@ export default function MerchantOnboarding() {
         </div>
         <h1 className="text-4xl font-bold text-text mb-4">Application Submitted!</h1>
         <p className="text-lg text-text-muted mb-8">
-          Thank you for applying to become an ABA Online Merchant. Our team will review your application and contact you within 24-48 hours.
+          Thank you for applying to become a {brand.name} Merchant. Our team will review your application and contact you within 24-48 hours.
         </p>
         <Link href="/">
           <Button size="lg" className="rounded-full px-8">Return Home</Button>
@@ -95,7 +97,7 @@ export default function MerchantOnboarding() {
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-brand-900 mb-4">Become a Merchant</h1>
           <p className="text-text-muted max-w-xl mx-auto">
-            Join Aba's largest digital marketplace. Reach more customers, manage your digital storefront, and scale your operations.
+            Join Nigeria's largest digital marketplace. Reach more customers, manage your digital storefront, and scale your operations.
           </p>
         </div>
 
@@ -149,7 +151,7 @@ export default function MerchantOnboarding() {
                   <input 
                     {...register('businessName')} 
                     className="w-full h-12 px-4 rounded-lg border border-border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"
-                    placeholder="e.g. Aba Leather Works Ltd"
+                    placeholder={`e.g. ${brand.name} Leather Works Ltd`}
                   />
                   {errors.businessName && <p className="text-error text-xs mt-1">{errors.businessName.message}</p>}
                 </div>
@@ -235,7 +237,7 @@ export default function MerchantOnboarding() {
                     <input 
                       {...register('city')} 
                       className="w-full h-12 px-4 rounded-lg border border-border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"
-                      placeholder="e.g. Aba"
+                      placeholder="e.g. Lagos"
                     />
                     {errors.city && <p className="text-error text-xs mt-1">{errors.city.message}</p>}
                   </div>

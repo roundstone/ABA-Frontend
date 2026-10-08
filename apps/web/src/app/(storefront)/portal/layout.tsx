@@ -1,9 +1,11 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, Wallet, Users, Settings, Bell, LogOut } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Wallet, Users, Settings, Bell, LogOut, Medal } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store';
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
@@ -21,12 +23,14 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
     { name: 'Orders', href: '/portal/orders', icon: ShoppingBag },
     { name: 'My Wallet', href: '/portal/wallet', icon: Wallet },
     { name: 'Referrals', href: '/portal/referrals', icon: Users },
+    { name: 'Rewards', href: '/portal/rewards', icon: Medal },
     { name: 'Profile', href: '/portal/profile', icon: Settings },
     { name: 'Notifications', href: '/portal/notifications', icon: Bell },
+    // saved-sellers
   ];
 
   return (
-    <div className="bg-surface-1 min-h-[calc(100vh-64px)]">
+    <div className="bg-surface-1 min-h-[calc(100vh-64px)] mt-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         <div className="flex flex-col lg:flex-row gap-8">
@@ -40,7 +44,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                 <h2 className="text-lg font-bold text-text capitalize">{user?.firstName || 'Jane'} {user?.lastName || 'Doe'}</h2>
                 <p className="text-sm text-text-muted">{user?.email || 'jane.doe@example.com'}</p>
                 <div className="mt-2 text-xs font-semibold px-2 py-1 bg-white text-brand-700 inline-block rounded border border-brand-200">
-                  Referral: {user?.referralCode || `ABA-${user?.firstName?.toUpperCase() || 'JANE'}-123`}
+                  Referral: {user?.referralCode || `${brand.referralCodePrefix}${user?.firstName?.toUpperCase() || 'JANE'}-123`}
                 </div>
               </div>
               

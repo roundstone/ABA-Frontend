@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import React, { useState } from 'react';
 import { PageHeader } from '@/components/patterns/PageHeader';
@@ -20,7 +22,7 @@ const MOCK_USERS = [
   {
     id: 'USR-001',
     name: 'Admin User',
-    email: 'admin@aba-erp.com',
+    email: 'admin@${brand.domain}',
     roles: ['Super Admin'],
     merchantScope: 'All Merchants',
     status: 'active',
@@ -32,7 +34,7 @@ const MOCK_USERS = [
   {
     id: 'USR-002',
     name: 'John Sales',
-    email: 'john@aba-erp.com',
+    email: 'john@${brand.domain}',
     roles: ['Sales Mgr'],
     merchantScope: 'All Merchants',
     status: 'active',
@@ -56,7 +58,7 @@ const MOCK_USERS = [
   {
     id: 'USR-004',
     name: 'Bob Suspended',
-    email: 'bob@aba-erp.com',
+    email: 'bob@${brand.domain}',
     roles: ['Cashier'],
     merchantScope: 'Merchant 1 HQ',
     status: 'suspended',
@@ -153,7 +155,7 @@ export default function UsersListPage() {
     <div className="space-y-6 pb-20 max-w-7xl mx-auto">
       <PageHeader 
         title="Users" 
-        description="Manage who can access ABA Online and what they can do."
+        description="Manage who can access ${brand.name} and what they can do."
         action={
           <Button className="gap-2">
             <UserPlus className="w-4 h-4" />

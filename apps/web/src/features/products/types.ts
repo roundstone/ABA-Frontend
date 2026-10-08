@@ -4,6 +4,13 @@ import { Merchant } from "../merchants/types";
 export type ProductType = 'Finished good' | 'Raw material' | 'Service' | 'Bundle';
 export type ProductStatus = 'Draft' | 'Active' | 'Archived';
 
+export interface ProductVariantAttribute {
+  name: string;
+  type: 'text' | 'colour';
+  value: string;
+  swatch?: string;
+}
+
 export interface ProductVariant {
   id: string;
   name: string;
@@ -12,9 +19,43 @@ export interface ProductVariant {
   cost: number;
   price: number;
   reorderLevel: number;
-  imageUrl?: string;
+  images: string[];
   isActive: boolean;
   stockCount: number;
+  attributes?: ProductVariantAttribute[];
+}
+
+export interface PublicVariant {
+  id: string;
+  name: string;
+  sku: string;
+  price: number;
+  isActive: boolean;
+  stockStatus: 'In stock' | 'Low stock' | 'Out of stock';
+  images: string[];
+  attributes?: ProductVariantAttribute[];
+}
+
+export interface PublicProduct {
+  id: string;
+  slug?: string;
+  name: string;
+  sku: string;
+  type: ProductType;
+  categoryName: string;
+  brand?: string;
+  description?: string;
+  status: ProductStatus;
+  images: string[];
+  price: number;
+  originalPrice?: number;
+  hasVariants: boolean;
+  variants: PublicVariant[];
+  merchant?: Merchant;
+  rating: number;
+  reviewCount: number;
+  inStock?: boolean;
+  stockStatus?: 'In stock' | 'Low stock' | 'Out of stock';
 }
 
 export interface Product {
@@ -57,6 +98,7 @@ export interface Product {
   totalStock: number;
   updatedAt: string;
   inStock?: boolean;
+  totalSold?: number;
 
   merchant?: Merchant;
 

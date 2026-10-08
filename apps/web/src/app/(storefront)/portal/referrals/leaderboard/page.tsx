@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import React from 'react';
 import Link from 'next/link';
@@ -38,7 +40,7 @@ export default function LeaderboardPage() {
           <h1 className="text-2xl font-bold text-text flex items-center gap-2">
             <Trophy className="w-6 h-6 text-warning-main" /> Promoter Rankings
           </h1>
-          <p className="text-sm text-text-muted">Top 50 earners in the ABA ecosystem</p>
+          <p className="text-sm text-text-muted">Top 50 earners in the {brand.name} ecosystem</p>
         </div>
       </div>
 

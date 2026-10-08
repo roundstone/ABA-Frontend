@@ -1,3 +1,4 @@
+import { brand } from '@/config/brand';
 import { Order } from '../types';
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
@@ -13,7 +14,7 @@ const MOCK_ORDERS: Order[] = [
     customerName: 'Aisha Bello',
     customerPhone: '+2348012345678',
     merchantId: 'mer-1',
-    merchantName: 'ABA HQ Store',
+    merchantName: `${brand.name} HQ Store`,
     channel: 'Admin',
     status: 'Pending',
     paymentStatus: 'Unpaid',

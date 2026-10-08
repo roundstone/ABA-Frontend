@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -248,7 +250,7 @@ export default function CheckoutPage() {
                     <div className="flex items-center gap-3">
                       <input type="radio" name="payment" checked={paymentMethod === 'wallet'} onChange={() => setPaymentMethod('wallet')} className="text-brand-600 w-4 h-4" />
                       <div>
-                        <p className="font-semibold text-text flex items-center gap-2"><Wallet className="w-4 h-4" /> ABA Wallet</p>
+                        <p className="font-semibold text-text flex items-center gap-2"><Wallet className="w-4 h-4" /> {brand.shortName} Wallet</p>
                         <p className="text-sm text-text-muted">Balance: <AmountText amountInKobo={150000000} /></p>
                       </div>
                     </div>
@@ -293,7 +295,7 @@ export default function CheckoutPage() {
                       <h3 className="font-semibold text-text">Payment & Delivery</h3>
                       <button onClick={() => setStep(3)} className="text-xs text-brand-600 hover:underline">Edit</button>
                     </div>
-                    <p className="text-sm text-text-muted capitalize">Method: {paymentMethod === 'card' ? 'Card Payment (Gateway)' : 'ABA Wallet'}</p>
+                    <p className="text-sm text-text-muted capitalize">Method: {paymentMethod === 'card' ? 'Card Payment (Gateway)' : '{brand.shortName} Wallet'}</p>
                     <p className="text-sm text-text-muted">Shipping: Standard Delivery</p>
                   </div>
                 </div>

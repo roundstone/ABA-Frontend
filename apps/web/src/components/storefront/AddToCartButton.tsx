@@ -12,9 +12,10 @@ interface AddToCartButtonProps {
   variant?: 'default' | 'icon';
   className?: string;
   quantity?: number;
+  disabled?: boolean;
 }
 
-export function AddToCartButton({ product, variant = 'default', className = '', quantity = 1 }: AddToCartButtonProps) {
+export function AddToCartButton({ product, variant = 'default', className = '', quantity = 1, disabled = false }: AddToCartButtonProps) {
   const { addToCart, isSyncing } = useCartStore();
   const [loading, setLoading] = React.useState(false);
 

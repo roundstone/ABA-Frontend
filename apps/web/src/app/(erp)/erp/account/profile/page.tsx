@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -17,7 +19,7 @@ export default function ProfilePage() {
     resolver: zodResolver(updateProfileSchema) as any,
     defaultValues: {
       name: 'Admin User',
-      email: 'admin@aba.com',
+      email: 'admin@${brand.domain}',
       phone: '+2348000000000',
       language: 'English',
       timezone: 'Africa/Lagos',

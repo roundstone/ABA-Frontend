@@ -1,5 +1,5 @@
 import React from 'react';
 
-export function EntityCard() {
-  return <div>EntityCard Component</div>;
+export function EntityCard({ type, entity }: any) {
+  return <div>{type}: {entity?.name}</div>;
 }

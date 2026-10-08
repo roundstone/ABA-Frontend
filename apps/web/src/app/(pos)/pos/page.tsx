@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -34,7 +36,7 @@ export default function PosGatePage() {
         
         <div className="space-y-2">
           <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary mx-auto flex items-center justify-center text-2xl font-bold mb-4">
-            ABA
+            ${brand.shortName}
           </div>
           <h1 className="text-2xl font-semibold">Select a Register</h1>
           <p className="text-text-muted text-sm">Choose a point of sale terminal to start your session.</p>

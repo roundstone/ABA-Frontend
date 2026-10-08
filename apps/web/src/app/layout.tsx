@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Geist } from "next/font/google";
+import { brand } from "@/config/brand";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -18,8 +19,11 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ABA Online ERP",
-  description: "ABA Online ERP Platform",
+  title: {
+    template: brand.metaTitleTemplate,
+    default: brand.name,
+  },
+  description: brand.tagline,
 };
 
 export default function RootLayout({

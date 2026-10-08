@@ -110,3 +110,10 @@ Stop and ask before proceeding if:
 - You want to add a dependency not implied by the spec.
 - A requirement conflicts with the existing codebase structure.
 - You are tempted to simplify, merge, or skip a requirement to save time.
+
+## 11. Route mapping
+
+1. Customer portal: spec `/account/*` is the app's `/portal/*`. So saved sellers is `/portal/saved-sellers`, rewards is `/portal/rewards`, marketer profile is `/portal/referrals/profile`, network is `/portal/referrals/network`.
+2. ERP back office: spec paths such as `/orders`, `/inventory`, `/finance` are the app's `/erp/orders`, `/erp/inventory`, `/erp/finance`.
+3. The "Sell" call to action goes to the existing `/merchants/onboarding`. The "Earn" call to action goes to `/community`.
+4. The existing `/shop` listing page becomes the product feed on `/`, with `/shop` redirecting to `/`. Its working listing and filter code is reused, not rewritten.

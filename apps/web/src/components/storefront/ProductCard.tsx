@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import React from 'react';
 import Link from 'next/link';
@@ -9,23 +11,46 @@ import { Product } from '@/features/products/types';
 
 interface ProductCardProps {
   product: Product;
+  onQuickView?: (product: Product) => void;
+  isSponsored?: boolean;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
-  const merchantName = product.merchant?.name || 'Aba Merchant';
+export function ProductCard({ product, onQuickView, isSponsored = false }: ProductCardProps) {
+  const merchantName = product.merchant?.name || 'Nigerian Merchant';
   const price = product.price ?? 0;
 
   return (
-    <Link href={`/products/${product.slug || product.id}`} className="bg-white rounded-xl border border-border overflow-hidden hover:shadow-lg transition-shadow group flex flex-col h-full">
+    <Link href={`/products/${product.slug || product.id}`} className="bg-white rounded-xl border border-border overflow-hidden hover:shadow-sm transition-shadow group flex flex-col h-full relative">
       <div className="aspect-square bg-surface-2 relative overflow-hidden flex items-center justify-center group-hover:bg-surface-1 transition-colors duration-500">
         {(product.images && product.images.length > 0) ? (
           <img src={product.images[0]} alt={product.name} className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
         ) : (
           <span className="text-brand-600 font-bold opacity-30">Image</span>
         )}
+        {isSponsored && (
+          <div className="absolute top-2 left-2 px-2 py-1 bg-gray-900 text-white text-[10px] font-bold rounded shadow-sm z-10 uppercase tracking-wide">
+            Sponsored
+          </div>
+        )}
         {product.originalPrice && product.originalPrice > price && (
           <div className="absolute top-2 right-2 px-2 py-1 bg-error text-white text-[10px] font-bold rounded shadow-sm z-10">
             -{Math.round((1 - price / product.originalPrice) * 100)}%
+          </div>
+        )}
+        
+        {/* Quick View Button */}
+        {onQuickView && (
+          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+            <button 
+              className="bg-white text-text px-4 py-2 rounded-full text-sm font-medium shadow-sm hover:bg-brand-50 hover:text-brand-600 transition-colors z-20 translate-y-4 group-hover:translate-y-0 duration-300"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onQuickView(product);
+              }}
+            >
+              Quick View
+            </button>
           </div>
         )}
       </div>

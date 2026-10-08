@@ -1,36 +1,71 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { Store, Star, MapPin, Phone, Mail, Search, MessageSquare, Loader2, Globe } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useSearchParams } from 'next/navigation';
+import { MapPin, Phone, Mail, Loader2, Globe } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getMerchantById } from '@/features/merchant/api';
 import { getShopProducts } from '@/features/shop/api';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { ErrorState } from '@/components/patterns/ErrorState';
+import { Product } from '@/features/products/types';
+import { SellerCredibilityPanel } from '../_components/SellerCredibilityPanel';
+import { StoreFilterBar } from '../_components/StoreFilterBar';
+import { StoreCategoryMenu } from '../_components/StoreCategoryMenu';
+import { ProductQuickViewModal } from '../_components/ProductQuickViewModal';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MerchantHeader } from '../_components/MerchantHeader';
+import { ReviewList } from '@/features/reviews';
+import { Button } from '@/components/ui/button';
 
 export default function MerchantProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = React.use(params);
-  const merchantId = unwrappedParams.id; // Could be slug or id
+  const merchantId = unwrappedParams.id;
+  
+  const searchParams = useSearchParams();
+  const q = searchParams.get('q') || '';
+  const sort = (searchParams.get('sort') as any) || 'recommended';
+  const minRating = searchParams.get('minRating') ? Number(searchParams.get('minRating')) : undefined;
+  const inStockOnly = searchParams.get('inStockOnly') === 'true';
+  const onSaleOnly = searchParams.get('onSaleOnly') === 'true';
+  const categorySlug = searchParams.get('category') || undefined;
+
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   const { data: merchant, isLoading: isMerchantLoading, error: merchantError } = useQuery({
     queryKey: ['merchant', merchantId],
     queryFn: async () => {
-      // API currently uses slug, so we pass ID as slug, or mock treats them interchangeably if set up right.
       const res = await getMerchantById(merchantId);
       return res.data;
     }
   });
 
-  const { data: products, isLoading: isProductsLoading } = useQuery({
-    queryKey: ['merchant_products', merchantId],
+  // Query all merchant products (unfiltered) for the category tree
+  const { data: allProducts = [] } = useQuery({
+    queryKey: ['merchant_products_all', merchantId],
     queryFn: async () => {
-      // Mock logic in shop API uses merchant.id, we'll try it
       const res = await getShopProducts({ merchantId: merchant?.id || merchantId });
       return res.data;
     },
-    enabled: !!merchant // Only fetch when merchant is loaded
+    enabled: !!merchant
+  });
+
+  const { data: products, isLoading: isProductsLoading } = useQuery({
+    queryKey: ['merchant_products_filtered', merchantId, q, sort, minRating, inStockOnly, onSaleOnly, categorySlug],
+    queryFn: async () => {
+      const res = await getShopProducts({ 
+        merchantId: merchant?.id || merchantId,
+        q,
+        sort,
+        minRating,
+        inStockOnly,
+        onSaleOnly,
+        categorySlug
+      });
+      return res.data;
+    },
+    enabled: !!merchant
   });
 
   if (isMerchantLoading) {
@@ -52,136 +87,141 @@ export default function MerchantProfilePage({ params }: { params: Promise<{ id: 
     );
   }
 
-  return (
-    <div className="bg-surface-1 min-h-screen pb-16 -mt-4">
-      {/* Store Header Banner */}
-      <div className="bg-brand-700 h-48 md:h-64 relative">
-        {merchant.bannerImage ? (
-          <img src={merchant.bannerImage} alt="Banner" className="absolute inset-0 w-full h-full object-cover mix-blend-overlay" />
-        ) : (
-          <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent"></div>
-        )}
-        {merchant.bannerImage ?? "nO"}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-end pb-8 relative z-10">
-          <div className="flex flex-col md:flex-row md:items-end gap-6 w-full">
-            <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-xl border-4 border-white shadow-lg flex items-center justify-center shrink-0 overflow-hidden">
-              {merchant.logoUrl ? (
-                <img src={merchant.logoUrl} alt={merchant.name} className="w-full h-full object-cover" />
-              ) : (
-                <Store className="w-12 h-12 text-brand-300" />
-              )}
-            </div>
-            <div className="flex-1 text-white pb-2">
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">{merchant.name}</h1>
-              <div className="flex flex-wrap items-center gap-4 text-sm md:text-base text-brand-50">
-                <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {merchant.address || 'Lagos, Nigeria'}</span>
-                <span className="flex items-center gap-1">
-                  <Star className="w-4 h-4 text-warning-main fill-warning-main" /> {merchant.rating} ({merchant.reviewCount} Reviews)
-                </span>
-                {merchant.isVerified && (
-                  <span className="bg-white/20 px-2 py-0.5 rounded font-medium text-xs uppercase tracking-wide">Verified Merchant</span>
-                )}
-              </div>
-            </div>
-            <div className="flex gap-3 pb-2 hidden sm:flex">
-              <Button className="bg-white text-brand-700 hover:bg-brand-50">Follow Store</Button>
-              <Button variant="outline" className="text-white border-white hover:bg-white/10"><MessageSquare className="w-4 h-4 mr-2" /> Message</Button>
-            </div>
+  if (merchant.status === 'Suspended') {
+    return (
+      <div className="bg-surface-1 min-h-screen pb-16">
+        <MerchantHeader merchant={merchant} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-error/10 border border-error text-error p-4 rounded-lg text-center font-medium">
+            This store is currently suspended and its products are unavailable.
           </div>
         </div>
       </div>
+    );
+  }
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+  return (
+    <div className="bg-surface-1 min-h-screen pb-16 mt-15">
+      <MerchantHeader merchant={merchant} />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <Tabs defaultValue="shop" className="w-full">
+          <TabsList className="mb-6 h-12 bg-white border border-border">
+            <TabsTrigger value="shop" className="text-base px-6">Shop</TabsTrigger>
+            <TabsTrigger value="about" className="text-base px-6">About</TabsTrigger>
+            <TabsTrigger value="feedback" className="text-base px-6">Feedback</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="shop" className="mt-0 outline-none">
+            <StoreFilterBar products={allProducts} />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              {/* Sidebar: Categories & Credibility */}
+              <div className="hidden lg:block lg:col-span-1 space-y-6">
+                <StoreCategoryMenu products={allProducts} />
+                <SellerCredibilityPanel merchant={merchant} />
+              </div>
 
-          {/* Sidebar / Info */}
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white rounded-xl border border-border p-6 shadow-sm">
-              <h3 className="font-semibold text-text mb-4">About the Store</h3>
-              <p className="text-sm text-text-muted mb-4 leading-relaxed">
-                {merchant.description}
-              </p>
+              {/* Main Products Area */}
+              <div className="lg:col-span-3">
+                {isProductsLoading ? (
+                  <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-brand-600" /></div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                    {products?.map(product => (
+                      <ProductCard 
+                        key={product.id} 
+                        product={product} 
+                        onQuickView={setQuickViewProduct}
+                      />
+                    ))}
 
-              <div className="space-y-3 text-sm text-text-muted">
-                <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-brand-600" />
-                  <span>{merchant.email}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-brand-600" />
-                  <span>{merchant.phone}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-brand-600" />
-                  <span>{merchant.address}</span>
-                </div>
-                {/* website if exit */}
-                {merchant.website && (
-                  <div className="flex items-center gap-2">
-                    <Link
-                      href={merchant.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-brand-600 hover:underline"
-                    >
-                      <Globe className="w-4 h-4" />
-                      <span>{merchant.website}</span>
-                    </Link>
+                    {(!products || products.length === 0) && (
+                      <div className="col-span-full py-16 text-center bg-white border-2 border-dashed border-border rounded-xl">
+                        <div className="text-text font-medium mb-1">No products found</div>
+                        <div className="text-text-muted text-sm">Try adjusting your filters or search term.</div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             </div>
+          </TabsContent>
+          
+          <TabsContent value="about" className="mt-0 outline-none">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="md:col-span-2 space-y-6">
+                <div className="bg-white rounded-xl border border-border p-6 shadow-sm">
+                  <h3 className="font-semibold text-text mb-4 text-lg">About the Store</h3>
+                  <p className="text-text-muted leading-relaxed whitespace-pre-wrap">
+                    {merchant.description || 'Welcome to our store. Check out our latest products!'}
+                  </p>
+                </div>
+              </div>
+              <div className="md:col-span-1 space-y-6">
+                <div className="bg-white rounded-xl border border-border p-6 shadow-sm">
+                  <h3 className="font-semibold text-text mb-4">Contact Information</h3>
+                  <div className="space-y-4 text-sm text-text-muted">
+                    <div className="flex items-start gap-3">
+                      <MapPin className="w-5 h-5 text-brand-600 shrink-0 mt-0.5" />
+                      <span>{merchant.address}<br/>{merchant.city}, {merchant.state}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 text-brand-600 shrink-0" />
+                      <span>{merchant.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-5 h-5 text-brand-600 shrink-0" />
+                      <span>{merchant.email}</span>
+                    </div>
+                    {merchant.website && (
+                      <div className="flex items-center gap-3">
+                        <Globe className="w-5 h-5 text-brand-600 shrink-0" />
+                        <Link href={merchant.website} target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">
+                          {merchant.website}
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="bg-brand-50 rounded-xl border border-brand-100 p-6 shadow-sm">
+                  <h3 className="font-semibold text-brand-900 mb-2">Referral Network</h3>
+                  <p className="text-sm text-brand-800 mb-4">
+                    This merchant is part of the Aba Online referral network. You can earn commissions by referring their products!
+                  </p>
+                  <Button size="sm" variant="outline" className="w-full bg-white border-brand-200 text-brand-700 hover:bg-brand-100">
+                    Join their network
+                  </Button>
+                </div>
 
-            <div className="bg-white rounded-xl border border-border p-6 shadow-sm">
-              <h3 className="font-semibold text-text mb-4">Store Stats</h3>
-              <ul className="space-y-2 text-sm">
-                <li className="flex justify-between text-text"><span>Products</span> <span className="font-medium">{products?.length || 0}</span></li>
-                <li className="flex justify-between text-text"><span>Joined</span> <span className="font-medium">{merchant.onboardedAt ? new Date(merchant.onboardedAt).getFullYear() : 'N/A'}</span></li>
-              </ul>
+                <div className="md:hidden">
+                  <SellerCredibilityPanel merchant={merchant} />
+                </div>
+              </div>
             </div>
-          </div>
+          </TabsContent>
 
-          {/* Main Products Area */}
-          <div className="lg:col-span-3">
-            {/* Store Toolbar */}
-            <div className="bg-white rounded-xl border border-border p-4 mb-6 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
-              <div className="relative w-full sm:w-72">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                <input
-                  type="text"
-                  placeholder="Search in store..."
-                  className="w-full h-10 pl-9 pr-4 rounded-md border border-border text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+          <TabsContent value="feedback" className="mt-0 outline-none">
+            <div className="bg-white rounded-2xl p-6 border border-border shadow-sm">
+              <h2 className="text-2xl font-bold text-text mb-2">Seller feedback <span className="text-text-muted font-normal">({merchant.rating || '2,855'})</span></h2>
+              
+              <div className="mt-8">
+                <ReviewList 
+                  productId={merchantId} 
+                  isEligibleToReview={true} 
                 />
               </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <span className="text-sm text-text-muted whitespace-nowrap">Sort by:</span>
-                <select className="h-10 w-full sm:w-auto px-3 py-1 rounded-md border border-border bg-white text-sm focus:outline-none">
-                  <option>Recommended</option>
-                  <option>New Arrivals</option>
-                  <option>Price: Low to High</option>
-                </select>
-              </div>
             </div>
-
-            {/* Products Grid */}
-            {isProductsLoading ? (
-              <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-brand-600" /></div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                {products?.map(product => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-
-                {(!products || products.length === 0) && (
-                  <div className="col-span-full py-12 text-center text-text-muted border-2 border-dashed border-border rounded-xl">
-                    This merchant hasn't listed any products yet.
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
+
+      <ProductQuickViewModal 
+        product={quickViewProduct}
+        isOpen={!!quickViewProduct}
+        onClose={() => setQuickViewProduct(null)}
+      />
     </div>
   );
 }

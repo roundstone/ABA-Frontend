@@ -45,7 +45,6 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, loading, leftIcon, rightIcon, children, disabled, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
     const isLoading = loading || (props as any).loading
     const isDisabled = disabled || isLoading
 
@@ -54,8 +53,20 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       console.warn("Icon-only button requires an aria-label for accessibility.");
     }
 
+    if (asChild) {
+      return (
+        <Slot
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          {...props}
+        >
+          {children}
+        </Slot>
+      )
+    }
+
     return (
-      <Comp
+      <button
         className={cn(buttonVariants({ variant, size, className }), "relative")}
         ref={ref}
         disabled={isDisabled}
@@ -71,7 +82,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             <Loader2 className="h-4 w-4 animate-spin text-current" />
           </div>
         )}
-      </Comp>
+      </button>
     )
   }
 )

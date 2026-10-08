@@ -41,8 +41,8 @@ Implement and test the events, effects and links this module owns or consumes (D
 3. Walk every new screen in the running app: happy path, each validation error, empty, error (use the error-injection toggle), permission-denied (switch role), and mobile width.
 
 ## Step 7 — Track and report
-1. Tick each completed item in the checklist. For partial or unbuilt items, leave the box unticked and append ` — PARTIAL: <what is missing>` or ` — NOT DONE: <reason>`.
-2. Update the module's row in `/docs/PROGRESS.md`.
+1. Tick each completed item in the checklist. For partial or unbuilt items, leave the box unticked and append ` — PARTIAL: <what is missing>` or ` — NOT DONE: <reason>`. A build session ticks the checklist box and updates ONLY the "Built (unaudited)" column in `/docs/PROGRESS.md`. An audit session ticks "Verified" and sets "Last audit" only when its verdict is PASS.
+2. Update the module's row in `/docs/PROGRESS.md` according to these rules.
 3. Add any questions to `/docs/QUESTIONS.md`.
 4. Commit: `feat(<module>): <summary> [REQ <first>-<last>]`.
 5. Give the final report in the format from the rules file (section 9).

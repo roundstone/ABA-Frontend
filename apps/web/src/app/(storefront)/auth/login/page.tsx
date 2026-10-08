@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -47,7 +49,7 @@ export default function StorefrontLoginPage() {
         <div className="text-center">
           <h2 className="text-3xl font-extrabold text-text tracking-tight">Welcome back</h2>
           <p className="mt-2 text-sm text-text-muted">
-            Sign in to your ABA Online account to manage orders, referrals, and your wallet.
+            Sign in to your {brand.name} account to manage orders, referrals, and your wallet.
           </p>
         </div>
         

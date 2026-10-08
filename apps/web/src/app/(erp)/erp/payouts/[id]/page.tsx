@@ -1,104 +1,105 @@
 'use client';
 
-import { useParams } from 'next/navigation';
 import { PageHeader } from '@/components/patterns/PageHeader';
 import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
+import { getPayout } from '@/features/payouts/api';
+import { Badge } from '@/components/ui/badge';
 import { AmountText } from '@/components/patterns/AmountText';
+import { useParams } from 'next/navigation';
 
 export default function PayoutDetailPage() {
   const params = useParams();
   const id = params.id as string;
+  
+  const { data, isLoading } = useQuery({
+    queryKey: ['payout', id],
+    queryFn: () => getPayout(id)
+  });
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!data?.data) return <div>Payout not found</div>;
+
+  const payout = data.data;
 
   return (
-    <div className="space-y-6 pb-20 pt-4 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-h3 font-mono">{id || 'PYT-4029'}</h1>
-            <span className="bg-warning-bg text-warning-dark border-warning-border border px-2 py-0.5 rounded text-xs font-medium">
-              Pending Approval
-            </span>
+    <div className="space-y-6 pb-20 mx-auto max-w-5xl">
+      <PageHeader 
+        title={`Payout ${payout.payoutNumber}`} 
+        description={`Requested by ${payout.payeeName} on ${new Date(payout.requestedDate).toLocaleDateString()}`}
+        backHref="/erp/payouts"
+        action={
+          <div className="flex gap-2">
+            {payout.status === 'Pending' && <Button variant="outline" className="text-error border-error-muted hover:bg-error-light hover:text-error">Reject</Button>}
+            {payout.status === 'Pending' && <Button variant="primary">Approve Payout</Button>}
+            {payout.status === 'Approved' && <Button variant="primary">Process Transfer</Button>}
           </div>
-          <p className="text-sm text-text-muted">Requested on Sept 30, 2026 at 08:14 AM</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="text-error border-error hover:bg-error-bg">Reject</Button>
-          <Button className="bg-success hover:bg-success-dark text-white">Approve & Process</Button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-        {/* Left Col */}
         <div className="md:col-span-2 space-y-6">
-          <div className="bg-surface rounded-xl border border-border p-6 flex justify-between items-center">
-            <div>
-              <p className="text-text-muted text-sm mb-1">Net Transfer Amount</p>
-              <p className="text-4xl font-bold"><AmountText amountInKobo={14995000} /></p>
+          <div className="bg-surface rounded-xl border border-border p-6 space-y-4">
+            <h3 className="font-bold text-lg border-b border-border pb-2">Payout Details</h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-text-muted">Source</p>
+                <p className="font-medium">{payout.source}</p>
+              </div>
+              <div>
+                <p className="text-sm text-text-muted">Status</p>
+                <Badge variant="outline">{payout.status}</Badge>
+              </div>
             </div>
-            <div className="text-right text-sm">
-              <p className="text-text-muted mb-1">Gross: <AmountText amountInKobo={15000000} /></p>
-              <p className="text-text-muted">Fee: -<AmountText amountInKobo={5000} /></p>
-            </div>
-          </div>
 
-          <div className="bg-surface rounded-xl border border-border p-6">
-            <h3 className="font-medium mb-4">Risk & Fraud Checks</h3>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-error-bg border border-error-border">
-                <span className="text-error mt-0.5">⚠️</span>
-                <div>
-                  <p className="font-medium text-error text-sm">New Destination Account</p>
-                  <p className="text-xs text-error/80 mt-1">This bank account has never been used by this payee before.</p>
-                </div>
+            <div className="bg-surface-2 p-4 rounded-lg border border-border space-y-2">
+              <div className="flex justify-between">
+                <span className="text-text-muted text-sm">Amount Requested</span>
+                <span className="font-medium"><AmountText amountInKobo={payout.amount} /></span>
               </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-success-bg border border-success-border">
-                <span className="text-success mt-0.5">✓</span>
-                <div>
-                  <p className="font-medium text-success text-sm">KYC Verified</p>
-                  <p className="text-xs text-success/80 mt-1">Payee identity and limits are verified.</p>
-                </div>
+              <div className="flex justify-between">
+                <span className="text-text-muted text-sm">Processing Fee</span>
+                <span className="font-medium text-error">-<AmountText amountInKobo={payout.fee} /></span>
               </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-success-bg border border-success-border">
-                <span className="text-success mt-0.5">✓</span>
-                <div>
-                  <p className="font-medium text-success text-sm">Velocity Check</p>
-                  <p className="text-xs text-success/80 mt-1">No other withdrawal requests within the last 24 hours.</p>
-                </div>
+              <div className="flex justify-between border-t border-border pt-2 mt-2 font-bold">
+                <span>Net Transfer</span>
+                <span className="text-success-dark"><AmountText amountInKobo={payout.netAmount} /></span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Col */}
         <div className="space-y-6">
-          <div className="bg-surface rounded-xl border border-border p-6">
-            <h3 className="font-medium mb-4">Payee & Destination</h3>
-            <dl className="space-y-4 text-sm">
+          <div className="bg-surface rounded-xl border border-border p-6 space-y-4">
+            <h3 className="font-bold text-lg border-b border-border pb-2">Destination</h3>
+            <div className="space-y-3">
               <div>
-                <dt className="text-text-muted text-xs mb-1">Payee</dt>
-                <dd className="font-medium">Aisha Bello (ABA-492)</dd>
-              </div>
-              <div>
-                <dt className="text-text-muted text-xs mb-1">Source Balance</dt>
-                <dd className="font-medium">Commission Wallet</dd>
-              </div>
-              <div className="pt-4 border-t border-border">
-                <dt className="text-text-muted text-xs mb-1">Bank Name</dt>
-                <dd className="font-medium">GTBank</dd>
+                <p className="text-sm text-text-muted">Bank Name</p>
+                <p className="font-medium">{payout.destinationBank}</p>
               </div>
               <div>
-                <dt className="text-text-muted text-xs mb-1">Account Number</dt>
-                <dd className="font-mono">0123994192</dd>
+                <p className="text-sm text-text-muted">Account Number</p>
+                <p className="font-mono">{payout.destinationAccount}</p>
               </div>
               <div>
-                <dt className="text-text-muted text-xs mb-1">Account Name</dt>
-                <dd className="font-medium">Aisha Fatima Bello</dd>
+                <p className="text-sm text-text-muted">Account Name Matching</p>
+                <div className="flex items-center gap-2 text-success-dark">
+                  <span className="text-lg">✓</span>
+                  <span className="text-sm font-medium">Matches Payee Name</span>
+                </div>
               </div>
-            </dl>
+            </div>
           </div>
+          
+          {payout.batchId && (
+            <div className="bg-surface rounded-xl border border-border p-6 space-y-2">
+              <h3 className="font-bold text-lg">Batch Information</h3>
+              <p className="text-sm text-text-muted">This payout is part of a batch.</p>
+              <Button variant="outline" className="w-full mt-2">View Batch {payout.batchId}</Button>
+            </div>
+          )}
         </div>
-
       </div>
     </div>
   );

@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -59,11 +61,11 @@ export default function NewMerchantPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Store Name <span className="text-error">*</span></label>
-                <Input {...register('name')} placeholder="e.g. Aba Hub Ikeja" error={errors.name?.message} />
+                <Input {...register('name')} placeholder={`e.g. ${brand.name} Hub Ikeja`} error={errors.name?.message} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Legal Name <span className="text-error">*</span></label>
-                <Input {...register('legalName')} placeholder="Aba Hub Nigeria Ltd" error={errors.legalName?.message} />
+                <Input {...register('legalName')} placeholder={`${brand.name} Hub Nigeria Ltd`} error={errors.legalName?.message} />
               </div>
             </div>
 

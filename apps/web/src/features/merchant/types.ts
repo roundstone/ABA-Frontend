@@ -8,6 +8,12 @@ export interface MerchantProfile extends Merchant {
   isVerified: boolean;
   totalProducts: number;
   location: string;
+  followerCount: number;
+  onTimeDispatch: number; // percentage
+  returnRate: number; // percentage
+  avgResponseTime: string; // e.g., "Under 2 hours"
+  monthlyOrderCounts: { month: string; count: number }[];
+  isSaved?: boolean;
 }
 
 export interface MerchantReview {

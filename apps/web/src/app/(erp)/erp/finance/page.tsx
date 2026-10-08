@@ -1,12 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
+import { getFinanceKPIs } from '@/features/finance/api';
 import { PageHeader } from '@/components/patterns/PageHeader';
 import { Button } from '@/components/ui/button';
 import { KpiCard } from '@/components/patterns/KpiCard';
 import { AmountText } from '@/components/patterns/AmountText';
 
 export default function FinanceDashboardPage() {
+  const { data: kpis, isLoading } = useQuery({
+    queryKey: ['finance-kpis'],
+    queryFn: getFinanceKPIs
+  });
+
   return (
     <div className="space-y-6 pb-20 mx-auto">
       <PageHeader 
@@ -25,10 +32,25 @@ export default function FinanceDashboardPage() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KpiCard title="Total Revenue (MTD)" value={<AmountText amountInKobo={1250000000} />} className="text-success" />
-        <KpiCard title="Net Profit Margin" value="18.4%" />
-        <KpiCard title="Accounts Receivable" value={<AmountText amountInKobo={450000000} />} className="text-warning-dark" />
-        <KpiCard title="Commissions Payable" value={<AmountText amountInKobo={82000000} />} className="text-error" />
+        <KpiCard 
+          title="Total Revenue (MTD)" 
+          value={isLoading ? '...' : <AmountText amountInKobo={kpis?.revenue || 0} />} 
+          className="text-success" 
+        />
+        <KpiCard 
+          title="Net Profit Margin" 
+          value={isLoading ? '...' : `${((kpis?.netProfit || 0) / (kpis?.revenue || 1) * 100).toFixed(1)}%`} 
+        />
+        <KpiCard 
+          title="Accounts Receivable" 
+          value={isLoading ? '...' : <AmountText amountInKobo={kpis?.receivables || 0} />} 
+          className="text-warning-dark" 
+        />
+        <KpiCard 
+          title="Commissions Payable" 
+          value={isLoading ? '...' : <AmountText amountInKobo={kpis?.commissionsPayable || 0} />} 
+          className="text-error" 
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

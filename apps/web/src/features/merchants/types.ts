@@ -1,3 +1,5 @@
+import { PaginationMeta } from "@/components/ui/pagination";
+
 export type MerchantStatus = 'Pending' | 'Active' | 'Suspended' | 'Rejected' | 'Inactive';
 export type MerchantType = 'Own outlet' | 'Franchise' | 'Partner';
 
@@ -19,6 +21,8 @@ export interface Merchant {
   category?: string;
   description?: string;
   isVerified?: boolean;
+  /** Full category slug paths (root/sub/leaf) the merchant sells in. Used by CategoryFilter. */
+  categoryPaths?: string[];
   
   // Contact
   ownerName: string;
@@ -53,4 +57,36 @@ export interface Merchant {
   // Ratings
   rating?: number;
   reviewCount?: number;
+}
+
+// ---- Public directory (Doc 06 §6) ----
+
+export type MerchantSort = 'recommended' | 'newest' | 'rating' | 'orders';
+
+/** A merchant as shown publicly: always has rating data, a spotlight score and a Featured flag. */
+export type DirectoryMerchant = Merchant & {
+  rating: number;
+  reviewCount: number;
+  isVerified: boolean;
+  categoryPaths: string[];
+  spotlightScore: number;
+  isFeatured: boolean;
+};
+
+export interface DirectoryParams {
+  q?: string;
+  /** Full category path from CategoryFilter, e.g. `fashion-apparel/mens-fashion`. */
+  category?: string;
+  state?: string;
+  minRating?: number;
+  verifiedOnly?: boolean;
+  sort?: MerchantSort;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface DirectoryResult {
+  data: DirectoryMerchant[];
+  meta: PaginationMeta;
+  facets: { states: string[] };
 }

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { brand } from '@/config/brand';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -8,7 +9,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
             <span className="text-white font-bold text-lg leading-none">A</span>
           </div>
-          <span className="font-bold text-xl tracking-tight text-foreground">ABA Online</span>
+          <span className="font-bold text-xl tracking-tight text-foreground">{brand.name}</span>
         </Link>
       </div>
       <div className="w-full max-w-[420px] bg-card rounded-xl shadow-md border border-border p-6 sm:p-8">

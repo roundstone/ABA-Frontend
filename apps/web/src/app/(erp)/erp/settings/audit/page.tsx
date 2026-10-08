@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/patterns/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable } from '@/components/patterns/DataTable';
+import Link from 'next/link';
 
 const MOCK_AUDIT = [
   { id: 'EVT-99230', time: '2026-09-30 14:22:15', user: 'Admin User (U-001)', action: 'payouts.approve', module: 'Payouts', record: 'PYT-4029', ip: '192.168.1.45', diff: 'status: "Pending" → "Approved"' },
@@ -27,9 +28,11 @@ export default function AuditLogPage() {
     {
       id: 'actions',
       header: '',
-      cell: () => (
+      cell: (info: any) => (
         <div className="flex justify-end">
-          <Button variant="ghost" size="sm" className="h-7 text-xs">Details</Button>
+          <Link href={`/erp/settings/audit/${info.row.original.id}`}>
+            <Button variant="ghost" size="sm" className="h-7 text-xs">Details</Button>
+          </Link>
         </div>
       )
     }

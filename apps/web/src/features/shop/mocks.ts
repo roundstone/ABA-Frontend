@@ -3,9 +3,12 @@ import { MOCK_MERCHANTS } from '../merchant/mocks';
 import { Merchant } from '../merchants/types';
 import { Product } from '../products/types';
 
+import { generatedDirectoryMerchants, withDirectoryProfile } from '../merchants/directoryMocks';
+
 export const mockShopMerchants: Merchant[] = [
-  ...MOCK_MERCHANTS
-];
+  ...MOCK_MERCHANTS,
+  // ...generatedDirectoryMerchants,
+].map(withDirectoryProfile);
 
 
 export const mockShopProducts: Product[] = [
@@ -48,8 +51,7 @@ export const mockShopProducts: Product[] = [
         cost: 320000,
         price: 420000,
         reorderLevel: 5,
-        imageUrl:
-          'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=800&q=80',
+        images: ['https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=800&q=80'],
         isActive: true,
         stockCount: 18,
       },
@@ -95,6 +97,9 @@ export const mockShopProducts: Product[] = [
 
     images: [
       'https://images.unsplash.com/photo-1789754600788-286220119dec?q=80&w=1287&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1789758612553-5e6044ac2ff1?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      'https://images.unsplash.com/photo-1790207504527-0dd91be5d7f5?q=80&w=1528&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      'https://images.unsplash.com/photo-1789955482566-c48c048ac905?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
     ],
 
     price: 32000,
@@ -214,6 +219,7 @@ export const mockShopProducts: Product[] = [
         cost: 11000,
         price: 18500,
         reorderLevel: 5,
+        images: [],
         isActive: true,
         stockCount: 12,
       },
@@ -224,6 +230,7 @@ export const mockShopProducts: Product[] = [
         cost: 11000,
         price: 18500,
         reorderLevel: 5,
+        images: [],
         isActive: true,
         stockCount: 9,
       },
@@ -337,6 +344,7 @@ export const mockShopProducts: Product[] = [
         cost: 1050000,
         price: 1250000,
         reorderLevel: 3,
+        images: [],
         isActive: true,
         stockCount: 7,
       },
@@ -653,6 +661,7 @@ export const mockShopProducts: Product[] = [
         cost: 2800,
         price: 4500,
         reorderLevel: 10,
+        images: [],
         isActive: true,
         stockCount: 25,
       },

@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -25,6 +27,10 @@ export function CategoryForm() {
       name: '',
       slug: '',
       image: '',
+      sortOrder: 0,
+      status: 'active',
+      showInMenu: true,
+      featuredMerchantIds: [],
     },
   });
 
@@ -34,8 +40,8 @@ export function CategoryForm() {
       await createCategory(data);
       toast.success('Category created successfully');
       router.push('/erp/categories');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to create category');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Failed to create category');
     } finally {
       setIsSubmitting(false);
     }
@@ -57,7 +63,7 @@ export function CategoryForm() {
             <label className="text-sm font-medium">URL Slug <span className="text-error">*</span></label>
             <Input {...register('slug')} placeholder="e.g., electronics" className={errors.slug ? "border-error" : ""} />
             {errors.slug && <p className="text-xs text-error">{errors.slug.message}</p>}
-            <p className="text-xs text-text-muted">Unique identifier used in URLs (e.g. aba.com/categories/electronics)</p>
+            <p className="text-xs text-text-muted">Unique identifier used in URLs (e.g. ${brand.domain}/categories/electronics)</p>
           </div>
 
           <div className="space-y-2">

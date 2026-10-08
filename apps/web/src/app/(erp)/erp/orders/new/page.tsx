@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -97,7 +99,7 @@ export default function NewOrderPage() {
                   <label className="text-sm font-medium">Merchant Source <span className="text-error">*</span></label>
                   <select {...register('merchantId')} className="w-full flex h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                     <option value="">Select merchant</option>
-                    <option value="mer-1">ABA HQ Store</option>
+                    <option value="mer-1">{brand.name} HQ Store</option>
                     <option value="mer-2">Ikeja Branch</option>
                   </select>
                   {errors.merchantId && <p className="text-xs text-error">{errors.merchantId.message}</p>}

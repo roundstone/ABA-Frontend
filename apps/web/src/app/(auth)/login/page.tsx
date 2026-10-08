@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -31,7 +33,7 @@ function LoginContent() {
   const { register, handleSubmit, formState: { errors } } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: { 
-      identifier: isMock ? 'admin@aba.com' : '',
+      identifier: isMock ? `admin@${brand.domain}` : '',
       password: isMock ? 'password123' : '',
       rememberMe: false 
     },

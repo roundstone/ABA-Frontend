@@ -1,5 +1,6 @@
 import { Inter, Roboto_Mono } from 'next/font/google';
 import Link from 'next/link';
+import { brand } from '@/config/brand';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const robotoMono = Roboto_Mono({ subsets: ['latin'], variable: '--font-roboto-mono' });
@@ -12,11 +13,11 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-4">
           <Link href="/pos" className="font-bold text-xl text-primary flex items-center gap-2">
             <span className="w-8 h-8 rounded bg-primary text-white flex items-center justify-center font-bold text-lg">A</span>
-            ABA POS
+            {brand.shortName} POS
           </Link>
           <div className="h-6 w-px bg-border mx-2"></div>
           <div className="flex items-center gap-2 text-sm text-text-muted">
-            <span className="font-medium text-text">ABA HQ Store</span>
+            <span className="font-medium text-text">{brand.shortName} HQ Store</span>
             <span>•</span>
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-success"></span> Online

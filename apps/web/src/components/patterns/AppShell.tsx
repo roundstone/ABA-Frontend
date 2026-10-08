@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -206,7 +208,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="absolute right-0 top-12 w-48 bg-white rounded-lg shadow-md border border-border py-1 z-50">
                   <div className="px-4 py-3 border-b border-border">
                     <p className="text-sm font-medium">{user ? user.name : 'Jane Doe'}</p>
-                    <p className="text-xs text-text-muted">{user ? user.email : 'jane.doe@aba.com.ng'}</p>
+                    <p className="text-xs text-text-muted">{user ? user.email : `jane.doe@${brand.domain}`}</p>
                   </div>
                   <Link href="#" className="block px-4 py-2 text-sm hover:bg-surface-2">My Profile</Link>
                   <Link href="#" className="block px-4 py-2 text-sm hover:bg-surface-2">Security</Link>

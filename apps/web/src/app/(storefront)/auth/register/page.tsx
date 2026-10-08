@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -50,7 +52,7 @@ function StorefrontRegisterContent() {
         <div className="text-center">
           <h2 className="text-3xl font-extrabold text-text tracking-tight">Create your account</h2>
           <p className="mt-2 text-sm text-text-muted">
-            Join the ABA Online community. Shop, refer friends, and earn commissions.
+            Join the {brand.name} community. Shop, refer friends, and earn commissions.
           </p>
         </div>
         
@@ -162,7 +164,7 @@ function StorefrontRegisterContent() {
                   value={formData.referralCode}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-brand-200 rounded-md text-text focus:outline-none focus:ring-2 focus:ring-brand-500 bg-brand-50 sm:text-sm uppercase"
-                  placeholder="e.g., ABA-JANE-123"
+                  placeholder={`e.g., $${brand.referralCodePrefix}JANE-123`}
                 />
               </div>
               {formData.referralCode && (

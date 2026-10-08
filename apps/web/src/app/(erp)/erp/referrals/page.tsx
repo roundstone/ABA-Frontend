@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import Link from 'next/link';
 import { PageHeader } from '@/components/patterns/PageHeader';
@@ -8,9 +10,9 @@ import { Input } from '@/components/ui/input';
 import { DataTable } from '@/components/patterns/DataTable';
 
 const MOCK_REFERRALS = [
-  { id: 'REF-1002', referrer: 'Aisha Bello (ABA-492)', referee: 'Michael Okon', source: 'Link', level: 'L1', date: '2026-09-30', status: 'Qualified', comm: 215000 },
-  { id: 'REF-1003', referrer: 'Michael Okon (ABA-881)', referee: 'Sarah Jane', source: 'POS Code', level: 'L2', date: '2026-09-29', status: 'Pending Qualification', comm: 0 },
-  { id: 'REF-1004', referrer: 'John Doe (ABA-112)', referee: 'Musa Ibrahim', source: 'Link', level: 'L1', date: '2026-09-28', status: 'Flagged', comm: 0 },
+  { id: 'REF-1002', referrer: `Aisha Bello (${brand.referralCodePrefix}492)`, referee: 'Michael Okon', source: 'Link', level: 'L1', date: '2026-09-30', status: 'Qualified', comm: 215000 },
+  { id: 'REF-1003', referrer: `Michael Okon (${brand.referralCodePrefix}881)`, referee: 'Sarah Jane', source: 'POS Code', level: 'L2', date: '2026-09-29', status: 'Pending Qualification', comm: 0 },
+  { id: 'REF-1004', referrer: `John Doe (${brand.referralCodePrefix}112)`, referee: 'Musa Ibrahim', source: 'Link', level: 'L1', date: '2026-09-28', status: 'Flagged', comm: 0 },
 ];
 
 export default function ReferralsDashboardPage() {

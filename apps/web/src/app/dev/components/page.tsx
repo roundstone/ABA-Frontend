@@ -1,4 +1,5 @@
 
+import { brand } from '@/config/brand';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +9,7 @@ export default function ComponentGallery() {
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-12">
       <a href="#main-content" className="sr-only focus:not-sr-only">Skip to main content</a>
-      <h1 id="main-content" className="text-h1">ABA ERP Component Gallery</h1>
+      <h1 id="main-content" className="text-h1">{brand.shortName} ERP Component Gallery</h1>
       <p className="text-body text-gray-600">A showcase of Phase 0 Foundation primitives and patterns.</p>
       
       <section className="space-y-4">

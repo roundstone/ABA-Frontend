@@ -1,4 +1,6 @@
 'use client';
+import { brand } from '@/config/brand';
+
 
 import { PageHeader } from '@/components/patterns/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -109,15 +111,15 @@ export default function ExecutiveDashboardPage() {
             </thead>
             <tbody className="divide-y divide-border">
               <tr>
-                <td className="px-6 py-3 font-medium">ABA Surulere Branch</td>
+                <td className="px-6 py-3 font-medium">{brand.name} Surulere Branch</td>
                 <td className="px-6 py-3 text-right font-medium text-success"><AmountText amountInKobo={450000000} /></td>
               </tr>
               <tr>
-                <td className="px-6 py-3 font-medium">ABA Kano Depot</td>
+                <td className="px-6 py-3 font-medium">{brand.name} Kano Depot</td>
                 <td className="px-6 py-3 text-right font-medium text-success"><AmountText amountInKobo={380000000} /></td>
               </tr>
               <tr>
-                <td className="px-6 py-3 font-medium">ABA Port Harcourt</td>
+                <td className="px-6 py-3 font-medium">{brand.name} Port Harcourt</td>
                 <td className="px-6 py-3 text-right font-medium text-success"><AmountText amountInKobo={210000000} /></td>
               </tr>
             </tbody>

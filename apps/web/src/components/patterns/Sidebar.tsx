@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { brand } from '@/config/brand';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -26,7 +27,8 @@ import {
   ScrollText, 
   Settings,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  FileBarChart2
 } from 'lucide-react';
 
 import { useAuthStore } from '@/features/auth/store';
@@ -69,7 +71,19 @@ const NAV_STRUCTURE: NavGroup[] = [
     items: [
       { name: 'Orders', href: '/erp/orders', icon: ShoppingCart, badge: 12, badgeVariant: 'brand', allowedRoles: ['Super Admin', 'Admin', 'Merchant user', 'Staff'] },
       { name: 'Customers', href: '/erp/customers', icon: Users, allowedRoles: ['Super Admin', 'Admin', 'Merchant user', 'Staff'] },
-      { name: 'Referrals', href: '/erp/referrals', icon: Network, allowedRoles: ['Super Admin', 'Admin'] },
+      { 
+        name: 'Referrals', 
+        icon: Network, 
+        allowedRoles: ['Super Admin', 'Admin'],
+        children: [
+          { name: 'Overview', href: '/erp/referrals', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Records', href: '/erp/referrals/records', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Network', href: '/erp/referrals/network', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Codes & Links', href: '/erp/referrals/codes', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Suspicious Queue', href: '/erp/referrals/flags', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Settings', href: '/erp/referrals/settings', allowedRoles: ['Super Admin', 'Admin'] }
+        ]
+      },
       { name: 'Merchant POS', href: '/pos', icon: MonitorSmartphone, external: true, allowedRoles: ['Super Admin', 'Admin', 'Merchant user'] }
     ]
   },
@@ -126,17 +140,67 @@ const NAV_STRUCTURE: NavGroup[] = [
     title: 'Money',
     allowedRoles: ['Super Admin', 'Admin'],
     items: [
-      { name: 'Payments', href: '/erp/payments', icon: CreditCard, allowedRoles: ['Super Admin', 'Admin'] },
-      { name: 'Commissions', href: '/erp/commissions', icon: BadgePercent, badge: 5, badgeVariant: 'brand', allowedRoles: ['Super Admin', 'Admin'] },
-      { name: 'Payouts', href: '/erp/payouts', icon: Banknote, badge: 14, badgeVariant: 'error', allowedRoles: ['Super Admin', 'Admin'] },
+      { 
+        name: 'Payments', 
+        icon: CreditCard, 
+        allowedRoles: ['Super Admin', 'Admin'],
+        children: [
+          { name: 'Overview', href: '/erp/payments', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Refunds', href: '/erp/payments/refunds', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Failed Queue', href: '/erp/payments/failed', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Reconciliation', href: '/erp/payments/reconciliation', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Methods', href: '/erp/payments/methods', allowedRoles: ['Super Admin', 'Admin'] }
+        ]
+      },
+      { 
+        name: 'Commissions', 
+        icon: BadgePercent, 
+        badge: 5, 
+        badgeVariant: 'brand', 
+        allowedRoles: ['Super Admin', 'Admin'],
+        children: [
+          { name: 'Overview', href: '/erp/commissions', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Records', href: '/erp/commissions/records', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Approvals', href: '/erp/commissions/approvals', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Plans & Rules', href: '/erp/commissions/rules', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Simulator', href: '/erp/commissions/simulator', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Reversals', href: '/erp/commissions/reversals', allowedRoles: ['Super Admin', 'Admin'] }
+        ]
+      },
+      { 
+        name: 'Payouts', 
+        icon: Banknote, 
+        badge: 14, 
+        badgeVariant: 'error', 
+        allowedRoles: ['Super Admin', 'Admin'],
+        children: [
+          { name: 'Overview', href: '/erp/payouts', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Batches', href: '/erp/payouts/batches', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Settings', href: '/erp/payouts/settings', allowedRoles: ['Super Admin', 'Admin'] }
+        ]
+      },
+      { 
+        name: 'Reports & Analytics', 
+        href: '/erp/reports', 
+        icon: FileBarChart2, 
+        allowedRoles: ['Super Admin', 'Admin',] 
+      },
       { 
         name: 'Finance', 
         icon: Landmark, 
         allowedRoles: ['Super Admin', 'Admin'],
         children: [
           { name: 'Overview', href: '/erp/finance', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Transactions', href: '/erp/finance/transactions', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Accounts Receivable', href: '/erp/finance/receivables', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Accounts Payable', href: '/erp/finance/payables', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Expenses', href: '/erp/finance/expenses', allowedRoles: ['Super Admin', 'Admin'] },
           { name: 'General Ledger', href: '/erp/finance/gl', allowedRoles: ['Super Admin', 'Admin'] },
-          { name: 'Chart of Accounts', href: '/erp/finance/chart-of-accounts', allowedRoles: ['Super Admin', 'Admin'] }
+          { name: 'Chart of Accounts', href: '/erp/finance/chart-of-accounts', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Financial Periods', href: '/erp/finance/periods', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Reconciliation', href: '/erp/finance/reconciliation', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Reports', href: '/erp/finance/reports', allowedRoles: ['Super Admin', 'Admin'] },
+          { name: 'Settings', href: '/erp/finance/settings', allowedRoles: ['Super Admin', 'Admin'] }
         ]
       }
     ]
@@ -145,8 +209,26 @@ const NAV_STRUCTURE: NavGroup[] = [
     title: 'Insights',
     allowedRoles: ['Super Admin', 'Admin', 'Merchant user', 'Auditor'],
     items: [
-      { name: 'Reports', href: '/erp/reports', icon: BarChart4, allowedRoles: ['Super Admin', 'Admin', 'Merchant user', 'Auditor'] },
       { name: 'Dashboards', href: '/erp/dashboards', icon: LayoutDashboard, allowedRoles: ['Super Admin', 'Admin', 'Auditor'] }
+    ]
+  },
+  {
+    title: 'Storefront',
+    allowedRoles: ['Super Admin', 'Admin', 'Merchant user'],
+    items: [
+      { name: 'Brand & Pages', href: '/erp/storefront/pages', icon: LayoutDashboard, allowedRoles: ['Super Admin', 'Admin'] },
+      { name: 'Spotlight', href: '/erp/storefront/spotlight', icon: Tags, allowedRoles: ['Super Admin', 'Admin'] },
+      { 
+        name: 'Promotions', 
+        icon: BadgePercent, 
+        allowedRoles: ['Super Admin', 'Admin', 'Merchant user'],
+        children: [
+          { name: 'All Promotions', href: '/erp/promotions', allowedRoles: ['Super Admin', 'Admin', 'Merchant user'] },
+          { name: 'Packages (Settings)', href: '/erp/settings/promotions', allowedRoles: ['Super Admin', 'Admin'] }
+        ]
+      },
+      { name: 'Reviews', href: '/erp/storefront/reviews', icon: ScrollText, allowedRoles: ['Super Admin', 'Admin', 'Merchant user'] },
+      { name: 'Rewards', href: '/erp/storefront/rewards', icon: BadgePercent, allowedRoles: ['Super Admin', 'Admin'] }
     ]
   },
   {
@@ -204,7 +286,7 @@ export function Sidebar() {
   return (
     <aside className="w-64 shrink-0 text-sidebar-text flex-col hidden md:flex border-r border-sidebar-bg bg-brand-600">
       <div className="px-5 font-bold text-white h-16 flex items-center border-b border-white/10 shrink-0 shadow-sm z-10">
-        ABA ERP
+        {brand.shortName} ERP
       </div>
       
       <nav className="flex-1 py-4 overflow-y-auto custom-scrollbar">

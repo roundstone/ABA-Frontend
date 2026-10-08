@@ -1,8 +1,9 @@
 'use client';
+import { brand } from '@/config/brand';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { Users, Copy, Share2, Check, TrendingUp, DollarSign, Target, Loader2, Trophy, Medal } from 'lucide-react';
+import { Users, Copy, Share2, Check, DollarSign, Target, Loader2, Trophy, Medal, Network } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { getReferralStats } from '@/features/portal/api';
@@ -11,8 +12,8 @@ import { Alert } from '@/components/ui/alert';
 
 export default function PortalReferralsPage() {
   const [copied, setCopied] = useState(false);
-  const referralCode = 'ABA-JANE-123';
-  const referralLink = `https://abaonline.com/register?ref=${referralCode}`;
+  const referralCode = `${brand.referralCodePrefix}JANE-123`;
+  const referralLink = `https://${brand.domain}/register?ref=${referralCode}`;
 
   const { data: referralData, isLoading, error } = useQuery({
     queryKey: ['portal_referrals_page'],
@@ -57,9 +58,18 @@ export default function PortalReferralsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-text">Referral Network</h1>
-        <Button className="flex items-center gap-2">
-          <Share2 className="w-4 h-4" /> Share Referral Link
-        </Button>
+        {/* portal/referrals/profile */}
+        <div className="flex items-center gap-4">
+          <Link href="/portal/referrals/profile">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Network className="w-4 h-4" />Marketer Profile
+            </Button>
+          </Link>
+
+          <Button className="flex items-center gap-2">
+            <Share2 className="w-4 h-4" /> Share Referral Link
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -199,7 +209,7 @@ export default function PortalReferralsPage() {
       {/* Promoter Leaderboard Section */}
       <div className="mt-8 bg-linear-to-br from-black to-black/20 rounded-2xl shadow-lg border border-brand-500 overflow-hidden text-white relative">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full mix-blend-overlay filter blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-        
+
         <div className="p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center md:items-start relative z-10">
           <div className="flex-1 space-y-4 text-center md:text-left">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm mb-2 shadow-inner">
@@ -207,7 +217,7 @@ export default function PortalReferralsPage() {
             </div>
             <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">Top Promoters Leaderboard</h2>
             <p className="text-brand-100 max-w-md">
-              See who is leading the charge in the ABA ecosystem. The top 5 promoters each month receive bonus commissions and exclusive rewards!
+              See who is leading the charge in the {brand.name} ecosystem. The top 5 promoters each month receive bonus commissions and exclusive rewards!
             </p>
             <div className="pt-2">
               <Link href="/portal/referrals/leaderboard">
@@ -226,10 +236,10 @@ export default function PortalReferralsPage() {
               {mockLeaderboard.map((leader, index) => (
                 <div key={leader.rank} className="p-4 flex items-center gap-4 hover:bg-white/5 transition-colors">
                   <div className="w-8 flex justify-center">
-                    {index === 0 ? <Medal className="w-6 h-6 text-warning-main drop-shadow-md" /> : 
-                     index === 1 ? <Medal className="w-6 h-6 text-gray-300 drop-shadow-md" /> :
-                     index === 2 ? <Medal className="w-6 h-6 text-amber-600 drop-shadow-md" /> :
-                     <span className="font-bold text-brand-200">#{leader.rank}</span>}
+                    {index === 0 ? <Medal className="w-6 h-6 text-warning-main drop-shadow-md" /> :
+                      index === 1 ? <Medal className="w-6 h-6 text-gray-300 drop-shadow-md" /> :
+                        index === 2 ? <Medal className="w-6 h-6 text-amber-600 drop-shadow-md" /> :
+                          <span className="font-bold text-brand-200">#{leader.rank}</span>}
                   </div>
                   <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-white shadow-inner">
                     {leader.name.split(' ').map(n => n[0]).join('')}

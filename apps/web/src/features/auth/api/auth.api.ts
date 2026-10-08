@@ -1,3 +1,4 @@
+import { brand } from '@/config/brand';
 import { LoginInput, ForgotPasswordInput, ResetPasswordInput } from '../schemas';
 import { LoginResponse } from '../types';
 
@@ -6,13 +7,13 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const login = async (data: LoginInput): Promise<LoginResponse> => {
   await delay(800);
-  if (data.identifier === 'locked@aba.com') {
+  if (data.identifier === 'locked@buynigeria.example.com') {
     throw new Error('Account locked. Try again in 15 minutes or reset your password');
   }
-  if (data.identifier === 'suspended@aba.com') {
+  if (data.identifier === 'suspended@buynigeria.example.com') {
     throw new Error('Your account is suspended. Contact your administrator');
   }
-  if (data.identifier === 'wrong@aba.com') {
+  if (data.identifier === 'wrong@buynigeria.example.com') {
     throw new Error('Email/phone or password is incorrect');
   }
 
@@ -21,13 +22,13 @@ export const login = async (data: LoginInput): Promise<LoginResponse> => {
     user: {
       id: 'usr-1',
       name: 'Admin User',
-      email: data.identifier.includes('@') ? data.identifier : 'admin@aba.com',
+      email: data.identifier.includes('@') ? data.identifier : 'admin@buynigeria.example.com',
       roles: ['Admin'],
       status: 'Active',
       twoFactorEnabled: false,
       createdAt: new Date().toISOString(),
     },
-    requires2FA: data.identifier === '2fa@aba.com',
+    requires2FA: data.identifier === '2fa@buynigeria.example.com',
   };
 };
 
