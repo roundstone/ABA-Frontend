@@ -60,7 +60,7 @@ export function StoreFilterBar({ products }: StoreFilterBarProps) {
     <div 
       className={cn(
         "transition-all duration-200 z-40 bg-surface-1",
-        isSticky ? "sticky top-16 md:top-20 py-2 border-b border-border shadow-sm mx-[-1rem] px-[1rem] sm:mx-0 sm:px-0" : "mb-6"
+        isSticky ? "sticky top-[150px] md:top-[110px] py-2 border-b border-border shadow-sm mx-[-1rem] px-[1rem] sm:mx-0 sm:px-0" : "mb-6"
       )}
     >
       <div className="bg-white rounded-xl border border-border p-3 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-3">

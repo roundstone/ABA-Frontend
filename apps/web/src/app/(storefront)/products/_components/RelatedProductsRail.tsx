@@ -17,7 +17,7 @@ export function RelatedProductsRail({ title, products }: RelatedProductsRailProp
       <h2 className="text-2xl font-bold text-text mb-6">{title}</h2>
       <div className="flex overflow-x-auto gap-4 lg:gap-6 pb-4 snap-x hide-scrollbar">
         {products.map((product) => (
-          <div key={product.id} className="min-w-[240px] md:min-w-[280px] lg:w-[calc(20%)] lg:min-w-0 snap-start shrink-0">
+          <div key={product.id} className="w-[160px] sm:w-[240px] lg:w-[calc(20%-19px)] lg:min-w-0 snap-start shrink-0">
             <ProductCard product={product} />
           </div>
         ))}

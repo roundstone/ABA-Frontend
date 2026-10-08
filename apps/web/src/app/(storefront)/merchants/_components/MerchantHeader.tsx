@@ -36,15 +36,15 @@ export function MerchantHeader({ merchant }: MerchantHeaderProps) {
   });
 
   return (
-    <div className="bg-brand-700 h-48 md:h-64 relative">
+    <div className="bg-brand-700 min-h-[320px] md:min-h-[256px] relative flex flex-col justify-end">
       {merchant.bannerImage ? (
         <img src={merchant.bannerImage} alt="Banner" className="absolute inset-0 w-full h-full object-cover mix-blend-overlay" />
       ) : (
         <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent"></div>
       )}
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-end pb-8 relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end gap-6 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-16 pb-8 relative z-10 mt-auto">
+        <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6 w-full">
           <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-xl border-4 border-white shadow-lg flex items-center justify-center shrink-0 overflow-hidden">
             {merchant.logoUrl ? (
               <img src={merchant.logoUrl} alt={merchant.name} className="w-full h-full object-cover" />

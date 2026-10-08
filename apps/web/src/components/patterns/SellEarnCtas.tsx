@@ -35,10 +35,10 @@ export function SellEarnCtas() {
             </div>
           </div>
 
-          <Link href="/merchants/onboarding" className="flex items-center justify-center w-full bg-brand-500 text-white rounded-full py-3.5 font-bold text-base hover:bg-brand-500/90 transition-colors mb-3">
+          <Link href="/merchants/onboarding" className="flex items-center justify-center w-full bg-brand-500 text-white py-2 font-bold text-base hover:bg-brand-500/90 transition-colors mb-1">
             List an item
           </Link>
-          <Link href="#" className="flex items-center justify-center w-full bg-white text-brand-950 rounded-full py-3.5 font-bold text-base border border-border hover:bg-gray-50 transition-colors">
+          <Link href="#" className="flex items-center justify-center w-full bg-white text-brand-950 py-2 font-bold text-base border border-border hover:bg-gray-50 transition-colors">
             Download the app
           </Link>
         </PopoverContent>

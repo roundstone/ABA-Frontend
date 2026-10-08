@@ -101,7 +101,7 @@ export default function MerchantProfilePage({ params }: { params: Promise<{ id: 
   }
 
   return (
-    <div className="bg-surface-1 min-h-screen pb-16 mt-15">
+    <div className="bg-surface-1 min-h-screen pb-16 pt-16 md:pt-24">
       <MerchantHeader merchant={merchant} />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

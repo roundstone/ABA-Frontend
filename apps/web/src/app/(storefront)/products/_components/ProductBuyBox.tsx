@@ -24,7 +24,7 @@ export function ProductBuyBox({ product, selectedVariant, setSelectedVariant }: 
   const inStock = activeStock > 0;
 
   return (
-    <div className="flex flex-col lg:sticky lg:top-40 bg-surface rounded-2xl lg:p-6 lg:border lg:border-border lg:shadow-sm">
+    <div className="flex flex-col lg:sticky lg:top-40 bg-surface rounded-2xl p-6 lg:border lg:border-border lg:shadow-sm">
       {/* 1. Title */}
       <div className="flex justify-between items-start gap-4 mb-3">
         <h1 className="text-2xl font-bold text-text tracking-tight">{product.name}</h1>
