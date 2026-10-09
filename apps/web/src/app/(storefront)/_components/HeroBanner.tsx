@@ -11,7 +11,7 @@ export function HeroBanner() {
   ];
 
   return (
-    <section className="pt-4 pb-2 animate-in fade-in duration-700 mt-20">
+    <section className="md:py-10 py-4 animate-in fade-in duration-700 mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <BannerCarousel banners={banners} />
       </div>
