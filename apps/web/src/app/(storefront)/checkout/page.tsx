@@ -1,24 +1,49 @@
 'use client';
+
 import { brand } from '@/config/brand';
-
-
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Check, ShieldCheck, MapPin, Truck, CreditCard, Wallet, AlertCircle, Loader2 } from 'lucide-react';
+import { Check, ShieldCheck, MapPin, Truck, CreditCard, Wallet, AlertCircle, Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { getCart } from '@/features/cart/api';
 import { initializeCheckout, processCheckout } from '@/features/checkout/api';
-import { CheckoutAddressInput, CheckoutPaymentInput } from '@/features/checkout/schemas';
-import { Alert } from '@/components/ui/alert';
+import { CheckoutAddressInput } from '@/features/checkout/schemas';
 import { AmountText } from '@/components/patterns/AmountText';
+import { ErrorState } from '@/components/patterns/ErrorState';
+
+const MOCK_REFERRERS = [
+  { id: '1', name: 'Chisom Nwokwu', moniker: '@chisomn', code: 'REF-CN2026', image: 'https://i.pravatar.cc/150?u=chisomn' },
+  { id: '2', name: 'Aba Merchant Hub', moniker: '@abahub', code: 'REF-ABA8', image: 'https://i.pravatar.cc/150?u=abahub' },
+  { id: '3', name: 'Emeka Onyeka', moniker: '@emeka_o', code: 'REF-EMK01', image: 'https://i.pravatar.cc/150?u=emeka_o' },
+  { id: '4', name: 'Sarah Chidimma', moniker: '@sarahc', code: 'REF-SC44', image: 'https://i.pravatar.cc/150?u=sarahc' },
+  { id: '5', name: 'David Okafor', moniker: '@davido', code: 'REF-DO99', image: 'https://i.pravatar.cc/150?u=davido' },
+];
 
 export default function CheckoutPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
 
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'wallet'>('card');
+  const [referralInput, setReferralInput] = useState('');
+  const [searchResults, setSearchResults] = useState<typeof MOCK_REFERRERS>([]);
+  const [appliedReferral, setAppliedReferral] = useState<{ code: string, name: string } | null>(null);
+
+  useEffect(() => {
+    if (referralInput.trim().length > 1) {
+      const query = referralInput.toLowerCase();
+      const results = MOCK_REFERRERS.filter(r =>
+        r.name.toLowerCase().includes(query) ||
+        r.moniker.toLowerCase().includes(query) ||
+        r.code.toLowerCase().includes(query)
+      );
+      setSearchResults(results);
+    } else {
+      setSearchResults([]);
+    }
+  }, [referralInput]);
+
   const [addressForm, setAddressForm] = useState<CheckoutAddressInput>({
     fullName: 'Jane Doe',
     phone: '+2348012345678',
@@ -90,16 +115,15 @@ export default function CheckoutPage() {
 
   if (cartError || !cartData) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <Alert variant="destructive">
-          Failed to load checkout details. Please try again.
-        </Alert>
-      </div>
+      <ErrorState
+        title="Failed to load checkout"
+        description="Please try again."
+      />
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20">
       <div className="mb-8">
         <Link href="/cart" className="text-sm text-brand-600 hover:underline">&larr; Back to Cart</Link>
         <h1 className="text-3xl font-bold text-text mt-4">Checkout</h1>
@@ -111,8 +135,8 @@ export default function CheckoutPage() {
         <div className="flex-1">
           {/* Progress Indicator */}
           <div className="flex items-center justify-between mb-8 relative">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-surface-2 -z-10"></div>
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-brand-600 -z-10 transition-all" style={{ width: `${((step - 1) / (steps.length - 1)) * 100}%` }}></div>
+            <div className="absolute left-0 top-1/3 -translate-y-1/2 w-full h-1 bg-surface-2 -z-10"></div>
+            <div className="absolute left-0 top-1/3 -translate-y-1/2 h-1 bg-brand-600 -z-10 transition-all" style={{ width: `${((step - 1) / (steps.length - 1)) * 100}%` }}></div>
 
             {steps.map(s => (
               <div key={s.num} className="flex flex-col items-center">
@@ -127,11 +151,10 @@ export default function CheckoutPage() {
           </div>
 
           {processMutation.isError && (
-            <div className="mb-6">
-              <Alert variant="destructive">
-                {processMutation.error instanceof Error ? processMutation.error.message : 'Checkout failed. Please try again.'}
-              </Alert>
-            </div>
+            <ErrorState
+              title="Failed to process checkout"
+              description={processMutation.error instanceof Error ? processMutation.error.message : 'Checkout failed. Please try again.'}
+            />
           )}
 
           <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden min-h-[400px]">
@@ -340,6 +363,64 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Referral Section */}
+            <div className="mb-6 border-t border-border pt-4">
+              <h3 className="text-sm font-semibold mb-2">Referred by someone?</h3>
+              {appliedReferral ? (
+                <div className="flex items-center justify-between bg-success-light/30 border border-success-main/30 rounded p-3 text-sm">
+                  <div>
+                    <span className="block text-success-dark font-medium flex items-center gap-1">
+                      <Check className="w-4 h-4" /> Referral applied
+                    </span>
+                    <span className="text-success-dark/80 text-xs">Supporting {appliedReferral.name}</span>
+                  </div>
+                  <button onClick={() => setAppliedReferral(null)} className="text-success-dark hover:text-success-dark/70 font-medium text-xs">
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 relative">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                    <input
+                      type="text"
+                      // placeholder="Search name or referral code..."
+                      placeholder='enter Aba, Emeka, Sarah'
+                      value={referralInput}
+                      onChange={(e) => setReferralInput(e.target.value)}
+                      className="w-full h-10 pl-9 pr-3 rounded-md border border-border bg-white text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                    />
+                  </div>
+                  {searchResults.length > 0 && (
+                    <div className="absolute top-11 left-0 w-full bg-white border border-border rounded-md shadow-lg z-20 max-h-60 overflow-y-auto">
+                      {searchResults.map(user => (
+                        <div
+                          key={user.id}
+                          className="flex items-center gap-3 p-3 border-b border-border last:border-0 hover:bg-surface-1 cursor-pointer transition-colors"
+                          onClick={() => {
+                            setAppliedReferral({ code: user.code, name: user.moniker });
+                            setReferralInput('');
+                            setSearchResults([]);
+                          }}
+                        >
+                          <img src={user.image} alt={user.name} className="w-10 h-10 rounded-full object-cover shrink-0" />
+                          <div className="flex-1 overflow-hidden">
+                            <p className="font-medium text-sm text-text truncate">{user.name}</p>
+                            <div className="flex items-center gap-2 text-xs text-text-muted mt-0.5">
+                              <span>{user.moniker}</span>
+                              <span>•</span>
+                              <span className="font-mono">{user.code}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-xs text-text-muted">Enter the name or referral code of the person who referred you.</p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-3 text-sm mb-6 border-t border-border pt-4">

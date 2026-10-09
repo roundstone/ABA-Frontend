@@ -40,7 +40,7 @@ export function BannerCarousel({
 
   return (
     <div className={cn("relative group", className)}>
-      <div className={cn("relative w-full aspect-21/6 md:aspect-24/5 rounded-xl overflow-hidden shadow-sm bg-surface-2", imageContainerClassName)}>
+      <div className={cn("relative w-full aspect-[2057/764] rounded-xl overflow-hidden shadow-sm bg-surface-2", imageContainerClassName)}>
         {banners.map((banner, index) => (
           <div
             key={banner.id}

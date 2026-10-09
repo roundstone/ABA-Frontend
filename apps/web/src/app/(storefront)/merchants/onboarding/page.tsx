@@ -72,7 +72,7 @@ export default function MerchantOnboarding() {
 
   if (isSuccess) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-24 text-center">
+      <div className="max-w-3xl mx-auto px-4 py-24 text-center mt-20">
         <div className="w-24 h-24 bg-success-bg rounded-full flex items-center justify-center mx-auto mb-8">
           <CheckCircle2 className="w-12 h-12 text-success-dark" />
         </div>
@@ -90,7 +90,7 @@ export default function MerchantOnboarding() {
   const StepIcon = STEPS[currentStep].icon;
 
   return (
-    <div className="min-h-screen bg-surface-1 py-12 animate-in fade-in duration-700">
+    <div className="min-h-screen bg-surface-1 py-12 animate-in fade-in duration-700 mt-20">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}

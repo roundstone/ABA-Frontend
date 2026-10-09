@@ -8,7 +8,7 @@ export function StorefrontFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           
           <div className="col-span-1 md:col-span-1">
-            <span className="text-xl font-bold text-brand-600 tracking-tight block mb-4">ABA Online</span>
+            <span className="text-xl font-bold text-brand-600 tracking-tight block mb-4">Buy Nigeria</span>
             <p className="text-sm text-text-muted max-w-xs">
               The premier marketplace and community platform connecting buyers and merchants across the region.
             </p>

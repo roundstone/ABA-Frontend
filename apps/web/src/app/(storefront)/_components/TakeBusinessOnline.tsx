@@ -15,7 +15,7 @@ export function TakeBusinessOnline() {
                     <span className="flex items-center gap-2 hover:text-brand-900 transition-colors cursor-default"><CheckCircle2 className="w-4 h-4" /> List your products</span>
                     <span className="flex items-center gap-2 hover:text-brand-900 transition-colors cursor-default"><CheckCircle2 className="w-4 h-4" /> Manage orders</span>
                 </div>
-                <Link href="/merchants/signup">
+                <Link href="/merchants/onboarding">
                     <Button size="lg" className="bg-brand-600 hover:bg-brand-700 text-white rounded-full font-bold px-8 hover:scale-105 hover:shadow-lg transition-all duration-300">
                         Become a Merchant
                     </Button>

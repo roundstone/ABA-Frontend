@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { MerchantFilters, SORT_OPTIONS } from './MerchantFilters';
 import { Pagination } from '@/components/ui/pagination';
+import { TakeBusinessOnline } from '../../_components/TakeBusinessOnline';
 
 const SORTS = SORT_OPTIONS.map(o => o.value);
 
@@ -178,6 +179,8 @@ export function MerchantDirectory() {
           </div>
         </div>
       </div>
+
+      <TakeBusinessOnline />
     </div>
   );
 }

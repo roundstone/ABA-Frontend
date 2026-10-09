@@ -37,7 +37,7 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center mt-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center mt-20">
         <div className="w-24 h-24 bg-surface-2 rounded-full flex items-center justify-center mx-auto mb-6">
           <Trash2 className="w-10 h-10 text-text-muted opacity-50" />
         </div>
@@ -58,7 +58,7 @@ export default function CartPage() {
   }, {} as Record<string, typeof items>);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20">
       <h1 className="text-3xl font-bold text-text mb-8">Shopping Cart</h1>
 
       <div className="flex flex-col lg:flex-row gap-8">
