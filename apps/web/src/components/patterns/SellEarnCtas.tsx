@@ -11,10 +11,10 @@ export function SellEarnCtas() {
   return (
     <div className="flex w-full md:w-auto gap-2 text-xs md:text-sm">
       <Popover>
-        <PopoverTrigger className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-1.5 rounded-full bg-white border border-border hover:border-brand-300 hover:text-brand-700 transition-colors">
-          <Store className="w-3.5 h-3.5 text-brand-600" />
-          <span className="hidden md:inline font-medium">Sell: Start your store</span>
-          <span className="md:hidden font-medium">Sell</span>
+        <PopoverTrigger className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-lg shadow-brand-600/30 hover:shadow-xl hover:shadow-brand-600/40 hover:scale-105 hover:-translate-y-0.5 transition-all duration-300 font-bold">
+          <Store className="w-4 h-4 text-white" strokeWidth={2.5} />
+          <span className="hidden md:inline tracking-tight">Sell: Start your store</span>
+          <span className="md:hidden tracking-tight">Sell</span>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-[360px] p-6 rounded-3xl shadow-xl mt-2 border-border/50">
           <h2 className="text-2xl font-bold text-brand-950 mb-1">Start selling in a snap</h2>
@@ -35,18 +35,18 @@ export function SellEarnCtas() {
             </div>
           </div>
 
-          <Link href="/merchants/onboarding" className="flex items-center justify-center w-full bg-brand-500 text-white py-2 font-bold text-base hover:bg-brand-500/90 transition-colors mb-1">
+          <Link href="/merchants/onboarding" className="flex items-center justify-center w-full bg-brand-500 text-white py-2 font-bold text-base hover:bg-brand-500/90 transition-colors mb-1 rounded-md">
             List an item
           </Link>
-          <Link href="#" className="flex items-center justify-center w-full bg-white text-brand-950 py-2 font-bold text-base border border-border hover:bg-gray-50 transition-colors">
+          <Link href="#" className="flex items-center justify-center w-full bg-white text-brand-950 py-2 font-bold text-base border border-border hover:bg-gray-50 transition-colors rounded-md">
             Download the app
           </Link>
         </PopoverContent>
       </Popover>
-      <Link href="/community" className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-1.5 rounded-full bg-white border border-border hover:border-copper/30 hover:text-copper transition-colors">
-        <TrendingUp className="w-3.5 h-3.5 text-copper" />
-        <span className="hidden md:inline font-medium">Earn: Refer & get paid</span>
-        <span className="md:hidden font-medium">Earn</span>
+      <Link href="/community" className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:scale-105 hover:-translate-y-0.5 transition-all duration-300 font-bold">
+        <TrendingUp className="w-4 h-4 text-white" strokeWidth={2.5} />
+        <span className="hidden md:inline tracking-tight">Earn: Refer & get paid</span>
+        <span className="md:hidden tracking-tight">Earn</span>
       </Link>
     </div>
   );
