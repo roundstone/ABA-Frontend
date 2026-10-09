@@ -1,5 +1,6 @@
 
 import { DashboardView } from '@/features/dashboard/components/DashboardView';
-export default function PortalDashboardPage() { 
-  return <DashboardView role="customer" />; 
+
+export default function PortalDashboardPage() {
+  return <DashboardView />;
 }

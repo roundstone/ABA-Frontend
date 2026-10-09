@@ -1,11 +1,26 @@
 import { z } from 'zod';
 
 export const loginSchema = z.object({
-  identifier: z.string().min(1, 'Email or phone is required'),
+  email: z.string().email('Enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
   rememberMe: z.boolean().optional(),
 });
 export type LoginInput = z.infer<typeof loginSchema>;
+
+export const signupSchema = z.object({
+  referralCode: z.string().trim().optional(),
+  first_name: z.string().trim().min(1, 'First name is required'),
+  last_name: z.string().trim().min(1, 'Last name is required'),
+  middle_name: z.string().trim().min(1, 'Middle name is required'),
+  phone: z.string().trim().min(1, 'Phone number is required'),
+  email: z.string().email('Enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+  confirm_password: z.string().min(1, 'Please confirm your password'),
+}).refine((data) => data.password === data.confirm_password, {
+  message: "Passwords don't match",
+  path: ['confirm_password'],
+});
+export type SignupInput = z.infer<typeof signupSchema>;
 
 export const forgotPasswordSchema = z.object({
   email: z.string().email('Enter a valid email address').min(1, 'Email is required'),

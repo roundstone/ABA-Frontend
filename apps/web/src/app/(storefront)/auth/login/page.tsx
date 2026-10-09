@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getUserHome, login as loginRequest } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/features/auth/store';
 import { setAuthCookie } from '@/features/auth/actions';
 
@@ -19,27 +20,25 @@ export default function StorefrontLoginPage() {
   const [identifier, setIdentifier] = useState(isMock ? 'jane.doe@example.com' : '');
   const [password, setPassword] = useState(isMock ? 'password123' : '');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Mock login delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    await setAuthCookie('mock-customer-token', 'Customer');
-    
-    login({
-      id: 'CUST-100',
-      name: 'Jane Doe',
-      email: identifier,
-      roles: [],
-      status: 'Active',
-      twoFactorEnabled: false,
-      createdAt: new Date().toISOString(),
-    }, 'Customer');
+    setError(null);
 
-    setIsLoading(false);
-    router.push('/portal/dashboard');
+    try {
+      const response = await loginRequest({ email: identifier, password });
+      const role = response.user.userType ?? response.user.roles[0];
+      if (!role) throw new Error('This user does not have an assigned user type or role.');
+      await setAuthCookie(response.token, role);
+      login(response.user, role);
+      router.push(getUserHome(response.user));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred during sign in');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -52,17 +51,19 @@ export default function StorefrontLoginPage() {
             Sign in to your {brand.name} account to manage orders, referrals, and your wallet.
           </p>
         </div>
+
+        {error && <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
         
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-text mb-1">Email address or Phone number</label>
+              <label className="block text-sm font-medium text-text mb-1">Email address</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-text-muted" />
                 </div>
                 <input
-                  type="text"
+                  type="email"
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
@@ -118,7 +119,7 @@ export default function StorefrontLoginPage() {
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-text-muted">Don't have an account?</span>
+              <span className="px-2 bg-white text-text-muted">Don&apos;t have an account?</span>
             </div>
           </div>
 

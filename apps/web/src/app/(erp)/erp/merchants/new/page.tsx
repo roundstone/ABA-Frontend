@@ -18,14 +18,9 @@ export default function NewMerchantPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm<CreateMerchantInput>({
-    resolver: zodResolver(createMerchantSchema) as any,
+    resolver: zodResolver(createMerchantSchema),
     defaultValues: {
       type: 'Partner',
-      settlementFrequency: 'Weekly',
-      priceList: 'Default',
-      discountLimit: 0,
-      creditLimit: 0,
-      createOwnerLogin: true,
     }
   });
 
@@ -35,8 +30,8 @@ export default function NewMerchantPage() {
       const newMerchant = await createMerchant(data);
       toast.success('Merchant created and submitted for approval');
       router.push(`/erp/merchants/${newMerchant?.data?.id}`);
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to onboard merchant');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to onboard merchant');
     } finally {
       setIsSubmitting(false);
     }
@@ -58,6 +53,11 @@ export default function NewMerchantPage() {
             <h3 className="font-medium text-lg">Business Details</h3>
           </div>
           <div className="p-6 space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Existing User ID <span className="text-error">*</span></label>
+              <Input type="number" {...register('userId', { valueAsNumber: true })} placeholder="e.g. 42" error={errors.userId?.message} />
+              <p className="text-xs text-text-muted">Create the user account first, then use its numeric ID to assign the vendor profile.</p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Store Name <span className="text-error">*</span></label>
@@ -137,39 +137,6 @@ export default function NewMerchantPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">LGA (Optional)</label>
                 <Input {...register('lga')} placeholder="Ikeja LGA" error={errors.lga?.message} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Settlement */}
-        <div className="bg-surface rounded-xl border border-border overflow-hidden">
-          <div className="bg-surface-2 px-6 py-4 border-b border-border">
-            <h3 className="font-medium text-lg">Bank & Settlement</h3>
-          </div>
-          <div className="p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Bank Name <span className="text-error">*</span></label>
-                <select {...register('bankName')} className="w-full flex h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                  <option value="">Select Bank</option>
-                  <option value="GTBank">GTBank</option>
-                  <option value="Zenith Bank">Zenith Bank</option>
-                  <option value="First Bank">First Bank</option>
-                </select>
-                {errors.bankName && <p className="text-xs text-error">{errors.bankName.message}</p>}
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Account Number <span className="text-error">*</span></label>
-                <Input {...register('accountNumber')} placeholder="10 Digits" maxLength={10} error={errors.accountNumber?.message} />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Frequency <span className="text-error">*</span></label>
-                <select {...register('settlementFrequency')} className="w-full flex h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                  <option value="Daily">Daily</option>
-                  <option value="Weekly">Weekly</option>
-                  <option value="On request">On Request</option>
-                </select>
               </div>
             </div>
           </div>

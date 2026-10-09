@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const productVariantSchema = z.object({
   name: z.string().min(1, 'Variant name required'),
-  sku: z.string().min(1, 'SKU required'),
   barcode: z.string().optional(),
   cost: z.coerce.number().min(0),
   price: z.coerce.number().min(0),
@@ -12,9 +11,9 @@ export const productVariantSchema = z.object({
 
 export const createProductSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(120),
-  sku: z.string().min(1, 'SKU is required').max(32).regex(/^[A-Z0-9-]+$/, 'SKU must contain only uppercase letters, numbers, and hyphens'),
   type: z.enum(['Finished good', 'Raw material', 'Service', 'Bundle']),
   categoryId: z.string().min(1, 'Category is required'),
+  vendorId: z.string().optional(),
   brand: z.string().optional(),
   description: z.string().max(2000).optional(),
   unitOfMeasure: z.string().min(1, 'Unit of measure is required'),

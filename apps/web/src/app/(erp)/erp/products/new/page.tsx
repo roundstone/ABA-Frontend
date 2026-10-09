@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,10 +11,17 @@ import { PageHeader } from '@/components/patterns/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { getCategories } from '@/features/category/api';
+import { getMerchants } from '@/features/merchant/api';
+import { useAuthStore } from '@/features/auth/store';
 
 export default function NewProductPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const activeRole = useAuthStore((state) => state.activeRole);
+  const canSelectVendor = activeRole === 'Admin' || activeRole === 'Super Admin';
+  const { data: categoriesData } = useQuery({ queryKey: ['product-categories'], queryFn: getCategories });
+  const { data: vendorsData } = useQuery({ queryKey: ['vendors'], queryFn: getMerchants, enabled: canSelectVendor });
 
   const { register, control, handleSubmit, watch, formState: { errors } } = useForm<CreateProductInput>({
     resolver: zodResolver(createProductSchema) as any,
@@ -94,16 +102,23 @@ export default function NewProductPage() {
                 <label className="text-sm font-medium">Product Name <span className="text-error">*</span></label>
                 <Input {...register('name')} placeholder="e.g. Premium Cotton T-Shirt" error={errors.name?.message} />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">SKU <span className="text-error">*</span></label>
-                <Input {...register('sku')} placeholder="APP-TS-001" error={errors.sku?.message} />
-              </div>
+              {canSelectVendor && <div className="space-y-2">
+                <label className="text-sm font-medium">Vendor</label>
+                <select {...register('vendorId')} className="w-full flex h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm">
+                  <option value="">Select a vendor</option>
+                  {vendorsData?.data.map((vendor) => <option key={vendor.id} value={vendor.id}>{vendor.name}</option>)}
+                </select>
+              </div>}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Category <span className="text-error">*</span></label>
-                <Input {...register('categoryId')} placeholder="Category ID" error={errors.categoryId?.message} />
+                <select {...register('categoryId')} className="w-full flex h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm">
+                  <option value="">Select a category</option>
+                  {categoriesData?.data.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                </select>
+                {errors.categoryId?.message && <p className="text-sm text-error">{errors.categoryId.message}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Unit of Measure <span className="text-error">*</span></label>
@@ -165,14 +180,10 @@ export default function NewProductPage() {
                 {variants.map((field, index) => (
                   <div key={field.id} className="flex gap-4 items-start p-4 border border-border rounded-lg bg-surface-2/30">
                     <div className="flex-1 space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                         <div className="space-y-2">
                           <label className="text-xs font-medium">Variant Name</label>
                           <Input {...register(`variants.${index}.name`)} placeholder="Small / Red" />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-medium">SKU</label>
-                          <Input {...register(`variants.${index}.sku`)} placeholder="APP-TS-001-S-RED" />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -195,7 +206,7 @@ export default function NewProductPage() {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => appendVariant({ name: '', sku: '', cost: cost, price: sellingPrice, reorderLevel: 0, isActive: true })}
+                  onClick={() => appendVariant({ name: '', cost: cost, price: sellingPrice, reorderLevel: 0, isActive: true })}
                 >
                   Add Variant
                 </Button>
