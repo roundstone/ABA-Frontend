@@ -24,15 +24,15 @@ function Landing() {
     <div className="flex mx-auto flex-col w-full font-sans animate-in fade-in duration-1000 bg-[#fdfaf1]">
       <HeroBanner />
 
+      <ProductSpotlight />
+
+      <TrendingProducts />
+
       <MeetBusinesses />
 
       <CategoryMarquee />
 
       <SpotlightSection />
-
-      <ProductSpotlight />
-
-      <TrendingProducts />
 
       <RewardsProgramPromo />
 
