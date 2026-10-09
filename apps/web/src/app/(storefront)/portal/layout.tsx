@@ -7,15 +7,22 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, ShoppingBag, Wallet, Users, Settings, Bell, LogOut, Medal } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store';
+import { logout as logoutRequest } from '@/features/auth/api/auth.api';
+import { removeAuthCookie } from '@/features/auth/actions';
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuthStore();
 
-  const handleSignOut = () => {
-    logout();
-    router.push('/');
+  const handleSignOut = async () => {
+    try {
+      await logoutRequest();
+    } finally {
+      await removeAuthCookie();
+      logout();
+      router.push('/');
+    }
   };
 
   const navItems = [

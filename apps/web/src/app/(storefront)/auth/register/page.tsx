@@ -2,11 +2,13 @@
 import { brand } from '@/config/brand';
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, Phone, User, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { signup } from '@/features/auth/api/auth.api';
+import { SignupInput, signupSchema } from '@/features/auth/schemas';
 
 import { Suspense } from 'react';
 
@@ -16,16 +18,19 @@ function StorefrontRegisterContent() {
   const refCodeParam = searchParams.get('ref');
   
   const [formData, setFormData] = useState({
-    fullName: '',
+    first_name: '',
+    middle_name: '',
+    last_name: '',
     email: '',
     phone: '',
     password: '',
-    confirmPassword: '',
+    confirm_password: '',
     referralCode: refCodeParam || '',
     acceptTerms: false
   });
   
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -35,14 +40,25 @@ function StorefrontRegisterContent() {
     }));
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    const parsed = signupSchema.safeParse(formData);
+
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? 'Please check the form and try again.');
+      return;
+    }
+
     setIsLoading(true);
-    // Mock registration delay
-    setTimeout(() => {
+    try {
+      await signup(parsed.data satisfies SignupInput);
+      router.push('/auth/login?registered=1');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to create your account.');
+    } finally {
       setIsLoading(false);
-      router.push('/portal/dashboard');
-    }, 1000);
+    }
   };
 
   return (
@@ -55,23 +71,53 @@ function StorefrontRegisterContent() {
             Join the {brand.name} community. Shop, refer friends, and earn commissions.
           </p>
         </div>
+
+        {error && <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
         
         <form className="mt-8 space-y-6" onSubmit={handleRegister}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-text mb-1">Full Name</label>
+              <label className="block text-sm font-medium text-text mb-1">First name</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-text-muted" />
                 </div>
                 <input
                   type="text"
-                  name="fullName"
+                  name="first_name"
                   required
-                  value={formData.fullName}
+                  value={formData.first_name}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-border rounded-md text-text focus:outline-none focus:ring-2 focus:ring-brand-500 bg-surface-1 sm:text-sm"
-                  placeholder="Jane Doe"
+                  placeholder="Jane"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text mb-1">Middle name</label>
+                <input
+                  type="text"
+                  name="middle_name"
+                  required
+                  value={formData.middle_name}
+                  onChange={handleChange}
+                  className="block w-full px-3 py-2 border border-border rounded-md text-text focus:outline-none focus:ring-2 focus:ring-brand-500 bg-surface-1 sm:text-sm"
+                  placeholder="Ada"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text mb-1">Last name</label>
+                <input
+                  type="text"
+                  name="last_name"
+                  required
+                  value={formData.last_name}
+                  onChange={handleChange}
+                  className="block w-full px-3 py-2 border border-border rounded-md text-text focus:outline-none focus:ring-2 focus:ring-brand-500 bg-surface-1 sm:text-sm"
+                  placeholder="Doe"
                 />
               </div>
             </div>
@@ -141,9 +187,9 @@ function StorefrontRegisterContent() {
                   </div>
                   <input
                     type="password"
-                    name="confirmPassword"
+                    name="confirm_password"
                     required
-                    value={formData.confirmPassword}
+                    value={formData.confirm_password}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-2 border border-border rounded-md text-text focus:outline-none focus:ring-2 focus:ring-brand-500 bg-surface-1 sm:text-sm"
                     placeholder="••••••••"

@@ -4,9 +4,8 @@ import { brand } from '@/config/brand';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getMerchantById } from '@/features/merchant/api';
+import { approveMerchant, getMerchantById, suspendMerchant } from '@/features/merchant/api';
 import { Merchant } from '@/features/merchants/types';
-import { PageHeader } from '@/components/patterns/PageHeader';
 import { Button } from '@/components/ui/button';
 import { KpiCard } from '@/components/patterns/KpiCard';
 import { AmountText } from '@/components/patterns/AmountText';
@@ -14,6 +13,7 @@ import { DataTable } from '@/components/patterns/DataTable';
 import { toast } from 'sonner';
 
 const TABS = ['Overview', 'Referrals', 'Products', 'Orders & Sales', 'Inventory', 'Payments', 'Commissions', 'Staff', 'POS', 'Activity'];
+type ValueCell<T> = { getValue: () => T };
 
 export default function MerchantDetailsPage() {
   const params = useParams();
@@ -22,6 +22,8 @@ export default function MerchantDetailsPage() {
 
   const [merchant, setMerchant] = useState<Merchant | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isApproving, setIsApproving] = useState(false);
+  const [isSuspending, setIsSuspending] = useState(false);
   const [activeTab, setActiveTab] = useState('Overview');
 
   useEffect(() => {
@@ -40,6 +42,32 @@ export default function MerchantDetailsPage() {
 
   if (!merchant) return null;
 
+  const handleApprove = async () => {
+    setIsApproving(true);
+    try {
+      const response = await approveMerchant(merchant.id);
+      setMerchant((current) => current ? { ...current, ...response.data } : current);
+      toast.success('Merchant approved');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to approve merchant');
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  const handleSuspend = async () => {
+    setIsSuspending(true);
+    try {
+      const response = await suspendMerchant(merchant.id);
+      setMerchant((current) => current ? { ...current, ...response.data } : current);
+      toast.success('Merchant suspended');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to suspend merchant');
+    } finally {
+      setIsSuspending(false);
+    }
+  };
+
   let statusColor = 'bg-surface-2 text-text-muted border-border';
   if (merchant.status === 'Active') statusColor = 'bg-success-bg text-success border-success-border';
   if (merchant.status === 'Pending') statusColor = 'bg-warning-bg text-warning-dark border-warning-border';
@@ -54,11 +82,11 @@ export default function MerchantDetailsPage() {
 
   const productColumns = [
     { accessorKey: 'name', header: 'Product' },
-    { accessorKey: 'defaultPrice', header: 'Default Price', cell: (info: any) => <AmountText amountInKobo={info.getValue()} /> },
+    { accessorKey: 'defaultPrice', header: 'Default Price', cell: (info: ValueCell<number>) => <AmountText amountInKobo={info.getValue()} /> },
     {
       accessorKey: 'merchantPrice',
       header: 'Merchant Price',
-      cell: (info: any) => {
+      cell: (info: ValueCell<number | null>) => {
         const val = info.getValue();
         return val ? <AmountText amountInKobo={val} className="text-primary font-medium" /> : <span className="text-text-muted text-sm">Uses Default</span>;
       }
@@ -66,7 +94,7 @@ export default function MerchantDetailsPage() {
     {
       accessorKey: 'enabled',
       header: 'Enabled',
-      cell: (info: any) => info.getValue() ? <span className="text-success text-sm">Yes</span> : <span className="text-text-muted text-sm">No</span>
+      cell: (info: ValueCell<boolean>) => info.getValue() ? <span className="text-success text-sm">Yes</span> : <span className="text-text-muted text-sm">No</span>
     },
     {
       id: 'actions',
@@ -89,7 +117,7 @@ export default function MerchantDetailsPage() {
     {
       accessorKey: 'status',
       header: 'Status',
-      cell: (info: any) => {
+      cell: (info: ValueCell<string>) => {
         const val = info.getValue();
         return <span className={`px-2 py-0.5 rounded text-xs font-medium ${val === 'Active' ? 'bg-success-bg text-success' : 'bg-warning-bg text-warning-dark'}`}>{val}</span>;
       }
@@ -97,7 +125,7 @@ export default function MerchantDetailsPage() {
     {
       accessorKey: 'reward',
       header: 'Commission Earned',
-      cell: (info: any) => <AmountText amountInKobo={info.getValue()} className="text-success font-medium" />
+      cell: (info: ValueCell<number>) => <AmountText amountInKobo={info.getValue()} className="text-success font-medium" />
     }
   ];
 
@@ -129,8 +157,25 @@ export default function MerchantDetailsPage() {
         </div>
 
         <div className="flex gap-2">
-          {merchant.status === 'Pending' && <Button className="bg-success text-white hover:bg-success/90 border-transparent">Approve Merchant</Button>}
-          {merchant.status === 'Active' && <Button variant="outline" className="text-error border-error-border bg-error-bg hover:bg-error/10">Suspend</Button>}
+          {merchant.status === 'Pending' && (
+            <Button
+              className="bg-success text-white hover:bg-success/90 border-transparent"
+              disabled={isApproving}
+              onClick={handleApprove}
+            >
+              {isApproving ? 'Approving…' : 'Approve Merchant'}
+            </Button>
+          )}
+          {merchant.status === 'Active' && (
+            <Button
+              variant="outline"
+              className="text-error border-error-border bg-error-bg hover:bg-error/10"
+              disabled={isSuspending}
+              onClick={handleSuspend}
+            >
+              {isSuspending ? 'Suspending…' : 'Suspend'}
+            </Button>
+          )}
           <Button variant="outline">Open POS Settings</Button>
           <Button>Edit</Button>
         </div>

@@ -1,11 +1,30 @@
 
+'use client';
+
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { PageHeader } from '@/components/patterns/PageHeader';
 import { KpiCard } from '@/components/patterns/KpiCard';
-import { ShoppingCart, DollarSign, Users, Package, CreditCard, Banknote } from 'lucide-react';
+import { ShoppingCart, DollarSign, Package, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getDashboardData } from '../api/dashboard.api';
 
-export function DashboardView({ role }: { role: string }) {
+const formatNaira = (amount: number) =>
+  new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    maximumFractionDigits: 2,
+  }).format(amount);
+
+export function DashboardView() {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['dashboard'],
+    queryFn: getDashboardData,
+  });
+
+  const value = (number?: number) =>
+    isLoading || number === undefined ? '—' : number.toLocaleString();
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -22,43 +41,41 @@ export function DashboardView({ role }: { role: string }) {
         }
       />
 
+      {isError && (
+        <p className="rounded-lg border border-error-border bg-error-bg px-4 py-3 text-sm text-error">
+          Dashboard data could not be loaded. Please refresh and try again.
+        </p>
+      )}
+
       {/* KPI Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
-          title="Total Sales"
-          value="₦24,500,000"
-          trend="12.5%"
-          trendDirection="up"
-          supportingText="432 orders"
-          href="/erp/orders"
-          icon={ShoppingCart}
-        />
-        <KpiCard
           title="Revenue"
-          value="₦18,200,000"
-          trend="8.2%"
-          trendDirection="up"
-          supportingText="Gross ₦20M"
-          href="/erp/finance"
+          value={isLoading || !data ? '—' : formatNaira(data.sales.revenue)}
+          supportingText={`${value(data?.sales.orderCount)} orders`}
+          href="/erp/orders"
           icon={DollarSign}
         />
         <KpiCard
-          title="Active Customers"
-          value="1,245"
-          trend="4.1%"
-          trendDirection="up"
-          supportingText="+32 new"
-          href="/erp/customers"
-          icon={Users}
+          title="Total Products"
+          value={value(data?.products.total)}
+          supportingText={`${value(data?.products.active)} active`}
+          href="/erp/products"
+          icon={Package}
         />
         <KpiCard
-          title="Pending Payouts"
-          value="₦1,450,000"
-          trend="2.4%"
-          trendDirection="up" // Up is typically bad for payouts, maybe set trendDirection logic later
-          supportingText="14 requests"
-          href="/erp/payouts"
-          icon={Banknote}
+          title="Low Stock"
+          value={value(data?.products.lowStock)}
+          supportingText={`${value(data?.products.outOfStock)} out of stock`}
+          href="/erp/inventory"
+          icon={AlertTriangle}
+        />
+        <KpiCard
+          title="Orders"
+          value={value(data?.sales.orderCount)}
+          supportingText={data ? `${data.scope === 'vendor' ? 'Vendor' : 'Organization'} scope` : undefined}
+          href="/erp/orders"
+          icon={ShoppingCart}
         />
       </div>
 

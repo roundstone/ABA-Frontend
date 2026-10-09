@@ -21,12 +21,10 @@ import {
   BadgePercent, 
   Banknote, 
   Landmark, 
-  BarChart4, 
   ShieldCheck, 
   Lock, 
   ScrollText, 
   Settings,
-  ChevronDown,
   ChevronRight,
   FileBarChart2
 } from 'lucide-react';
@@ -240,6 +238,27 @@ const NAV_STRUCTURE: NavGroup[] = [
       { name: 'Audit Logs', href: '/erp/settings/audit', icon: ScrollText, allowedRoles: ['Super Admin', 'Auditor'] },
       { name: 'Settings', href: '/erp/settings', icon: Settings, allowedRoles: ['Super Admin', 'Admin'] }
     ]
+  },
+  {
+    title: 'Vendor Workspace',
+    allowedRoles: ['Vendor'],
+    items: [
+      { name: 'Dashboard', href: '/erp/dashboard', icon: LayoutDashboard, allowedRoles: ['Vendor'] },
+      { name: 'Orders', href: '/erp/orders', icon: ShoppingCart, allowedRoles: ['Vendor'] },
+      { name: 'Products', href: '/erp/products', icon: Package, allowedRoles: ['Vendor'] },
+      { name: 'Customers', href: '/erp/customers', icon: Users, allowedRoles: ['Vendor'] },
+      { name: 'Promotions', href: '/erp/promotions', icon: BadgePercent, allowedRoles: ['Vendor'] },
+    ]
+  },
+  {
+    title: 'Marketer Workspace',
+    allowedRoles: ['Marketer'],
+    items: [
+      { name: 'Dashboard', href: '/erp/dashboard', icon: LayoutDashboard, allowedRoles: ['Marketer'] },
+      { name: 'Referrals', href: '/erp/referrals', icon: Network, allowedRoles: ['Marketer'] },
+      { name: 'Network', href: '/erp/referrals/network', icon: Users, allowedRoles: ['Marketer'] },
+      { name: 'Codes & Links', href: '/erp/referrals/codes', icon: Tags, allowedRoles: ['Marketer'] },
+    ]
   }
 ];
 
@@ -251,8 +270,13 @@ export function Sidebar() {
   const user = useAuthStore(state => state.user);
   const authRole = useAuthStore(state => state.activeRole);
   
-  // Default to Admin if not logged in (for mock development purposes before full auth enforcement)
-  const currentUserRole: Role = (authRole as Role) || 'Admin';
+  const currentUserRoles = new Set<Role>([
+    ...(user?.roles ?? []),
+    ...(user?.userType ? [user.userType] : []),
+    ...(authRole ? [authRole] : []),
+  ]);
+  const hasAccess = (allowedRoles: Role[]) => allowedRoles.some((role) => currentUserRoles.has(role));
+  const displayRole = user?.userType ?? authRole ?? 'No role';
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -290,7 +314,7 @@ export function Sidebar() {
       </div>
       
       <nav className="flex-1 py-4 overflow-y-auto custom-scrollbar">
-        {NAV_STRUCTURE.filter(group => group.allowedRoles.includes(currentUserRole)).map((group, gIdx) => (
+        {NAV_STRUCTURE.filter(group => hasAccess(group.allowedRoles)).map((group) => (
           <div key={group.title} className="mb-6">
             {group.title !== 'Main' && (
               <div className="px-5 text-[11px] font-semibold tracking-wider uppercase text-sidebar-text/60 mb-2">
@@ -299,7 +323,7 @@ export function Sidebar() {
             )}
             
             <div className="space-y-1 px-3">
-              {group.items.filter(item => item.allowedRoles.includes(currentUserRole)).map((item) => {
+              {group.items.filter(item => hasAccess(item.allowedRoles)).map((item) => {
                 
                 const active = isActive(item.href) || isGroupActive(item.children);
                 const isExpanded = expandedGroups[item.name] || isGroupActive(item.children);
@@ -332,7 +356,7 @@ export function Sidebar() {
                       
                       {isExpanded && (
                         <div className="mt-1 ml-9 pl-3 border-l border-white/10 space-y-1">
-                          {item.children.filter(c => c.allowedRoles.includes(currentUserRole)).map(child => {
+                          {item.children.filter(c => hasAccess(c.allowedRoles)).map(child => {
                             const childActive = isActive(child.href);
                             return (
                               <Link 
@@ -388,7 +412,7 @@ export function Sidebar() {
         </div>
         <div className="flex flex-col min-w-0">
           <span className="text-sm font-semibold text-white truncate">{user ? user.name : 'Jane Doe'}</span>
-          <span className="text-xs text-sidebar-text/70 truncate">{currentUserRole} • {user ? user.status : 'Active'}</span>
+          <span className="text-xs text-sidebar-text/70 truncate">{displayRole} • {user ? user.status : 'Active'}</span>
         </div>
       </div>
     </aside>

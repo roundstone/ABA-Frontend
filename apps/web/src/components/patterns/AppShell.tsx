@@ -9,6 +9,7 @@ import { Search, Bell, Plus, HelpCircle, Menu, ChevronRight } from 'lucide-react
 import { Sidebar } from './Sidebar';
 import { useAuthStore } from '@/features/auth/store';
 import { removeAuthCookie } from '@/features/auth/actions';
+import { logout as logoutRequest } from '@/features/auth/api/auth.api';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -26,9 +27,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   const handleSignOut = async () => {
-    await removeAuthCookie();
-    logout();
-    router.push('/login');
+    try {
+      await logoutRequest();
+    } finally {
+      await removeAuthCookie();
+      logout();
+      router.push('/login');
+    }
   };
 
   // Close dropdown when clicking outside

@@ -1,0 +1,18 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "main",
+    "oct/feature/web-apis-implementation",
+    "origin"
+  ],
+  "parent": {
+    "main": null,
+    "oct/feature/web-apis-implementation": "main",
+    "origin": "main"
+  },
+  "order": [
+    "main",
+    "oct/feature/web-apis-implementation",
+    "origin"
+  ]
+}

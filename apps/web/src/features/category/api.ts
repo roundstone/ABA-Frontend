@@ -1,10 +1,25 @@
-import { ApiError } from '@/lib/api';
+import { API_MODE, fetchApi } from '@/lib/api';
 import { Category } from './types';
 import { mockShopCategories } from './mocks';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function getCategories(): Promise<{ data: Category[] }> {
+  if (API_MODE !== 'mock') {
+    const response = await fetchApi<{ data: Array<{ id: number; name: string; slug: string; is_active: boolean }> }>('/api/v1/product-categories?limit=100&isActive=true');
+    return {
+      data: response.data.map((category) => ({
+        id: String(category.id),
+        name: category.name,
+        slug: category.slug,
+        productCount: 0,
+        sortOrder: 0,
+        status: category.is_active ? 'active' : 'inactive',
+        showInMenu: false,
+        featuredMerchantIds: [],
+      })),
+    };
+  }
   await delay(400);
   return { data: mockShopCategories };
 }

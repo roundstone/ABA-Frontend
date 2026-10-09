@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { brand } from '@/config/brand';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Search, ShoppingCart, Menu, X, User, ArrowRight, Store, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { useCartStore } from '@/features/cart/store';
 import { useAuthStore } from '@/features/auth/store';
+import { getUserHome, logout as logoutRequest } from '@/features/auth/api/auth.api';
+import { removeAuthCookie } from '@/features/auth/actions';
 import { MegaMenu } from './MegaMenu';
 import { CategorySearchSelect } from './CategorySearchSelect';
 import { MobileMenu } from './MobileMenu';
@@ -17,9 +19,11 @@ import { PointsChip } from '@/features/rewards/components/PointsChip';
 
 export function StorefrontHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const user = useAuthStore(state => state.user);
+  const logout = useAuthStore(state => state.logout);
   const [scrolled, setScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
@@ -68,6 +72,17 @@ export function StorefrontHeader() {
   ];
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
+  const accountHref = user ? getUserHome(user) : '/auth/login';
+
+  const handleSignOut = async () => {
+    try {
+      await logoutRequest();
+    } finally {
+      await removeAuthCookie();
+      logout();
+      router.push('/');
+    }
+  };
 
   return (
     <>
@@ -149,12 +164,17 @@ export function StorefrontHeader() {
             ) : null}
 
             {isLoggedIn ? (
-              <Link href="/portal/dashboard" className="hidden md:flex items-center gap-2 p-1.5 pr-4 border border-border hover:border-brand-500 transition-colors hover:shadow-sm">
+              <div className="hidden md:flex items-center gap-1">
+              <Link href={accountHref} className="flex items-center gap-2 p-1.5 pr-4 border border-border hover:border-brand-500 transition-colors hover:shadow-sm">
                 <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 text-xs font-bold">
                   {user?.name?.[0] || 'J'}{user?.name?.[1] || 'D'}
                 </div>
                 <span className="text-sm font-bold text-text uppercase tracking-wide">{user?.name || 'User'}</span>
               </Link>
+              <button onClick={handleSignOut} className="px-3 text-xs font-bold uppercase tracking-wide text-text-muted hover:text-error">
+                Log out
+              </button>
+              </div>
             ) : (
               <div className="hidden md:flex items-center gap-2 pl-2">
                 <Link href="/auth/login" className="px-3 text-[13px] font-bold text-text-muted hover:text-brand-600 uppercase tracking-wide">
