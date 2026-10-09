@@ -48,6 +48,10 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
     return cat.products.map((p) => p.brand).toSet().toList()..sort();
   }
 
+  List<String> get _merchants {
+    return ['Aba Shoemakers', 'Nigerian Fabrics', 'Lagos Boutique', 'Local Artisans'];
+  }
+
   List<String> get _colors {
     final cat = ref.read(shopCatalogueProvider).valueOrNull;
     if (cat == null) return [];
@@ -56,6 +60,12 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
       if (p.colors != null) all.addAll(p.colors!);
     }
     return all.toList()..sort();
+  }
+
+  List<ShopCategory> get _categories {
+    final cat = ref.read(shopCatalogueProvider).valueOrNull;
+    if (cat == null) return [];
+    return cat.categories;
   }
 
   @override
@@ -122,6 +132,27 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                 controller: scrollController,
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 children: [
+                  // Categories
+                  _FilterSection(
+                    title: 'Categories',
+                    child: _CategoryTree(
+                      categories: _categories,
+                      selectedSlugs: _local.categories,
+                      isDark: isDark,
+                      onToggle: (slug) {
+                        setState(() {
+                          final updated = List<String>.from(_local.categories);
+                          if (updated.contains(slug)) {
+                            updated.remove(slug);
+                          } else {
+                            updated.add(slug);
+                          }
+                          _local = _local.copyWith(categories: updated);
+                        });
+                      },
+                    ),
+                  ),
+
                   // Price range
                   _FilterSection(
                     title: 'Price Range',
@@ -177,6 +208,29 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                                 ? updated.remove(brand)
                                 : updated.add(brand);
                             _local = _local.copyWith(brands: updated);
+                          }),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                  // Merchants
+                  _FilterSection(
+                    title: 'Merchant',
+                    child: Wrap(
+                      spacing: AppSpacing.xs,
+                      runSpacing: AppSpacing.xs,
+                      children: _merchants.map((merchant) {
+                        final selected = _local.merchants.contains(merchant);
+                        return _FilterChip(
+                          label: merchant,
+                          selected: selected,
+                          onTap: () => setState(() {
+                            final updated = List<String>.from(_local.merchants);
+                            selected
+                                ? updated.remove(merchant)
+                                : updated.add(merchant);
+                            _local = _local.copyWith(merchants: updated);
                           }),
                         );
                       }).toList(),
@@ -320,6 +374,105 @@ class _FilterChip extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CategoryTree extends StatefulWidget {
+  const _CategoryTree({
+    required this.categories,
+    required this.selectedSlugs,
+    required this.onToggle,
+    required this.isDark,
+  });
+
+  final List<ShopCategory> categories;
+  final List<String> selectedSlugs;
+  final ValueChanged<String> onToggle;
+  final bool isDark;
+
+  @override
+  State<_CategoryTree> createState() => _CategoryTreeState();
+}
+
+class _CategoryTreeState extends State<_CategoryTree> {
+  final Set<String> _expanded = {};
+
+  Widget _buildNode(ShopCategory node) {
+    final fullPath = node.slug;
+    final isSelected = widget.selectedSlugs.contains(fullPath);
+    final hasChildren = node.children.isNotEmpty;
+    final isExpanded = _expanded.contains(node.id);
+
+    final color = widget.isDark ? AppColors.secondary : AppColors.primary;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () {
+            widget.onToggle(fullPath);
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Row(
+              children: [
+                if (hasChildren)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        if (isExpanded) {
+                          _expanded.remove(node.id);
+                        } else {
+                          _expanded.add(node.id);
+                        }
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Icon(
+                        isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
+                        size: 20,
+                        color: AppColors.grey,
+                      ),
+                    ),
+                  )
+                else
+                  const SizedBox(width: 28),
+                Expanded(
+                  child: Text(
+                    node.name,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: isSelected ? color : null,
+                      fontWeight: isSelected ? FontWeight.w700 : null,
+                    ),
+                  ),
+                ),
+                Text(
+                  '(${node.productCount})',
+                  style: AppTypography.label.copyWith(color: AppColors.grey),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (hasChildren && isExpanded)
+          Padding(
+            padding: const EdgeInsets.only(left: 28.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: node.children.map((child) => _buildNode(child)).toList(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widget.categories.map((c) => _buildNode(c)).toList(),
     );
   }
 }

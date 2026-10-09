@@ -22,6 +22,9 @@ class CategoryChipBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? cs.secondary : cs.primary;
+
     return SizedBox(
       height: 32,
       child: ListView.separated(
@@ -39,7 +42,8 @@ class CategoryChipBar extends StatelessWidget {
               label: 'All',
               isSelected: isAll,
               onTap: () => onSelect(null),
-              primaryColor: cs.primary,
+              primaryColor: primaryColor,
+              isDark: isDark,
             );
           }
           final cat = categories[i - 1];
@@ -48,7 +52,8 @@ class CategoryChipBar extends StatelessWidget {
             label: cat.name,
             isSelected: isSel,
             onTap: () => onSelect(isSel ? null : cat.name),
-            primaryColor: cs.primary,
+            primaryColor: primaryColor,
+            isDark: isDark,
           );
         },
       ),
@@ -62,14 +67,24 @@ class _CategoryChip extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     required this.primaryColor,
+    required this.isDark,
   });
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
   final Color primaryColor;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final textColor = isSelected
+        ? (isDark ? Colors.black : Colors.white)
+        : (isDark ? Colors.white70 : primaryColor);
+    final bgColor = isSelected
+        ? primaryColor
+        : (isDark ? cs.surfaceContainerHighest : primaryColor.withAlpha(15));
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -79,13 +94,14 @@ class _CategoryChip extends StatelessWidget {
           vertical: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? primaryColor : primaryColor.withAlpha(15),
+          color: bgColor,
           borderRadius: AppSpacing.avatarRadius,
+          border: isSelected ? null : Border.all(color: isDark ? Colors.transparent : primaryColor.withAlpha(50)),
         ),
         child: Text(
           label,
           style: AppTypography.label.copyWith(
-            color: isSelected ? Colors.white : primaryColor,
+            color: textColor,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),
         ),

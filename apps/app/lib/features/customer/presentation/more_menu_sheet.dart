@@ -186,6 +186,12 @@ class _MenuItem {
 
 List<_MenuItem> _menuItems(BuildContext context, ColorScheme cs) => [
   const _MenuItem(
+    icon: HugeIcons.strokeRoundedDashboardSquare02,
+    label: 'My Account',
+    color: Color(0xFF3B82F6),
+    route: '/account/dashboard',
+  ),
+  const _MenuItem(
     icon: HugeIcons.strokeRoundedNotification01,
     label: 'Notifications',
     color: Color(0xFF6366F1),
@@ -204,10 +210,10 @@ List<_MenuItem> _menuItems(BuildContext context, ColorScheme cs) => [
     route: '/wallet',
   ),
   const _MenuItem(
-    icon: HugeIcons.strokeRoundedCoinbase,
-    label: 'Earning Points',
+    icon: HugeIcons.strokeRoundedNetwork,
+    label: 'Referrals',
     color: Color(0xFFEC4899),
-    route: '/account/earnings',
+    route: '/referrals',
   ),
   const _MenuItem(
     icon: HugeIcons.strokeRoundedShoppingBag01,

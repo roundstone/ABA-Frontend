@@ -1,3 +1,4 @@
+import 'package:app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -57,7 +58,8 @@ class _DashboardBody extends StatelessWidget {
             AppSpacing.md,
             0,
             AppSpacing.md,
-            AppSpacing.xl + AppSpacing.xxxl, // extra clearance for floating nav bar
+            AppSpacing.xl +
+                AppSpacing.xxxl, // extra clearance for floating nav bar
           ),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
@@ -202,7 +204,9 @@ class _StatsRow extends StatelessWidget {
           label: 'Total Value',
           value: formatNaira(summary.totalOrderValue),
           icon: HugeIcons.strokeRoundedReceipt,
-          iconColor: cs.primary,
+          iconColor: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.secondary
+              : cs.primary,
         ),
         StatCard(
           label: 'Points',
@@ -251,16 +255,16 @@ class _EarningsCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const HugeIcon(
+              HugeIcon(
                 icon: HugeIcons.strokeRoundedWallet01,
-                color: Colors.white,
+                color: cs.onSecondary,
                 size: AppSpacing.iconSizeSM,
               ),
               AppSpacing.horizontalSpaceSM,
               Text(
                 'Commission Earnings',
                 style: AppTypography.bodyMedium.copyWith(
-                  color: Colors.white.withAlpha(230),
+                  color: cs.onSecondary.withAlpha(230),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -305,13 +309,14 @@ class _EarningPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: AppTypography.label.copyWith(
-            color: Colors.white.withAlpha(179),
+            color: cs.onSecondary.withAlpha(179),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -319,7 +324,7 @@ class _EarningPill extends StatelessWidget {
         Text(
           value,
           style: AppTypography.bodySmall.copyWith(
-            color: Colors.white,
+            color: cs.onSecondary,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -384,13 +389,17 @@ class _OrderCard extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: cs.primary.withAlpha(25),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.secondary.withAlpha(25)
+                    : cs.primary.withAlpha(25),
                 borderRadius: AppSpacing.borderRadiusSM,
               ),
               child: Center(
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedShoppingBag01,
-                  color: cs.primary,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.secondary
+                      : cs.primary,
                   size: AppSpacing.iconSizeSM,
                 ),
               ),
@@ -426,7 +435,9 @@ class _OrderCard extends StatelessWidget {
                   formatNaira(order.total),
                   style: AppTypography.bodyMedium.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: cs.primary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.secondary
+                        : cs.primary,
                   ),
                 ),
                 AppSpacing.verticalSpaceSM,

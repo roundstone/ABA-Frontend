@@ -3,11 +3,15 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/customer/presentation/customer_shell.dart';
 import '../../features/customer/presentation/dashboard_screen.dart';
+import '../../features/customer/presentation/marketer_profile_screen.dart';
+import '../../features/customer/presentation/referrals_screen.dart';
+import '../../features/shop/presentation/home_screen.dart';
 import '../../features/shop/presentation/shop_screen.dart';
 import '../../features/shop/presentation/product_detail_screen.dart';
 import '../../features/cart/presentation/cart_screen.dart';
 import '../../features/checkout/presentation/checkout_screen.dart';
 import '../../features/account/presentation/orders_screen.dart';
+import '../../features/account/presentation/order_detail_screen.dart';
 import '../../features/account/presentation/network_screen.dart';
 import '../../features/account/presentation/earnings_screen.dart';
 import '../../features/merchant/presentation/merchant_dashboard_screen.dart';
@@ -34,7 +38,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/home',
-                builder: (context, state) => const DashboardScreen(),
+                builder: (context, state) => const HomeScreen(),
               ),
             ],
           ),
@@ -76,8 +80,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const CheckoutScreen(),
       ),
       GoRoute(
+        path: '/account/dashboard',
+        builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
         path: '/account/orders',
         builder: (context, state) => const OrdersScreen(),
+      ),
+      GoRoute(
+        path: '/account/orders/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return OrderDetailScreen(orderId: id);
+        },
       ),
       GoRoute(
         path: '/account/network',
@@ -86,6 +101,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/account/earnings',
         builder: (context, state) => const EarningsScreen(),
+      ),
+      GoRoute(
+        path: '/referrals',
+        builder: (context, state) => const ReferralsScreen(),
+      ),
+      GoRoute(
+        path: '/referrals/profile',
+        builder: (context, state) => const MarketerProfileScreen(),
       ),
       GoRoute(
         path: '/merchant',

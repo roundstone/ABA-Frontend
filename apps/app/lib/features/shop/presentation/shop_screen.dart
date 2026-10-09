@@ -22,9 +22,8 @@ class ShopScreen extends ConsumerWidget {
     final catalogueAsync = ref.watch(shopCatalogueProvider);
 
     return catalogueAsync.when(
-      loading: () => const Scaffold(
-        body: LoadingState(message: 'Loading shop…'),
-      ),
+      loading: () =>
+          const Scaffold(body: LoadingState(message: 'Loading shop…')),
       error: (e, _) => Scaffold(
         body: ErrorState(
           message: 'Could not load shop.\n${e.toString()}',
@@ -100,11 +99,20 @@ class _ShopBody extends ConsumerWidget {
             ),
           ),
 
+          // ── Ads Banner
+          const SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.sm,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
+            sliver: SliverToBoxAdapter(child: _AdsBanner()),
+          ),
+
           // ── Product grid / list
           if (products.isEmpty)
-            const SliverFillRemaining(
-              child: _EmptyProducts(),
-            )
+            const SliverFillRemaining(child: _EmptyProducts())
           else if (shopState.viewMode == ViewMode.grid)
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(
@@ -142,6 +150,23 @@ class _ShopBody extends ConsumerWidget {
                 ),
               ),
             ),
+
+          // ── Bottom Sections
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.only(top: AppSpacing.xl),
+              child: _PopularBrands(),
+            ),
+          ),
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
+              child: _RelatedSearches(),
+            ),
+          ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 120), // Clearance for floating nav bar
+          ),
         ],
       ),
     );
@@ -313,7 +338,10 @@ class _ToolbarButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final color = active ? cs.primary : cs.onSurface;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? cs.secondary : cs.primary;
+    final color = active ? primaryColor : cs.onSurface;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -322,12 +350,10 @@ class _ToolbarButton extends StatelessWidget {
           vertical: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: active
-              ? cs.primary.withAlpha(20)
-              : cs.surfaceContainerHighest,
+          color: active ? primaryColor.withAlpha(20) : cs.surfaceContainerHighest,
           borderRadius: AppSpacing.borderRadiusSM,
           border: active
-              ? Border.all(color: cs.primary.withAlpha(80), width: 1)
+              ? Border.all(color: primaryColor.withAlpha(80), width: 1)
               : null,
         ),
         child: Row(
@@ -335,10 +361,7 @@ class _ToolbarButton extends StatelessWidget {
           children: [
             HugeIcon(icon: icon, size: 14, color: color),
             const SizedBox(width: 4),
-            Text(
-              label,
-              style: AppTypography.label.copyWith(color: color),
-            ),
+            Text(label, style: AppTypography.label.copyWith(color: color)),
           ],
         ),
       ),
@@ -363,16 +386,176 @@ class _EmptyProducts extends ConsumerWidget {
             color: AppColors.grey,
           ),
           AppSpacing.verticalSpaceMD,
-          Text('No products found',
-              style: AppTypography.h6.copyWith(color: AppColors.grey)),
+          Text(
+            'No products found',
+            style: AppTypography.h6.copyWith(color: AppColors.grey),
+          ),
           AppSpacing.verticalSpaceXS,
-          Text('Try adjusting your filters',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.grey)),
+          Text(
+            'Try adjusting your filters',
+            style: AppTypography.bodySmall.copyWith(color: AppColors.grey),
+          ),
           AppSpacing.verticalSpaceMD,
           TextButton(
             onPressed: () =>
                 ref.read(shopNotifierProvider.notifier).resetFilters(),
             child: const Text('Clear filters'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdsBanner extends StatefulWidget {
+  const _AdsBanner();
+
+  @override
+  State<_AdsBanner> createState() => _AdsBannerState();
+}
+
+class _AdsBannerState extends State<_AdsBanner> {
+  final PageController _controller = PageController();
+  int _currentPage = 0;
+
+  final List<String> _banners = [
+    'assets/images/banners/Aba Online_ Shop Local, Shop Aba.png',
+    'assets/images/banners/AbaOnline_ Shop Local, Grow Together.png',
+    'assets/images/banners/Shop Local, Support Aba.png',
+  ];
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 140,
+          child: PageView.builder(
+            controller: _controller,
+            onPageChanged: (i) => setState(() => _currentPage = i),
+            itemCount: _banners.length,
+            itemBuilder: (context, i) {
+              return ClipRRect(
+                borderRadius: AppSpacing.borderRadiusLG,
+                child: Image.asset(
+                  _banners[i],
+                  fit: BoxFit.cover,
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            _banners.length,
+            (i) => AnimatedContainer(
+              duration: AppSpacing.animationFast,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: _currentPage == i ? 16 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: _currentPage == i 
+                    ? AppColors.primary 
+                    : AppColors.grey.withAlpha(100),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PopularBrands extends StatelessWidget {
+  const _PopularBrands();
+
+  @override
+  Widget build(BuildContext context) {
+    final brands = ['Nike', 'Adidas', 'Gucci', 'Aba Artisans', 'Puma', 'Zara'];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          child: Text(
+            'Popular Brands',
+            style: AppTypography.h6.copyWith(fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        SizedBox(
+          height: 40,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            scrollDirection: Axis.horizontal,
+            itemCount: brands.length,
+            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
+            itemBuilder: (context, i) => ActionChip(
+              label: Text(brands[i]),
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
+              onPressed: () {},
+              side: BorderSide.none,
+              shape: RoundedRectangleBorder(
+                borderRadius: AppSpacing.borderRadiusSM,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RelatedSearches extends StatelessWidget {
+  const _RelatedSearches();
+
+  @override
+  Widget build(BuildContext context) {
+    final searches = [
+      'Leather bags',
+      'Men shoes',
+      'Traditional wear',
+      'Accessories',
+      'Wholesale fabrics',
+    ];
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Related Searches',
+            style: AppTypography.h6.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xs,
+            children: searches
+                .map(
+                  (s) => ActionChip(
+                    label: Text(s),
+                    onPressed: () {},
+                    side: BorderSide(color: AppColors.outline.withAlpha(100)),
+                    backgroundColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: AppSpacing.borderRadiusSM,
+                    ),
+                  ),
+                )
+                .toList(),
           ),
         ],
       ),

@@ -68,15 +68,19 @@ class ShopCategory {
     required this.id,
     required this.name,
     required this.slug,
+    this.parentId,
     this.imageUrl,
     this.productCount = 0,
+    this.children = const [],
   });
 
   final String id;
   final String name;
   final String slug;
+  final String? parentId;
   final String? imageUrl;
   final int productCount;
+  final List<ShopCategory> children;
 }
 
 // ─── Cart ─────────────────────────────────────────────────────────────────
@@ -168,6 +172,7 @@ class ShopFilter {
   const ShopFilter({
     this.categories = const [],
     this.brands = const [],
+    this.merchants = const [],
     this.colors = const [],
     this.ratings = const [],
     this.priceRange = const (0.0, 500000.0),
@@ -175,6 +180,7 @@ class ShopFilter {
 
   final List<String> categories;
   final List<String> brands;
+  final List<String> merchants;
   final List<String> colors;
   final List<int> ratings;
   final (double min, double max) priceRange;
@@ -182,6 +188,7 @@ class ShopFilter {
   bool get isActive =>
       categories.isNotEmpty ||
       brands.isNotEmpty ||
+      merchants.isNotEmpty ||
       colors.isNotEmpty ||
       ratings.isNotEmpty ||
       priceRange.$1 > 0 ||
@@ -190,6 +197,7 @@ class ShopFilter {
   ShopFilter copyWith({
     List<String>? categories,
     List<String>? brands,
+    List<String>? merchants,
     List<String>? colors,
     List<int>? ratings,
     (double, double)? priceRange,
@@ -197,6 +205,7 @@ class ShopFilter {
       ShopFilter(
         categories: categories ?? this.categories,
         brands: brands ?? this.brands,
+        merchants: merchants ?? this.merchants,
         colors: colors ?? this.colors,
         ratings: ratings ?? this.ratings,
         priceRange: priceRange ?? this.priceRange,

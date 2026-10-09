@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/app_colors.dart';
 import 'more_menu_sheet.dart';
 
 /// Shell scaffold that wraps all customer-facing tabs and renders the
@@ -90,7 +91,7 @@ class _FloatingNavBar extends StatelessWidget {
                 item: item,
                 isSelected: isSelected,
                 onTap: () => onTap(i),
-                primaryColor: cs.primary,
+                primaryColor: isDark ? AppColors.secondary : cs.primary,
                 isDark: isDark,
               );
             }),

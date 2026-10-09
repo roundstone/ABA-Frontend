@@ -12,25 +12,36 @@ class ShopMockRepository implements ShopRepository {
 
   static const _categories = <ShopCategory>[
     ShopCategory(
-      id: 'cat_bags',
-      name: 'Bags',
-      slug: 'bags',
-      imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200',
-      productCount: 12,
-    ),
-    ShopCategory(
-      id: 'cat_shoes',
-      name: 'Shoes',
-      slug: 'shoes',
-      imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200',
-      productCount: 9,
-    ),
-    ShopCategory(
-      id: 'cat_clothes',
-      name: 'Clothes',
-      slug: 'clothes',
-      imageUrl: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=200',
-      productCount: 24,
+      id: 'cat_fashion',
+      name: 'Fashion & Apparel',
+      slug: 'fashion',
+      productCount: 45,
+      children: [
+        ShopCategory(
+          id: 'cat_clothes',
+          name: 'Clothes',
+          slug: 'fashion/clothes',
+          parentId: 'cat_fashion',
+          imageUrl: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=200',
+          productCount: 24,
+        ),
+        ShopCategory(
+          id: 'cat_shoes',
+          name: 'Shoes',
+          slug: 'fashion/shoes',
+          parentId: 'cat_fashion',
+          imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200',
+          productCount: 9,
+        ),
+        ShopCategory(
+          id: 'cat_bags',
+          name: 'Bags',
+          slug: 'fashion/bags',
+          parentId: 'cat_fashion',
+          imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200',
+          productCount: 12,
+        ),
+      ],
     ),
     ShopCategory(
       id: 'cat_accessories',

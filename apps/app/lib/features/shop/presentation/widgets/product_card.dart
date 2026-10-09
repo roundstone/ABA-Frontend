@@ -138,7 +138,7 @@ class _GridCard extends ConsumerWidget {
                                 formatNaira(product.discountedPrice),
                                 style: AppTypography.bodySmall.copyWith(
                                   fontWeight: FontWeight.w800,
-                                  color: cs.primary,
+                                  color: isDark ? AppColors.secondary : cs.primary,
                                 ),
                               ),
                               if (product.hasDiscount)
@@ -174,8 +174,8 @@ class _GridCard extends ConsumerWidget {
                             height: 30,
                             decoration: BoxDecoration(
                               color: inCart
-                                  ? cs.primary
-                                  : cs.primary.withAlpha(20),
+                                  ? (isDark ? AppColors.secondary : cs.primary)
+                                  : (isDark ? AppColors.secondary.withAlpha(20) : cs.primary.withAlpha(20)),
                               shape: BoxShape.circle,
                             ),
                             child: Center(
@@ -184,7 +184,9 @@ class _GridCard extends ConsumerWidget {
                                     ? HugeIcons.strokeRoundedTick01
                                     : HugeIcons.strokeRoundedShoppingCart01,
                                 size: 15,
-                                color: inCart ? Colors.white : cs.primary,
+                                color: inCart 
+                                    ? (isDark ? const Color(0xFF1E1E1E) : Colors.white) 
+                                    : (isDark ? AppColors.secondary : cs.primary),
                               ),
                             ),
                           ),
@@ -279,7 +281,7 @@ class _ListCard extends ConsumerWidget {
                           formatNaira(product.discountedPrice),
                           style: AppTypography.bodyMedium.copyWith(
                             fontWeight: FontWeight.w800,
-                            color: cs.primary,
+                            color: isDark ? AppColors.secondary : cs.primary,
                           ),
                         ),
                         if (product.hasDiscount) ...[
@@ -316,14 +318,16 @@ class _ListCard extends ConsumerWidget {
                             ),
                             decoration: BoxDecoration(
                               color: inCart
-                                  ? cs.primary
-                                  : cs.primary.withAlpha(15),
+                                  ? (isDark ? AppColors.secondary : cs.primary)
+                                  : (isDark ? AppColors.secondary.withAlpha(15) : cs.primary.withAlpha(15)),
                               borderRadius: AppSpacing.borderRadiusSM,
                             ),
                             child: Text(
                               inCart ? 'In cart' : 'Add',
                               style: AppTypography.label.copyWith(
-                                color: inCart ? Colors.white : cs.primary,
+                                color: inCart 
+                                    ? (isDark ? const Color(0xFF1E1E1E) : Colors.white) 
+                                    : (isDark ? AppColors.secondary : cs.primary),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
