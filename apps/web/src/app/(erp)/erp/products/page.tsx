@@ -8,20 +8,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { KpiCard } from '@/components/patterns/KpiCard';
 import { AmountText } from '@/components/patterns/AmountText';
-import { getProducts } from '@/features/products/api/products.api';
+import { getProductOverview, getProducts, ProductOverview } from '@/features/products/api/products.api';
 import { Product } from '@/features/products/types';
 import { toast } from 'sonner';
 
 export default function ProductsListPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [overview, setOverview] = useState<ProductOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
 
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
-      const data = await getProducts();
-      setProducts(data?.data);
+      const [productsResponse, overviewResponse] = await Promise.all([
+        getProducts(),
+        getProductOverview(),
+      ]);
+      setProducts(productsResponse.data);
+      setOverview(overviewResponse);
     } catch (err) {
       toast.error('Failed to load products');
     } finally {
@@ -146,10 +151,10 @@ export default function ProductsListPage() {
   ];
 
   const kpis = [
-    { label: 'Total Products', value: '842' },
-    { label: 'Active', value: '795' },
-    { label: 'Low Stock', value: '24' },
-    { label: 'Out of Stock', value: '12' },
+    { label: 'Total Products', value: overview?.totalProducts },
+    { label: 'Active', value: overview?.activeProducts },
+    { label: 'Low Stock', value: overview?.lowStock },
+    { label: 'Out of Stock', value: overview?.outOfStock },
   ];
 
   return (
@@ -169,7 +174,11 @@ export default function ProductsListPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {kpis.map(kpi => (
-          <KpiCard key={kpi.label} title={kpi.label} value={kpi.value} />
+          <KpiCard
+            key={kpi.label}
+            title={kpi.label}
+            value={kpi.value === undefined ? '—' : kpi.value.toLocaleString()}
+          />
         ))}
       </div>
 

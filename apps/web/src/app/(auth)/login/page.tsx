@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, LoginInput } from '@/features/auth/schemas';
-import { login } from '@/features/auth/api/auth.api';
+import { getUserHome, login } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/features/auth/store';
 import { setAuthCookie } from '@/features/auth/actions';
 import { Input } from '@/components/ui/input';
@@ -33,7 +33,7 @@ function LoginContent() {
   const { register, handleSubmit, formState: { errors } } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: { 
-      identifier: isMock ? `admin@${brand.domain}` : '',
+      email: isMock ? `admin@${brand.domain}` : '',
       password: isMock ? 'password123' : '',
       rememberMe: false 
     },
@@ -49,15 +49,16 @@ function LoginContent() {
         return;
       }
       
-      const roleToUse = isMock ? mockRole : response.user.roles[0];
+      const roleToUse = isMock ? mockRole : response.user.userType ?? response.user.roles[0];
+      if (!roleToUse) throw new Error('This user does not have an assigned user type or role.');
       await setAuthCookie(response.token, roleToUse);
       
       loginAction(response.user, roleToUse);
       
       const next = searchParams.get('next');
-      router.push(next || '/erp/dashboard'); // Mock default routing to ERP
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during sign in');
+      router.push(next || getUserHome(response.user));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred during sign in');
     } finally {
       setIsLoading(false);
     }
@@ -96,10 +97,11 @@ function LoginContent() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input
-          label="Email or phone"
-          {...register('identifier')}
-          error={errors.identifier?.message}
-          autoComplete="username"
+          label="Email address"
+          type="email"
+          {...register('email')}
+          error={errors.email?.message}
+          autoComplete="email"
           autoFocus
         />
 

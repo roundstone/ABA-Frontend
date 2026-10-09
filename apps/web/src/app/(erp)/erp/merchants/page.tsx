@@ -21,7 +21,7 @@ export default function MerchantsListPage() {
     try {
       const data = await getMerchants();
       setMerchants(data?.data);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load merchants');
     } finally {
       setIsLoading(false);
@@ -29,7 +29,11 @@ export default function MerchantsListPage() {
   };
 
   useEffect(() => {
-    fetchMerchants();
+    const timer = window.setTimeout(() => {
+      void fetchMerchants();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   const filteredMerchants = merchants.filter(m =>
@@ -42,7 +46,7 @@ export default function MerchantsListPage() {
     {
       accessorKey: 'merchant',
       header: 'Merchant',
-      cell: (info: any) => {
+      cell: (info: { row: { original: Merchant } }) => {
         const m = info.row.original as Merchant;
         return (
           <div className="flex items-center gap-3">
@@ -60,7 +64,7 @@ export default function MerchantsListPage() {
     {
       accessorKey: 'owner',
       header: 'Owner / Contact',
-      cell: (info: any) => {
+      cell: (info: { row: { original: Merchant } }) => {
         const m = info.row.original as Merchant;
         return (
           <div>
@@ -73,15 +77,15 @@ export default function MerchantsListPage() {
     {
       accessorKey: 'location',
       header: 'Location',
-      cell: (info: any) => {
+      cell: (info: { row: { original: Merchant } }) => {
         const m = info.row.original as Merchant;
-        return <span className="text-sm">{m.city}, {m.state}</span>;
+        return <span className="text-sm">{m.address || '—'}</span>;
       }
     },
     {
       accessorKey: 'sales',
       header: 'Sales (30d)',
-      cell: (info: any) => {
+      cell: (info: { row: { original: Merchant } }) => {
         const m = info.row.original as Merchant;
         return (
           <div>
@@ -94,7 +98,7 @@ export default function MerchantsListPage() {
     {
       accessorKey: 'status',
       header: 'Status',
-      cell: (info: any) => {
+      cell: (info: { getValue: () => unknown }) => {
         const status = info.getValue() as string;
         let color = 'bg-surface-2 text-text-muted border-border';
         if (status === 'Active') color = 'bg-success-bg text-success border-success-border';
@@ -107,7 +111,7 @@ export default function MerchantsListPage() {
     {
       id: 'actions',
       header: '',
-      cell: (info: any) => {
+      cell: (info: { row: { original: Merchant } }) => {
         const m = info.row.original as Merchant;
         return (
           <div className="flex justify-end gap-1">

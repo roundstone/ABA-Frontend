@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { Search, ArrowRight, ArrowLeft, Store, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/features/auth/store';
+import { getUserHome } from '@/features/auth/api/auth.api';
 import { Category } from '@/features/category/types';
 import { getCategoryMenu } from '@/features/category/api';
 
 export function MobileMenu({ isOpen, onClose, navLinks }: { isOpen: boolean, onClose: () => void, navLinks: any[] }) {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const user = useAuthStore(state => state.user);
+  const accountHref = user ? getUserHome(user) : '/auth/login';
   
   const [categories, setCategories] = useState<Category[]>([]);
   const [history, setHistory] = useState<Category[]>([]); // stack of selected categories
@@ -154,7 +156,7 @@ export function MobileMenu({ isOpen, onClose, navLinks }: { isOpen: boolean, onC
             <div className="pt-6 border-t border-border">
               {isAuthenticated ? (
                 <Link
-                  href="/portal/dashboard"
+                  href={accountHref}
                   className="flex items-center justify-between px-4 py-4 rounded-2xl bg-brand-50 text-brand-900 hover:bg-brand-100 transition-colors uppercase tracking-wide font-bold"
                   onClick={onClose}
                 >
@@ -162,7 +164,7 @@ export function MobileMenu({ isOpen, onClose, navLinks }: { isOpen: boolean, onC
                     <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-brand-700 shadow-sm">
                       {user?.name?.[0] || 'J'}{user?.name?.[1] || 'D'}
                     </div>
-                    <span>My Portal</span>
+                    <span>My Account</span>
                   </div>
                   <ArrowRight className="w-5 h-5" />
                 </Link>
