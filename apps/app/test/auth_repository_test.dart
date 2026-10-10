@@ -158,7 +158,7 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 500));
 
-      expect(find.text('ABA MARKETPLACE'), findsOneWidget);
+      expect(find.text('BUY NIGERIA'), findsOneWidget);
       expect(find.text('Get Started'), findsOneWidget);
     });
 
@@ -172,9 +172,9 @@ void main() {
         ),
       );
 
-      expect(find.text('Welcome to ABA Marketplace'), findsOneWidget);
-      expect(find.text('Continue as Customer'), findsOneWidget);
-      expect(find.text('Continue as Merchant'), findsOneWidget);
+      expect(find.text('Welcome to Buy Nigeria'), findsOneWidget);
+      expect(find.text('Shop, Save & Earn'), findsOneWidget);
+      expect(find.text('Sell, Scale & POS'), findsOneWidget);
     });
   });
 }

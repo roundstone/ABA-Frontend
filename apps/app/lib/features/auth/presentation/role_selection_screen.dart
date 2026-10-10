@@ -71,13 +71,13 @@ class RoleSelectionScreen extends StatelessWidget {
                 title: 'Shop, Save & Earn',
                 description:
                     'Access authentic products at direct factory prices. Refer friends and earn automated 3-tier commission rewards on their purchases.',
-                features: const [
-                  'Direct wholesale & retail pricing',
-                  'Instant cashback & referral network tree',
-                  'Track orders & seamless escrow wallet',
-                ],
-                buttonLabel: 'Continue as Customer',
-                isPrimaryButton: true,
+                // features: const [
+                //   'Direct wholesale & retail pricing',
+                //   'Instant cashback & referral network tree',
+                //   'Track orders & seamless escrow wallet',
+                // ],
+                // buttonLabel: 'Continue as Customer',
+                // isPrimaryButton: true,
                 icon: HugeIcons.strokeRoundedShoppingBag01,
                 onTap: () => context.go('/login/customer'),
               ),
@@ -91,13 +91,13 @@ class RoleSelectionScreen extends StatelessWidget {
                 title: 'Sell, Scale & POS',
                 description:
                     'Empower your workshop or store with a digital storefront, mobile POS sales billing, and access to buyers nationwide.',
-                features: const [
-                  'Verified digital storefront & catalog',
-                  'In-store POS with offline support',
-                  'Instant wallet settlement & payouts',
-                ],
-                buttonLabel: 'Continue as Merchant',
-                isPrimaryButton: false,
+                // features: const [
+                //   'Verified digital storefront & catalog',
+                //   'In-store POS with offline support',
+                //   'Instant wallet settlement & payouts',
+                // ],
+                // buttonLabel: 'Continue as Merchant',
+                // isPrimaryButton: false,
                 icon: HugeIcons.strokeRoundedStore01,
                 onTap: () => context.go('/login/merchant'),
               ),

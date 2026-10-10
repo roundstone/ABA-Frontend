@@ -170,15 +170,15 @@ class _MerchantLoginScreenState extends ConsumerState<MerchantLoginScreen> {
                   onPressed: _submit,
                 ),
                 const SizedBox(height: AppSpacing.md),
-                DemoLoginButton(
-                  label: 'Quick Login as Emeka Nwosu (Demo)',
-                  icon: HugeIcons.strokeRoundedStore01,
-                  onPressed: () {
-                    _identifierController.text = 'emeka@abaleather.com';
-                    _passwordController.text = 'password123';
-                    _submit();
-                  },
-                ),
+                // DemoLoginButton(
+                //   label: 'Quick Login as Emeka Nwosu (Demo)',
+                //   icon: HugeIcons.strokeRoundedStore01,
+                //   onPressed: () {
+                //     _identifierController.text = 'emeka@abaleather.com';
+                //     _passwordController.text = 'password123';
+                //     _submit();
+                //   },
+                // ),
                 const SizedBox(height: AppSpacing.md),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

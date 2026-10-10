@@ -170,15 +170,15 @@ class _CustomerLoginScreenState extends ConsumerState<CustomerLoginScreen> {
                   onPressed: _submit,
                 ),
                 const SizedBox(height: AppSpacing.md),
-                DemoLoginButton(
-                  label: 'Quick Login as Jane Doe (Demo)',
-                  icon: HugeIcons.strokeRoundedFlash,
-                  onPressed: () {
-                    _identifierController.text = 'jane.doe@example.com';
-                    _passwordController.text = 'password123';
-                    _submit();
-                  },
-                ),
+                // DemoLoginButton(
+                //   label: 'Quick Login as Jane Doe (Demo)',
+                //   icon: HugeIcons.strokeRoundedFlash,
+                //   onPressed: () {
+                //     _identifierController.text = 'jane.doe@example.com';
+                //     _passwordController.text = 'password123';
+                //     _submit();
+                //   },
+                // ),
                 const SizedBox(height: AppSpacing.md),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -418,16 +419,37 @@ class _AdsBanner extends StatefulWidget {
 
 class _AdsBannerState extends State<_AdsBanner> {
   final PageController _controller = PageController();
+  Timer? _autoSlideTimer;
   int _currentPage = 0;
 
-  final List<String> _banners = [
+  final List<String> _banners = const [
     'assets/images/banners/Aba Online_ Shop Local, Shop Aba.png',
     'assets/images/banners/AbaOnline_ Shop Local, Grow Together.png',
     'assets/images/banners/Shop Local, Support Aba.png',
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _startAutoSlide();
+  }
+
+  void _startAutoSlide() {
+    _autoSlideTimer?.cancel();
+    _autoSlideTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted || !_controller.hasClients) return;
+      final nextPage = (_currentPage + 1) % _banners.length;
+      _controller.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOutCubic,
+      );
+    });
+  }
+
+  @override
   void dispose() {
+    _autoSlideTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -441,7 +463,10 @@ class _AdsBannerState extends State<_AdsBanner> {
           height: 140,
           child: PageView.builder(
             controller: _controller,
-            onPageChanged: (i) => setState(() => _currentPage = i),
+            onPageChanged: (i) {
+              setState(() => _currentPage = i);
+              _startAutoSlide();
+            },
             itemCount: _banners.length,
             itemBuilder: (context, i) {
               return ClipRRect(
@@ -506,7 +531,7 @@ class _PopularBrands extends StatelessWidget {
               ).colorScheme.surfaceContainerHighest,
               onPressed: () {},
               side: BorderSide.none,
-              shape: RoundedRectangleBorder(
+              shape: const RoundedRectangleBorder(
                 borderRadius: AppSpacing.borderRadiusSM,
               ),
             ),
@@ -549,7 +574,7 @@ class _RelatedSearches extends StatelessWidget {
                     onPressed: () {},
                     side: BorderSide(color: AppColors.outline.withAlpha(100)),
                     backgroundColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
+                    shape: const RoundedRectangleBorder(
                       borderRadius: AppSpacing.borderRadiusSM,
                     ),
                   ),
