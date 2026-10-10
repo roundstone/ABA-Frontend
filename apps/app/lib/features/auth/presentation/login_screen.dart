@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_text_field.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,56 +30,50 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
                 'Welcome to ABA ERP',
-                style: Theme.of(
-                  context,
-                ).textTheme.displayLarge?.copyWith(fontSize: 28),
+                style: AppTypography.h3.copyWith(fontWeight: FontWeight.w800),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 'Sign in to continue',
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: AppTypography.bodyMedium,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 48),
-              TextField(
+              const SizedBox(height: AppSpacing.xxl),
+              AppTextField(
+                label: 'Email',
+                hintText: 'Enter your email',
                 controller: _emailController,
-                decoration: const InputDecoration(
-                  hintText: 'Email',
-                  prefixIcon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedMail01,
-                    color: AppColors.grey,
-                    size: 12,
-                  ),
-                ),
                 keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  hintText: 'Password',
-                  prefixIcon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedLockPassword,
-                    color: AppColors.grey,
-                    size: 12,
-                  ),
+                prefixIcon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedMail01,
+                  color: AppColors.grey,
+                  size: 16,
                 ),
-                obscureText: true,
               ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  context.go('/home');
-                },
-                child: const Text('Login'),
+              const SizedBox(height: AppSpacing.md),
+              AppTextField(
+                label: 'Password',
+                hintText: 'Enter your password',
+                controller: _passwordController,
+                obscureText: true,
+                prefixIcon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedLockPassword,
+                  color: AppColors.grey,
+                  size: 16,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              AppButton.primary(
+                label: 'Login',
+                onPressed: () => context.go('/home'),
               ),
             ],
           ),

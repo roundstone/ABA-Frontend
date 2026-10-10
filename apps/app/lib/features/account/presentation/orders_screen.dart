@@ -8,11 +8,60 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_widgets.dart';
+import '../../../core/widgets/app_text_field.dart';
 import '../application/orders_providers.dart';
 import '../domain/customer_order.dart';
 
 class OrdersScreen extends ConsumerWidget {
   const OrdersScreen({super.key});
+
+  void _showFilterSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLG)),
+      ),
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final currentFilter = ref.watch(orderFilterProvider);
+            
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Text('Filter Orders', style: AppTypography.h4),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    title: const Text('All Orders'),
+                    trailing: currentFilter == null ? const Icon(Icons.check, color: AppColors.primary) : null,
+                    onTap: () {
+                      ref.read(orderFilterProvider.notifier).state = null;
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ...OrderStatus.values.map((status) {
+                    return ListTile(
+                      title: Text(status.label),
+                      trailing: currentFilter == status ? const Icon(Icons.check, color: AppColors.primary) : null,
+                      onTap: () {
+                        ref.read(orderFilterProvider.notifier).state = status;
+                        Navigator.pop(context);
+                      },
+                    );
+                  }),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,18 +72,38 @@ class OrdersScreen extends ConsumerWidget {
         title: const Text('Order History'),
         actions: [
           IconButton(
-            icon: const HugeIcon(icon: HugeIcons.strokeRoundedFilter, color: AppColors.grey, size: 24),
-            onPressed: () {},
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedFilter,
+              color: ref.watch(orderFilterProvider) != null ? AppColors.primary : AppColors.grey,
+              size: 24,
+            ),
+            onPressed: () => _showFilterSheet(context),
           ),
         ],
       ),
-      body: ordersAsync.when(
-        loading: () => const LoadingState(message: 'Loading orders…'),
-        error: (e, _) => ErrorState(
-          message: 'Could not load orders.\n${e.toString()}',
-          onRetry: () => ref.invalidate(customerOrdersProvider),
-        ),
-        data: (orders) => _OrdersBody(orders: orders),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+            child: AppTextField(
+              hintText: 'Search by Order ID or item...',
+              prefixIcon: const Icon(Icons.search, color: AppColors.grey),
+              onChanged: (val) {
+                ref.read(orderSearchQueryProvider.notifier).state = val;
+              },
+            ),
+          ),
+          Expanded(
+            child: ordersAsync.when(
+              loading: () => const LoadingState(message: 'Loading orders…'),
+              error: (e, _) => ErrorState(
+                message: 'Could not load orders.\n${e.toString()}',
+                onRetry: () => ref.invalidate(customerOrdersProvider),
+              ),
+              data: (orders) => _OrdersBody(orders: orders),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -51,9 +120,7 @@ class _OrdersBody extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (orders.isEmpty) {
-      return const Center(
-        child: Text('You have no orders yet.'),
-      );
+      return const Center(child: Text('You have no orders yet.'));
     }
 
     return ListView.builder(
@@ -70,24 +137,48 @@ class _OrdersBody extends StatelessWidget {
 
         switch (order.status) {
           case OrderStatus.processing:
-            statusBgColor = isDark ? const Color(0xFF4A2B0F) : const Color(0xFFFEF3C7);
-            statusTextColor = isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309);
-            statusBorderColor = isDark ? const Color(0xFF92400E) : const Color(0xFFFDE68A);
+            statusBgColor = isDark
+                ? const Color(0xFF4A2B0F)
+                : const Color(0xFFFEF3C7);
+            statusTextColor = isDark
+                ? const Color(0xFFFCD34D)
+                : const Color(0xFFB45309);
+            statusBorderColor = isDark
+                ? const Color(0xFF92400E)
+                : const Color(0xFFFDE68A);
             break;
           case OrderStatus.shipped:
-            statusBgColor = isDark ? const Color(0xFF0F2B2A) : const Color(0xFFE6E1D8);
-            statusTextColor = isDark ? const Color(0xFF5EEAD4) : const Color(0xFF172A1D);
-            statusBorderColor = isDark ? const Color(0xFF115E59) : const Color(0xFFD4CEC4);
+            statusBgColor = isDark
+                ? const Color(0xFF0F2B2A)
+                : const Color(0xFFE6E1D8);
+            statusTextColor = isDark
+                ? const Color(0xFF5EEAD4)
+                : const Color(0xFF172A1D);
+            statusBorderColor = isDark
+                ? const Color(0xFF115E59)
+                : const Color(0xFFD4CEC4);
             break;
           case OrderStatus.delivered:
-            statusBgColor = isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7);
-            statusTextColor = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF15803D);
-            statusBorderColor = isDark ? const Color(0xFF047857) : const Color(0xFFBBF7D0);
+            statusBgColor = isDark
+                ? const Color(0xFF064E3B)
+                : const Color(0xFFDCFCE7);
+            statusTextColor = isDark
+                ? const Color(0xFF6EE7B7)
+                : const Color(0xFF15803D);
+            statusBorderColor = isDark
+                ? const Color(0xFF047857)
+                : const Color(0xFFBBF7D0);
             break;
           case OrderStatus.cancelled:
-            statusBgColor = isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEF2F2);
-            statusTextColor = isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB42318);
-            statusBorderColor = isDark ? const Color(0xFFB91C1C) : const Color(0xFFFECACA);
+            statusBgColor = isDark
+                ? const Color(0xFF7F1D1D)
+                : const Color(0xFFFEF2F2);
+            statusTextColor = isDark
+                ? const Color(0xFFFCA5A5)
+                : const Color(0xFFB42318);
+            statusBorderColor = isDark
+                ? const Color(0xFFB91C1C)
+                : const Color(0xFFFECACA);
             break;
           default:
             statusBgColor = cs.surfaceContainerHighest;
@@ -105,7 +196,9 @@ class _OrdersBody extends StatelessWidget {
             decoration: BoxDecoration(
               color: cs.surface,
               borderRadius: AppSpacing.borderRadiusLG,
-              border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
+              border: Border.all(
+                color: isDark ? Colors.white12 : AppColors.border,
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +213,11 @@ class _OrdersBody extends StatelessWidget {
                         color: cs.surfaceContainerHighest,
                         borderRadius: AppSpacing.borderRadiusSM,
                       ),
-                      child: const HugeIcon(icon: HugeIcons.strokeRoundedPackage, color: AppColors.grey, size: 24),
+                      child: const HugeIcon(
+                        icon: HugeIcons.strokeRoundedPackage,
+                        color: AppColors.grey,
+                        size: 24,
+                      ),
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
@@ -132,10 +229,15 @@ class _OrdersBody extends StatelessWidget {
                             children: [
                               Text(
                                 order.id,
-                                style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                                style: AppTypography.bodyMedium.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
                                   color: statusBgColor,
                                   borderRadius: BorderRadius.circular(4),
@@ -156,7 +258,9 @@ class _OrdersBody extends StatelessWidget {
                           const SizedBox(height: AppSpacing.xs),
                           Text(
                             '$formattedDate • ${order.items.length} ${order.items.length == 1 ? "item" : "items"} • Sold by Merchant',
-                            style: AppTypography.caption.copyWith(color: cs.onSurfaceVariant),
+                            style: AppTypography.caption.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),
@@ -172,14 +276,25 @@ class _OrdersBody extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Order Total', style: AppTypography.caption.copyWith(color: cs.onSurfaceVariant)),
+                        Text(
+                          'Order Total',
+                          style: AppTypography.caption.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
                         Text(
                           '₦${formatter.format(order.total / 100)}',
-                          style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
+                          style: AppTypography.bodyLarge.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
-                    const HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.grey, size: 24),
+                    const HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowRight01,
+                      color: AppColors.grey,
+                      size: 24,
+                    ),
                   ],
                 ),
               ],

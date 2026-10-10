@@ -186,7 +186,7 @@ class _ShopSliverAppBar extends StatelessWidget {
       pinned: true,
       backgroundColor: cs.primary,
       title: Text(
-        'ABA Shop',
+        'Shop',
         style: AppTypography.h6.copyWith(
           color: Colors.white,
           fontWeight: FontWeight.w700,
@@ -350,7 +350,9 @@ class _ToolbarButton extends StatelessWidget {
           vertical: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: active ? primaryColor.withAlpha(20) : cs.surfaceContainerHighest,
+          color: active
+              ? primaryColor.withAlpha(20)
+              : cs.surfaceContainerHighest,
           borderRadius: AppSpacing.borderRadiusSM,
           border: active
               ? Border.all(color: primaryColor.withAlpha(80), width: 1)
@@ -444,10 +446,7 @@ class _AdsBannerState extends State<_AdsBanner> {
             itemBuilder: (context, i) {
               return ClipRRect(
                 borderRadius: AppSpacing.borderRadiusLG,
-                child: Image.asset(
-                  _banners[i],
-                  fit: BoxFit.cover,
-                ),
+                child: Image.asset(_banners[i], fit: BoxFit.cover),
               );
             },
           ),
@@ -463,8 +462,8 @@ class _AdsBannerState extends State<_AdsBanner> {
               width: _currentPage == i ? 16 : 8,
               height: 8,
               decoration: BoxDecoration(
-                color: _currentPage == i 
-                    ? AppColors.primary 
+                color: _currentPage == i
+                    ? AppColors.primary
                     : AppColors.grey.withAlpha(100),
                 borderRadius: BorderRadius.circular(4),
               ),

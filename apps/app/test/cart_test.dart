@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:aba_project/app/lib/features/cart/domain/entities/cart_entities.dart';
-import 'package:aba_project/app/lib/features/shop/domain/entities/shop_entities.dart';
+import 'package:app/features/cart/domain/entities/cart_entities.dart';
+import 'package:app/features/shop/domain/shop_entities.dart' show Product;
 
 void main() {
   group('Cart Entity Tests', () {
@@ -8,7 +8,7 @@ void main() {
     late CartItem testCartItem;
 
     setUp(() {
-      testProduct = Product(
+      testProduct = const Product(
         id: 'p1',
         name: 'Test Product',
         slug: 'test-product',
@@ -48,13 +48,13 @@ void main() {
     });
 
     test('Cart calculates shipping correctly', () {
-      // Test free shipping
+      // Test free shipping (subtotal >= 100,000)
       final cart1 = Cart(items: [
         CartItem(product: testProduct, quantity: 10),
       ]);
       expect(cart1.shipping, equals(0.0));
 
-      // Test paid shipping
+      // Test paid shipping (subtotal < 100,000)
       final cart2 = Cart(items: [
         CartItem(product: testProduct, quantity: 5),
       ]);
@@ -65,14 +65,14 @@ void main() {
       final cart = Cart(items: [
         testCartItem,
       ]);
-      expect(cart.tax, equals(750.0)); // 10000 * 2 * 0.075
+      expect(cart.tax, equals(1500.0)); // 10000 * 2 * 0.075 = 1500.0
     });
 
     test('Cart calculates total correctly', () {
       final cart = Cart(items: [
         testCartItem,
       ]);
-      expect(cart.total, equals(22750.0)); // 20000 + 2000 + 750
+      expect(cart.total, equals(23500.0)); // 20000 + 2000 + 1500 = 23500.0
     });
 
     test('Cart calculates item count correctly', () {

@@ -1,3 +1,4 @@
+import 'package:app/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -83,8 +84,6 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
   @override
   Widget build(BuildContext context) {
     final asyncData = ref.watch(referralDataProvider);
-    final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -119,32 +118,26 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: FilledButton.icon(
-                              onPressed: () =>
-                                  context.push('/referrals/profile'),
-                              icon: HugeIcon(
+                            child: AppButton(
+                              label: 'Marketer',
+                              icon: const HugeIcon(
                                 icon: HugeIcons.strokeRoundedNetwork,
-                                color: isDark ? Colors.white : Colors.black,
+                                color: Colors.white,
                                 size: 18,
                               ),
-                              label: Text(
-                                'Marketer',
-                                style: TextStyle(
-                                  color: isDark ? Colors.white : Colors.black,
-                                ),
-                              ),
+                              onPressed: () => context.push('/referrals/profile'),
                             ),
                           ),
                           const SizedBox(width: AppSpacing.sm),
                           Expanded(
-                            child: FilledButton.icon(
-                              onPressed: () {},
+                            child: AppButton(
+                              label: 'Share Link',
                               icon: const HugeIcon(
                                 icon: HugeIcons.strokeRoundedShare01,
                                 color: Colors.white,
                                 size: 18,
                               ),
-                              label: const Text('Share Link'),
+                              onPressed: () {},
                             ),
                           ),
                         ],
@@ -196,35 +189,38 @@ class _KpiCardsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _KpiCard(
-            title: 'Total Network',
-            value: metrics.totalNetwork.toString(),
-            subtitle: '+3 this month',
-            icon: HugeIcons.strokeRoundedUserMultiple,
-            iconColor: AppColors.primary,
-            iconBg: AppColors.primary.withAlpha(25),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          _KpiCard(
-            title: 'Active Buyers',
-            value: metrics.activeBuyers.toString(),
-            subtitle: '75% conversion',
-            icon: HugeIcons.strokeRoundedTarget01,
-            iconColor: AppColors.success,
-            iconBg: AppColors.success.withAlpha(25),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          _KpiCard(
-            title: 'Total Earned',
-            value: formatNaira(metrics.totalEarned / 100),
-            subtitle: 'Lifetime',
-            icon: HugeIcons.strokeRoundedDollarCircle,
-            iconColor: AppColors.warning,
-            iconBg: AppColors.warning.withAlpha(25),
-          ),
-        ],
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _KpiCard(
+              title: 'Total Network',
+              value: metrics.totalNetwork.toString(),
+              subtitle: '+3 this month',
+              icon: HugeIcons.strokeRoundedUserMultiple,
+              iconColor: AppColors.primary,
+              iconBg: AppColors.primary.withAlpha(25),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            _KpiCard(
+              title: 'Active Buyers',
+              value: metrics.activeBuyers.toString(),
+              subtitle: '75% conversion',
+              icon: HugeIcons.strokeRoundedTarget01,
+              iconColor: AppColors.success,
+              iconBg: AppColors.success.withAlpha(25),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            _KpiCard(
+              title: 'Total Earned',
+              value: formatNaira(metrics.totalEarned / 100),
+              subtitle: 'Lifetime',
+              icon: HugeIcons.strokeRoundedDollarCircle,
+              iconColor: AppColors.warning,
+              iconBg: AppColors.warning.withAlpha(25),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -251,7 +247,7 @@ class _KpiCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      width: 150,
+      width: 156,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: cs.surface,
@@ -260,6 +256,7 @@ class _KpiCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
@@ -284,14 +281,27 @@ class _KpiCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          Text(
-            value,
-            style: AppTypography.h5.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            subtitle,
-            style: AppTypography.caption.copyWith(color: AppColors.success),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FittedBox(
+                alignment: Alignment.centerLeft,
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  value,
+                  style: AppTypography.h5.copyWith(fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                subtitle,
+                style: AppTypography.caption.copyWith(color: AppColors.success),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ],
       ),
@@ -484,11 +494,10 @@ class _LeaderboardSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
           colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -541,15 +550,16 @@ class _LeaderboardSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: Colors.white54),
+          Theme(
+            data: Theme.of(context).copyWith(
+              brightness: Brightness.dark,
+              colorScheme: Theme.of(context).colorScheme.copyWith(
+                onSurface: Colors.white,
               ),
+            ),
+            child: AppButton.outlined(
+              label: 'View Full Rankings',
               onPressed: () {},
-              child: const Text('View Full Rankings'),
             ),
           ),
         ],

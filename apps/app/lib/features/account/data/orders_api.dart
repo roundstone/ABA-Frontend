@@ -73,9 +73,21 @@ final mockOrders = [
 ];
 
 class OrdersApi {
-  Future<List<CustomerOrder>> getOrders() async {
+  Future<List<CustomerOrder>> getOrders({OrderStatus? status, String? query}) async {
     await Future.delayed(const Duration(milliseconds: 500));
-    return mockOrders.map((json) => CustomerOrder.fromJson(json)).toList();
+    var orders = mockOrders.map((json) => CustomerOrder.fromJson(json)).toList();
+    if (status != null) {
+      orders = orders.where((o) => o.status == status).toList();
+    }
+    if (query != null && query.trim().isNotEmpty) {
+      final lowerQuery = query.trim().toLowerCase();
+      orders = orders.where((o) {
+        final matchesId = o.id.toLowerCase().contains(lowerQuery);
+        final matchesItems = o.items.any((item) => item.productName.toLowerCase().contains(lowerQuery));
+        return matchesId || matchesItems;
+      }).toList();
+    }
+    return orders;
   }
 
   Future<CustomerOrder> getOrderById(String id) async {

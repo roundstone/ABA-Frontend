@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:aba_project/app/lib/features/cart/data/cart_mock_repository.dart';
-import 'package:aba_project/app/lib/features/shop/domain/entities/shop_entities.dart';
+import 'package:app/features/cart/data/cart_mock_repository.dart';
+import 'package:app/features/shop/domain/shop_entities.dart';
 
 void main() {
   group('CartMockRepository Tests', () {
@@ -10,7 +10,7 @@ void main() {
     setUp(() {
       repository = CartMockRepository();
 
-      testProduct = Product(
+      testProduct = const Product(
         id: 'p1',
         name: 'Test Product',
         slug: 'test-product',

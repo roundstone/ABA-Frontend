@@ -15,6 +15,10 @@ class AppTheme {
         onError: Colors.white,
         surface: AppColors.surface,
         onSurface: AppColors.onSurface,
+        onSurfaceVariant: AppColors.grey,
+      ),
+      dividerTheme: DividerThemeData(
+        color: AppColors.grey.withValues(alpha: 0.1),
       ),
       scaffoldBackgroundColor: AppColors.background,
       textTheme: GoogleFonts.montserratTextTheme().copyWith(
@@ -70,6 +74,10 @@ class AppTheme {
         onError: Colors.white,
         surface: AppColors.darkSurface,
         onSurface: AppColors.darkTextPrimary,
+        onSurfaceVariant: AppColors.darkTextSecondary,
+      ),
+      dividerTheme: DividerThemeData(
+        color: AppColors.darkTextSecondary.withValues(alpha: 0.1),
       ),
       scaffoldBackgroundColor: AppColors.darkBackground,
 
