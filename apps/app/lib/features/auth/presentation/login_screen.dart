@@ -36,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Welcome to ABA ERP',
+                'Welcome to BUYNAIJA',
                 style: AppTypography.h3.copyWith(fontWeight: FontWeight.w800),
                 textAlign: TextAlign.center,
               ),

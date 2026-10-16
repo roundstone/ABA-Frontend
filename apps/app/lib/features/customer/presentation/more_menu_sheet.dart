@@ -57,47 +57,49 @@ class _MoreMenuSheet extends ConsumerWidget {
                   ),
                 ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Drag handle
-                  Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.sm),
-                    child: Container(
-                      width: 36,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withAlpha(40)
-                            : Colors.black.withAlpha(20),
-                        borderRadius: AppSpacing.avatarRadius,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Drag handle
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
+                      child: Container(
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withAlpha(40)
+                              : Colors.black.withAlpha(20),
+                          borderRadius: AppSpacing.avatarRadius,
+                        ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md,
-                      AppSpacing.md,
-                      AppSpacing.md,
-                      AppSpacing.sm,
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        AppSpacing.sm,
+                      ),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: items.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              mainAxisSpacing: AppSpacing.sm,
+                              crossAxisSpacing: AppSpacing.sm,
+                              childAspectRatio: 0.9,
+                            ),
+                        itemBuilder: (context, i) =>
+                            _MoreMenuTile(item: items[i]),
+                      ),
                     ),
-                    child: GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: items.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            mainAxisSpacing: AppSpacing.sm,
-                            crossAxisSpacing: AppSpacing.sm,
-                            childAspectRatio: 0.9,
-                          ),
-                      itemBuilder: (context, i) =>
-                          _MoreMenuTile(item: items[i]),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                ],
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                ),
               ),
             ),
           ),
@@ -122,7 +124,7 @@ class _MoreMenuTile extends StatelessWidget {
       onTap: () {
         Navigator.of(context).pop();
         if (item.route != null) {
-          context.go(item.route!);
+          context.push(item.route!);
         } else if (item.onTap != null) {
           item.onTap!(context);
         }
@@ -173,13 +175,7 @@ class _MoreMenuTile extends StatelessWidget {
 // ─── Menu item model ─────────────────────────────────────────────────────
 
 class _MenuItem {
-  const _MenuItem({
-    required this.icon,
-    required this.label,
-    required this.color,
-    this.route,
-    this.onTap,
-  });
+  const _MenuItem({required this.icon, required this.label, required this.color, this.route, this.onTap});
   final List<List<dynamic>> icon;
   final String label;
   final Color color;
@@ -193,19 +189,54 @@ List<_MenuItem> _menuItems(
   bool isMerchant,
   WidgetRef ref,
 ) => [
-  const _MenuItem(icon: HugeIcons.strokeRoundedDashboardSquare02, label: 'My Account', color: Color(0xFF3B82F6), route: '/account/dashboard'),
-  const _MenuItem(icon: HugeIcons.strokeRoundedNotification01, label: 'Notifications', color: Color(0xFF6366F1), route: '/notifications'),
-  const _MenuItem(icon: HugeIcons.strokeRoundedStore01, label: 'Businesses', color: Color(0xFF10B981), route: '/merchants'),
-  const _MenuItem(icon: HugeIcons.strokeRoundedAward01, label: 'Reward Points', color: Color(0xFFF59E0B), route: '/rewards'),
-  const _MenuItem(icon: HugeIcons.strokeRoundedNetwork, label: 'Referrals', color: Color(0xFFEC4899), route: '/referrals'),
-  const _MenuItem(icon: HugeIcons.strokeRoundedShoppingBag01, label: 'My Orders', color: AppColors.primary, route: '/account/orders'),
+  const _MenuItem(
+    icon: HugeIcons.strokeRoundedDashboardSquare02,
+    label: 'My Account',
+    color: Color(0xFF3B82F6),
+    route: '/account/dashboard',
+  ),
+  const _MenuItem(
+    icon: HugeIcons.strokeRoundedNotification01,
+    label: 'Notifications',
+    color: Color(0xFF6366F1),
+    route: '/notifications',
+  ),
+  const _MenuItem(
+    icon: HugeIcons.strokeRoundedStore01,
+    label: 'Businesses',
+    color: Color(0xFF10B981),
+    route: '/merchants',
+  ),
+  const _MenuItem(
+    icon: HugeIcons.strokeRoundedAward01,
+    label: 'Reward Points',
+    color: Color(0xFFF59E0B),
+    route: '/rewards',
+  ),
+  const _MenuItem(
+    icon: HugeIcons.strokeRoundedNetwork,
+    label: 'Referrals',
+    color: Color(0xFFEC4899),
+    route: '/referrals',
+  ),
+  const _MenuItem(
+    icon: HugeIcons.strokeRoundedShoppingBag01,
+    label: 'My Orders',
+    color: AppColors.primary,
+    route: '/account/orders',
+  ),
   _MenuItem(
     icon: isMerchant ? HugeIcons.strokeRoundedStore01 : HugeIcons.strokeRoundedLocation01,
     label: isMerchant ? 'Merchant Hub' : 'Saved Address',
     color: const Color(0xFF8B5CF6),
     route: isMerchant ? '/merchant' : '/account/addresses',
   ),
-  const _MenuItem(icon: HugeIcons.strokeRoundedSettings01, label: 'Settings', color: Color(0xFF64748B), route: '/settings'),
+  const _MenuItem(
+    icon: HugeIcons.strokeRoundedSettings01,
+    label: 'Settings',
+    color: Color(0xFF64748B),
+    route: '/settings',
+  ),
   _MenuItem(
     icon: HugeIcons.strokeRoundedLogout01,
     label: 'Logout',

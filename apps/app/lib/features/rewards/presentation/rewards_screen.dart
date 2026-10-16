@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../../core/router/safe_navigation.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -26,6 +27,15 @@ class RewardsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: IconButton(
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: isDark ? Colors.white : AppColors.onBackground,
+            size: 20,
+          ),
+          tooltip: 'Back',
+          onPressed: () => context.popOrGo('/home'),
+        ),
         title: const Text('My Reward Points'),
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -43,106 +53,113 @@ class RewardsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(rewardSummaryProvider);
-          ref.invalidate(rewardRulesProvider);
-          ref.invalidate(rewardLedgerProvider);
-          await ref.read(rewardSummaryProvider.future);
+      body: PopScope(
+        canPop: context.canPopSafely,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          context.popOrGo('/home');
         },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.lg,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'View your balance, history, and how to earn.',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: cs.onSurfaceVariant,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(rewardSummaryProvider);
+            ref.invalidate(rewardRulesProvider);
+            ref.invalidate(rewardLedgerProvider);
+            await ref.read(rewardSummaryProvider.future);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.lg,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'View your balance, history, and how to earn.',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.lg),
 
-              // ── Summary Cards ───────────────────────────────────────────
-              summaryAsync.when(
-                data: (summary) => RewardSummaryCards(summary: summary),
-                loading: () => const RewardSummaryCards(
-                  summary: null,
-                  isLoading: true,
+                // ── Summary Cards ───────────────────────────────────────────
+                summaryAsync.when(
+                  data: (summary) => RewardSummaryCards(summary: summary),
+                  loading: () =>
+                      const RewardSummaryCards(summary: null, isLoading: true),
+                  error: (_, __) => const RewardSummaryCards(summary: null),
                 ),
-                error: (_, __) => const RewardSummaryCards(summary: null),
-              ),
-              const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.xl),
 
-              // ── How To Earn & Redeem Section ─────────────────────────────
-              rulesAsync.when(
-                data: (rules) => HowToEarnCard(rules: rules),
-                loading: () => const HowToEarnCard(rules: [], isLoading: true),
-                error: (_, __) => const HowToEarnCard(rules: []),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-
-              const RedeemPointsCard(),
-              const SizedBox(height: AppSpacing.xl),
-
-              // ── Points History Header & Filter Chips ─────────────────────
-              Text(
-                'Points History',
-                style: AppTypography.h5.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-
-              _FilterChipsRow(
-                currentFilter: currentFilter,
-                onSelected: (filter) {
-                  ref.read(rewardLedgerFilterProvider.notifier).state = filter;
-                },
-              ),
-              const SizedBox(height: AppSpacing.md),
-
-              // ── Ledger Entries List ──────────────────────────────────────
-              ledgerAsync.when(
-                data: (entries) {
-                  if (entries.isEmpty) {
-                    return _EmptyLedgerView(isDark: isDark);
-                  }
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: entries.length,
-                    separatorBuilder: (_, __) =>
-                        const SizedBox(height: AppSpacing.sm),
-                    itemBuilder: (context, i) =>
-                        RewardLedgerTile(entry: entries[i]),
-                  );
-                },
-                loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
-                  child: Center(child: CircularProgressIndicator()),
+                // ── How To Earn & Redeem Section ─────────────────────────────
+                rulesAsync.when(
+                  data: (rules) => HowToEarnCard(rules: rules),
+                  loading: () =>
+                      const HowToEarnCard(rules: [], isLoading: true),
+                  error: (_, __) => const HowToEarnCard(rules: []),
                 ),
-                error: (e, _) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: Column(
-                      children: [
-                        Text('Could not load history: $e'),
-                        const SizedBox(height: AppSpacing.sm),
-                        TextButton(
-                          onPressed: () =>
-                              ref.invalidate(rewardLedgerProvider),
-                          child: const Text('Retry'),
-                        ),
-                      ],
+                const SizedBox(height: AppSpacing.lg),
+
+                const RedeemPointsCard(),
+                const SizedBox(height: AppSpacing.xl),
+
+                // ── Points History Header & Filter Chips ─────────────────────
+                Text(
+                  'Points History',
+                  style: AppTypography.h5.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+
+                _FilterChipsRow(
+                  currentFilter: currentFilter,
+                  onSelected: (filter) {
+                    ref.read(rewardLedgerFilterProvider.notifier).state =
+                        filter;
+                  },
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // ── Ledger Entries List ──────────────────────────────────────
+                ledgerAsync.when(
+                  data: (entries) {
+                    if (entries.isEmpty) {
+                      return _EmptyLedgerView(isDark: isDark);
+                    }
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: entries.length,
+                      separatorBuilder: (_, __) =>
+                          const SizedBox(height: AppSpacing.sm),
+                      itemBuilder: (context, i) =>
+                          RewardLedgerTile(entry: entries[i]),
+                    );
+                  },
+                  loading: () => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (e, _) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: Column(
+                        children: [
+                          Text('Could not load history: $e'),
+                          const SizedBox(height: AppSpacing.sm),
+                          TextButton(
+                            onPressed: () =>
+                                ref.invalidate(rewardLedgerProvider),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-            ],
+                const SizedBox(height: AppSpacing.xxl),
+              ],
+            ),
           ),
         ),
       ),
@@ -155,7 +172,6 @@ class _FilterChipsRow extends StatelessWidget {
     required this.currentFilter,
     required this.onSelected,
   });
-
   final String currentFilter;
   final ValueChanged<String> onSelected;
 
@@ -201,9 +217,7 @@ class _EmptyLedgerView extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: AppSpacing.borderRadiusLG,
-        border: Border.all(
-          color: isDark ? Colors.white12 : AppColors.border,
-        ),
+        border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
       ),
       child: Column(
         children: [

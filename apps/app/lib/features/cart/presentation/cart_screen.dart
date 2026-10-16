@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../../core/router/safe_navigation.dart';
 import '../../shop/application/shop_providers.dart';
 import '../../shop/domain/shop_entities.dart';
 import '../../../core/theme/app_colors.dart';
@@ -34,7 +35,7 @@ class CartScreen extends ConsumerWidget {
             color: Colors.white,
             size: AppSpacing.iconSizeSM,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () => context.popOrGo('/home'),
         ),
         elevation: 0,
       ),

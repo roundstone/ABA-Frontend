@@ -46,7 +46,7 @@ class RoleSelectionScreen extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
 
               Text(
-                'Welcome to Buy Nigeria',
+                'Welcome to BuyNaija',
                 style: AppTypography.h3.copyWith(fontWeight: FontWeight.w800),
                 textAlign: TextAlign.center,
               ),

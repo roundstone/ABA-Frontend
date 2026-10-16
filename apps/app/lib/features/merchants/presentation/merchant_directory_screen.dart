@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../../core/router/safe_navigation.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -32,6 +33,15 @@ class MerchantDirectoryScreen extends ConsumerWidget {
         backgroundColor: const Color(0xFF172A1D),
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
+        leading: IconButton(
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: isDark ? Colors.white : AppColors.onBackground,
+            size: 20,
+          ),
+          tooltip: 'Back',
+          onPressed: () => context.popOrGo('/home'),
+        ),
         title: Text(
           'Verified Businesses',
           style: AppTypography.h4.copyWith(
@@ -46,65 +56,72 @@ class MerchantDirectoryScreen extends ConsumerWidget {
               icon: HugeIcons.strokeRoundedShoppingBag01,
               color: Colors.white,
             ),
-            onPressed: () => context.go('/cart'),
+            onPressed: () => context.push('/cart'),
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(merchantsDirectoryProvider);
-          await ref.read(merchantsDirectoryProvider.future);
+      body: PopScope(
+        canPop: context.canPopSafely,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          context.popOrGo('/home');
         },
-        child: CustomScrollView(
-          slivers: [
-            // Top Hero Banner with Search
-            SliverToBoxAdapter(
-              child: MerchantHeroHeader(
-                searchQuery: filterParams.query,
-                onSearchChanged: (q) {
-                  ref.read(merchantFilterProvider.notifier).setQuery(q);
-                },
-              ),
-            ),
-
-            // Horizontal Category Selector
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                child: MerchantCategoryBar(
-                  selectedCategory: filterParams.category,
-                  onSelectCategory: (cat) {
-                    ref.read(merchantFilterProvider.notifier).setCategory(cat);
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(merchantsDirectoryProvider);
+            await ref.read(merchantsDirectoryProvider.future);
+          },
+          child: CustomScrollView(
+            slivers: [
+              // Top Hero Banner with Search
+              SliverToBoxAdapter(
+                child: MerchantHeroHeader(
+                  searchQuery: filterParams.query,
+                  onSearchChanged: (q) {
+                    ref.read(merchantFilterProvider.notifier).setQuery(q);
                   },
                 ),
               ),
-            ),
 
-            // Directory content / Toolbar
-            ...directoryAsync.when(
-              data: (result) => _buildDataSlivers(
-                context,
-                ref,
-                result,
-                filterParams,
-              ),
-              loading: () => [
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: LoadingState(message: 'Loading verified businesses…'),
-                ),
-              ],
-              error: (err, _) => [
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: ErrorState(
-                    message: err.toString(),
-                    onRetry: () => ref.invalidate(merchantsDirectoryProvider),
+              // Horizontal Category Selector
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  child: MerchantCategoryBar(
+                    selectedCategory: filterParams.category,
+                    onSelectCategory: (cat) {
+                      ref
+                          .read(merchantFilterProvider.notifier)
+                          .setCategory(cat);
+                    },
                   ),
                 ),
-              ],
-            ),
-          ],
+              ),
+
+              // Directory content / Toolbar
+              ...directoryAsync.when(
+                data: (result) =>
+                    _buildDataSlivers(context, ref, result, filterParams),
+                loading: () => [
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: LoadingState(
+                      message: 'Loading verified businesses…',
+                    ),
+                  ),
+                ],
+                error: (err, _) => [
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: ErrorState(
+                      message: err.toString(),
+                      onRetry: () => ref.invalidate(merchantsDirectoryProvider),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -161,16 +178,13 @@ class MerchantDirectoryScreen extends ConsumerWidget {
             vertical: AppSpacing.sm,
           ),
           sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final merchant = result.merchants[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                  child: MerchantCard(merchant: merchant),
-                );
-              },
-              childCount: result.merchants.length,
-            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final merchant = result.merchants[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: MerchantCard(merchant: merchant),
+              );
+            }, childCount: result.merchants.length),
           ),
         ),
       const SliverToBoxAdapter(
@@ -179,9 +193,7 @@ class MerchantDirectoryScreen extends ConsumerWidget {
           child: MerchantPromoBanner(),
         ),
       ),
-      const SliverToBoxAdapter(
-        child: SizedBox(height: 80),
-      ),
+      const SliverToBoxAdapter(child: SizedBox(height: 80)),
     ];
   }
 

@@ -8,7 +8,6 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../application/auth_providers.dart';
-import 'widgets/demo_login_button.dart';
 
 class MerchantLoginScreen extends ConsumerStatefulWidget {
   const MerchantLoginScreen({super.key});

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../customer/presentation/referrals_screen.dart';
+
 class EarningsScreen extends StatelessWidget {
   const EarningsScreen({super.key});
-  @override Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('Earnings')), body: const Center(child: Text('Earnings Screen')));
+  @override
+  Widget build(BuildContext context) => const ReferralsScreen();
 }
+

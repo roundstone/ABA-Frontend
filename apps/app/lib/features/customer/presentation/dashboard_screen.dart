@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/router/safe_navigation.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../account/application/orders_providers.dart';
@@ -30,7 +31,13 @@ class DashboardScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: summaryAsync.when(
+      body: PopScope(
+        canPop: context.canPopSafely,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          context.popOrGo('/home');
+        },
+        child: summaryAsync.when(
         loading: () => const LoadingState(message: 'Loading dashboard…'),
         error: (e, _) => ErrorState(
           message: 'Could not load dashboard.\n${e.toString()}',
@@ -66,6 +73,7 @@ class DashboardScreen extends ConsumerWidget {
             rewardPoints: rewardSummaryAsync.value?.available ?? summary.totalPoints,
           ),
         ),
+      ),
       ),
     );
   }

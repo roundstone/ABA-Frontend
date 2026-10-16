@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../../core/router/safe_navigation.dart';
 import '../../../core/config/app_brand.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -56,6 +57,17 @@ class _HomeBody extends StatelessWidget {
         slivers: [
           SliverAppBar(
             floating: true,
+            leading: context.canPopSafely
+                ? IconButton(
+                    tooltip: 'Back',
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowLeft01,
+                      color: isDark ? Colors.white : AppColors.onBackground,
+                      size: 20,
+                    ),
+                    onPressed: () => context.popOrGo('/home'),
+                  )
+                : null,
             title: Text(
               AppBrand.shortName,
               style: AppTypography.h3.copyWith(
@@ -76,9 +88,7 @@ class _HomeBody extends StatelessWidget {
                   context.go('/shop');
                 },
               ),
-              NotificationIconButton(
-                color: actionColor,
-              ),
+              NotificationIconButton(color: actionColor),
               const SizedBox(width: AppSpacing.xs),
             ],
           ),
@@ -174,10 +184,7 @@ class _ProductHorizontalList extends StatelessWidget {
         itemBuilder: (context, index) {
           return SizedBox(
             width: 160,
-            child: ProductCard(
-              product: products[index],
-              listMode: false,
-            ),
+            child: ProductCard(product: products[index], listMode: false),
           );
         },
       ),

@@ -48,6 +48,11 @@ class AppTypography {
     height: 1.4,
   );
 
+  // Title aliases for Material typography compatibility
+  static TextStyle get titleLarge => h4;
+  static TextStyle get titleMedium => h5;
+  static TextStyle get titleSmall => h6;
+
   // Body text styles
   static TextStyle get bodyLarge => GoogleFonts.inter(
     fontSize: 16,

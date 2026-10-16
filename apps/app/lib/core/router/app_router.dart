@@ -20,18 +20,21 @@ import '../../features/checkout/presentation/checkout_success_screen.dart';
 import '../../features/account/domain/customer_order.dart';
 import '../../features/account/presentation/orders_screen.dart';
 import '../../features/account/presentation/order_detail_screen.dart';
-import '../../features/account/presentation/network_screen.dart';
-import '../../features/account/presentation/earnings_screen.dart';
+import '../../features/account/presentation/saved_addresses_screen.dart';
+import '../../features/customer/presentation/settings_screen.dart';
 import '../../features/merchant/presentation/merchant_dashboard_screen.dart';
+import '../../features/merchant/presentation/merchant_products_screen.dart';
 import '../../features/merchant/presentation/pos_screen.dart';
 import '../../features/merchant/presentation/merchant_orders_screen.dart';
+import '../../features/merchant/presentation/merchant_order_detail_screen.dart';
 import '../../features/wallet/presentation/wallet_screen.dart';
 import '../../features/rewards/presentation/rewards_screen.dart';
 import '../../features/customer/presentation/notifications_screen.dart';
 import '../../features/merchants/presentation/merchant_directory_screen.dart';
+import '../notifications/notification_navigation_handler.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: '/splash',
     redirect: (context, state) {
       final loc = state.matchedLocation;
@@ -58,18 +61,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/login',
         builder: (context, state) => const CustomerLoginScreen(),
       ),
-      GoRoute(
-        path: '/login/customer',
-        redirect: (context, state) => '/login',
-      ),
+      GoRoute(path: '/login/customer', redirect: (_, __) => '/login'),
       GoRoute(
         path: '/register',
         builder: (context, state) => const CustomerRegisterScreen(),
       ),
-      GoRoute(
-        path: '/register/customer',
-        redirect: (context, state) => '/register',
-      ),
+      GoRoute(path: '/register/customer', redirect: (_, __) => '/register'),
       GoRoute(
         path: '/login/merchant',
         builder: (context, state) => const MerchantLoginScreen(),
@@ -160,13 +157,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           return OrderDetailScreen(orderId: id);
         },
       ),
+      GoRoute(path: '/account/network', redirect: (_, __) => '/referrals/profile'),
+      GoRoute(path: '/account/earnings', redirect: (_, __) => '/referrals'),
       GoRoute(
-        path: '/account/network',
-        builder: (context, state) => const NetworkScreen(),
+        path: '/account/addresses',
+        builder: (context, state) => const SavedAddressesScreen(),
       ),
       GoRoute(
-        path: '/account/earnings',
-        builder: (context, state) => const EarningsScreen(),
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
       GoRoute(
         path: '/referrals',
@@ -180,17 +179,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/rewards',
         builder: (context, state) => const RewardsScreen(),
       ),
-      GoRoute(
-        path: '/account/rewards',
-        redirect: (context, state) => '/rewards',
-      ),
-      GoRoute(
-        path: '/portal/rewards',
-        redirect: (context, state) => '/rewards',
-      ),
+      GoRoute(path: '/account/rewards', redirect: (_, __) => '/rewards'),
+      GoRoute(path: '/portal/rewards', redirect: (_, __) => '/rewards'),
       GoRoute(
         path: '/merchant',
         builder: (context, state) => const MerchantDashboardScreen(),
+      ),
+      GoRoute(path: '/merchant/dashboard', redirect: (_, __) => '/merchant'),
+      GoRoute(
+        path: '/merchant/products',
+        builder: (context, state) => const MerchantProductsScreen(),
       ),
       GoRoute(
         path: '/merchant/pos',
@@ -201,17 +199,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const MerchantOrdersScreen(),
       ),
       GoRoute(
+        path: '/merchant/orders/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return MerchantOrderDetailScreen(orderId: id);
+        },
+      ),
+      GoRoute(
         path: '/merchants',
         builder: (context, state) => const MerchantDirectoryScreen(),
       ),
-      GoRoute(
-        path: '/merchants/directory',
-        redirect: (context, state) => '/merchants',
-      ),
-      GoRoute(
-        path: '/businesses',
-        redirect: (context, state) => '/merchants',
-      ),
+      GoRoute(path: '/merchants/directory', redirect: (_, __) => '/merchants'),
+      GoRoute(path: '/businesses', redirect: (_, __) => '/merchants'),
     ],
   );
+
+  NotificationNavigationHandler.instance.attachRouter(router);
+  return router;
 });
+

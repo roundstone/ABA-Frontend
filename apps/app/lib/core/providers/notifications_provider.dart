@@ -12,6 +12,7 @@ class AppNotification {
     this.isRead = false,
     required this.icon,
     required this.color,
+    this.route,
   });
 
   final String id;
@@ -21,6 +22,7 @@ class AppNotification {
   final bool isRead;
   final List<List<dynamic>> icon;
   final Color color;
+  final String? route;
 
   AppNotification copyWith({
     String? id,
@@ -30,6 +32,7 @@ class AppNotification {
     bool? isRead,
     List<List<dynamic>>? icon,
     Color? color,
+    String? route,
   }) {
     return AppNotification(
       id: id ?? this.id,
@@ -39,6 +42,7 @@ class AppNotification {
       isRead: isRead ?? this.isRead,
       icon: icon ?? this.icon,
       color: color ?? this.color,
+      route: route ?? this.route,
     );
   }
 }
@@ -54,6 +58,7 @@ class NotificationsNotifier extends StateNotifier<List<AppNotification>> {
             isRead: false,
             icon: HugeIcons.strokeRoundedPackage,
             color: AppColors.success,
+            route: '/account/orders/ORD-2026-E4F2A',
           ),
           const AppNotification(
             id: 'notif-2',
@@ -63,6 +68,7 @@ class NotificationsNotifier extends StateNotifier<List<AppNotification>> {
             isRead: false,
             icon: HugeIcons.strokeRoundedAward01,
             color: Color(0xFFF59E0B),
+            route: '/rewards',
           ),
           const AppNotification(
             id: 'notif-3',
@@ -73,6 +79,7 @@ class NotificationsNotifier extends StateNotifier<List<AppNotification>> {
             isRead: true,
             icon: HugeIcons.strokeRoundedWallet01,
             color: AppColors.primary,
+            route: '/wallet',
           ),
         ]);
 

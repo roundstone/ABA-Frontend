@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/router/safe_navigation.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -45,6 +46,15 @@ class DashboardHeader extends StatelessWidget {
       pinned: true,
       stretch: true,
       backgroundColor: isDark ? const Color(0xFF141E17) : AppColors.primary,
+      leading: IconButton(
+        icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: isDark ? Colors.white : AppColors.onBackground,
+            size: 20,
+          ),
+        tooltip: 'Back',
+        onPressed: () => context.popOrGo('/home'),
+      ),
       flexibleSpace: FlexibleSpaceBar(
         collapseMode: CollapseMode.parallax,
         background: Container(

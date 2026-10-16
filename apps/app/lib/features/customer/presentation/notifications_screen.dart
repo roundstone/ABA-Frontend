@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../../core/router/safe_navigation.dart';
+import '../../auth/application/auth_providers.dart';
+import '../../../core/notifications/notification_debug_sheet.dart';
+import '../../../core/notifications/notification_navigation_handler.dart';
 import '../../../core/providers/notifications_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -18,9 +22,26 @@ class NotificationsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: IconButton(
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: isDark ? Colors.white : AppColors.onBackground,
+            size: 20,
+          ),
+          tooltip: 'Back',
+          onPressed: () {
+            final fallback = ref.read(authStateProvider).isMerchant ? '/merchant' : '/home';
+            context.popOrGo(fallback);
+          },
+        ),
         title: const Text('Notifications'),
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.tune, size: 20),
+            tooltip: 'Push Diagnostics & Test',
+            onPressed: () => NotificationDebugSheet.show(context),
+          ),
           if (notifications.any((n) => !n.isRead))
             TextButton(
               onPressed: () {
@@ -30,140 +51,152 @@ class NotificationsScreen extends ConsumerWidget {
             ),
         ],
       ),
-      body: notifications.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedNotification01,
-                    size: 48,
-                    color: cs.onSurfaceVariant,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    'No notifications',
-                    style: AppTypography.bodyMedium.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'You are all caught up!',
-                    style: AppTypography.caption.copyWith(
+      body: PopScope(
+        canPop: context.canPopSafely,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          final fallback = ref.read(authStateProvider).isMerchant ? '/merchant' : '/home';
+          context.popOrGo(fallback);
+        },
+        child: notifications.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedNotification01,
+                      size: 48,
                       color: cs.onSurfaceVariant,
                     ),
-                  ),
-                ],
-              ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              itemCount: notifications.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (context, i) {
-                final item = notifications[i];
-                return Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      if (!item.isRead) {
-                        ref
-                            .read(notificationsProvider.notifier)
-                            .markAsRead(item.id);
-                      }
-                    },
-                    borderRadius: AppSpacing.borderRadiusMD,
-                    child: Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: cs.surface,
-                        borderRadius: AppSpacing.borderRadiusMD,
-                        border: Border.all(
-                          color: isDark ? Colors.white12 : AppColors.border,
-                        ),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: item.color.withAlpha(20),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: HugeIcon(
-                                icon: item.icon,
-                                color: item.color,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        item.title,
-                                        style:
-                                            AppTypography.bodyMedium.copyWith(
-                                          fontWeight: item.isRead
-                                              ? FontWeight.w500
-                                              : FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          item.time,
-                                          style:
-                                              AppTypography.caption.copyWith(
-                                            color: cs.onSurfaceVariant,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                        if (!item.isRead) ...[
-                                          const SizedBox(width: 6),
-                                          Container(
-                                            width: 8,
-                                            height: 8,
-                                            decoration: const BoxDecoration(
-                                              color: AppColors.warning,
-                                              shape: BoxShape.circle,
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  item.body,
-                                  style: AppTypography.bodySmall.copyWith(
-                                    color: cs.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      'No notifications',
+                      style: AppTypography.bodyMedium.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'You are all caught up!',
+                      style: AppTypography.caption.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                itemCount: notifications.length,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: AppSpacing.sm),
+                itemBuilder: (context, i) {
+                  final item = notifications[i];
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        if (!item.isRead) {
+                          ref
+                              .read(notificationsProvider.notifier)
+                              .markAsRead(item.id);
+                        }
+                        if (item.route != null && item.route!.isNotEmpty) {
+                          NotificationNavigationHandler.instance
+                              .navigateToRoute(item.route!);
+                        }
+                      },
+                      borderRadius: AppSpacing.borderRadiusMD,
+                      child: Container(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: cs.surface,
+                          borderRadius: AppSpacing.borderRadiusMD,
+                          border: Border.all(
+                            color: isDark ? Colors.white12 : AppColors.border,
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: item.color.withAlpha(20),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: HugeIcon(
+                                  icon: item.icon,
+                                  color: item.color,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          item.title,
+                                          style: AppTypography.bodyMedium
+                                              .copyWith(
+                                                fontWeight: item.isRead
+                                                    ? FontWeight.w500
+                                                    : FontWeight.bold,
+                                              ),
+                                        ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            item.time,
+                                            style: AppTypography.caption
+                                                .copyWith(
+                                                  color: cs.onSurfaceVariant,
+                                                  fontSize: 11,
+                                                ),
+                                          ),
+                                          if (!item.isRead) ...[
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              width: 8,
+                                              height: 8,
+                                              decoration: const BoxDecoration(
+                                                color: AppColors.warning,
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    item.body,
+                                    style: AppTypography.bodySmall.copyWith(
+                                      color: cs.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ),
     );
   }
 }

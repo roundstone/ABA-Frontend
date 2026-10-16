@@ -27,12 +27,21 @@ class CustomerShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: navigationShell,
-      extendBody: true, // let body draw behind the nav bar
-      bottomNavigationBar: _FloatingNavBar(
-        currentIndex: navigationShell.currentIndex,
-        onTap: (i) => _onTap(context, i),
+    return PopScope(
+      canPop: navigationShell.currentIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (navigationShell.currentIndex != 0) {
+          navigationShell.goBranch(0);
+        }
+      },
+      child: Scaffold(
+        body: navigationShell,
+        extendBody: true, // let body draw behind the nav bar
+        bottomNavigationBar: _FloatingNavBar(
+          currentIndex: navigationShell.currentIndex,
+          onTap: (i) => _onTap(context, i),
+        ),
       ),
     );
   }

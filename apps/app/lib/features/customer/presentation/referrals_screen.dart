@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/router/safe_navigation.dart';
+import '../../auth/application/auth_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -84,9 +86,22 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
   @override
   Widget build(BuildContext context) {
     final asyncData = ref.watch(referralDataProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: isDark ? Colors.white : AppColors.onBackground,
+            size: 20,
+          ),
+          tooltip: 'Back',
+          onPressed: () {
+            final fallback = ref.read(authStateProvider).isMerchant ? '/merchant' : '/home';
+            context.popOrGo(fallback);
+          },
+        ),
         title: const Text('Referral Network'),
         actions: [
           IconButton(
@@ -99,83 +114,92 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
           ),
         ],
       ),
-      body: asyncData.when(
-        loading: () => const LoadingState(message: 'Loading referrals...'),
-        error: (err, _) => ErrorState(
-          message: 'Could not load referrals.\n${err.toString()}',
-          onRetry: () => ref.invalidate(referralDataProvider),
-        ),
-        data: (data) {
-          return CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Header Actions
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AppButton(
-                              label: 'Marketer',
-                              icon: const HugeIcon(
-                                icon: HugeIcons.strokeRoundedNetwork,
-                                color: Colors.white,
-                                size: 18,
+      body: PopScope(
+        canPop: context.canPopSafely,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          final fallback = ref.read(authStateProvider).isMerchant ? '/merchant' : '/home';
+          context.popOrGo(fallback);
+        },
+        child: asyncData.when(
+          loading: () => const LoadingState(message: 'Loading referrals...'),
+          error: (err, _) => ErrorState(
+            message: 'Could not load referrals.\n${err.toString()}',
+            onRetry: () => ref.invalidate(referralDataProvider),
+          ),
+          data: (data) {
+            return CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Header Actions
+                        Row(
+                          children: [
+                            Expanded(
+                              child: AppButton(
+                                label: 'Marketer',
+                                icon: const HugeIcon(
+                                  icon: HugeIcons.strokeRoundedNetwork,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                                onPressed: () =>
+                                    context.push('/referrals/profile'),
                               ),
-                              onPressed: () => context.push('/referrals/profile'),
                             ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: AppButton(
-                              label: 'Share Link',
-                              icon: const HugeIcon(
-                                icon: HugeIcons.strokeRoundedShare01,
-                                color: Colors.white,
-                                size: 18,
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: AppButton(
+                                label: 'Share Link',
+                                icon: const HugeIcon(
+                                  icon: HugeIcons.strokeRoundedShare01,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                                onPressed: () {},
                               ),
-                              onPressed: () {},
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-
-                      // KPI Cards
-                      _KpiCardsRow(metrics: data.metrics),
-                      const SizedBox(height: AppSpacing.xl),
-
-                      // Invite & Earn Card
-                      _InviteCard(
-                        referralCode: referralCode,
-                        referralLink: referralLink,
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-
-                      // Your Network
-                      Text(
-                        'Your Network',
-                        style: AppTypography.h6.copyWith(
-                          fontWeight: FontWeight.w700,
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      _NetworkList(stats: data.stats),
-                      const SizedBox(height: AppSpacing.xl),
+                        const SizedBox(height: AppSpacing.xl),
 
-                      // Top Promoters Leaderboard
-                      const _LeaderboardSection(),
-                      const SizedBox(height: AppSpacing.xxl),
-                    ],
+                        // KPI Cards
+                        _KpiCardsRow(metrics: data.metrics),
+                        const SizedBox(height: AppSpacing.xl),
+
+                        // Invite & Earn Card
+                        _InviteCard(
+                          referralCode: referralCode,
+                          referralLink: referralLink,
+                        ),
+                        const SizedBox(height: AppSpacing.xl),
+
+                        // Your Network
+                        Text(
+                          'Your Network',
+                          style: AppTypography.h6.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _NetworkList(stats: data.stats),
+                        const SizedBox(height: AppSpacing.xl),
+
+                        // Top Promoters Leaderboard
+                        const _LeaderboardSection(),
+                        const SizedBox(height: AppSpacing.xxl),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -553,9 +577,9 @@ class _LeaderboardSection extends StatelessWidget {
           Theme(
             data: Theme.of(context).copyWith(
               brightness: Brightness.dark,
-              colorScheme: Theme.of(context).colorScheme.copyWith(
-                onSurface: Colors.white,
-              ),
+              colorScheme: Theme.of(
+                context,
+              ).colorScheme.copyWith(onSurface: Colors.white),
             ),
             child: AppButton.outlined(
               label: 'View Full Rankings',

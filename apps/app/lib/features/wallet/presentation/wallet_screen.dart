@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../../core/router/safe_navigation.dart';
+import '../../auth/application/auth_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -17,9 +19,25 @@ class WalletScreen extends ConsumerWidget {
     final walletInfoAsync = ref.watch(walletInfoProvider);
     final transactionsAsync = ref.watch(walletTransactionsProvider);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: context.canPopSafely
+            ? IconButton(
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowLeft01,
+                  color: isDark ? Colors.white : AppColors.onBackground,
+                  size: 20,
+                ),
+                tooltip: 'Back',
+                onPressed: () {
+                  final fallback = ref.read(authStateProvider).isMerchant ? '/merchant' : '/home';
+                  context.popOrGo(fallback);
+                },
+              )
+            : null,
         title: Text(
           'My Wallet',
           style: AppTypography.h5.copyWith(fontWeight: FontWeight.bold),
@@ -37,111 +55,123 @@ class WalletScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(walletInfoProvider);
-            ref.invalidate(walletTransactionsProvider);
-          },
-          child: ListView(
-            padding: AppSpacing.paddingHorizontalMD,
-            children: [
-              AppSpacing.verticalSpaceMD,
-              // Balance Card
-              walletInfoAsync.when(
-                loading: () => const SizedBox(
-                  height: 160,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (err, stack) => ErrorState(
-                  message: err.toString(),
-                  onRetry: () => ref.invalidate(walletInfoProvider),
-                ),
-                data: (info) => WalletBalanceCard(
-                  info: info,
-                  onFund: () {
-                    // TODO: Implement fund action
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Fund wallet tapped')),
-                    );
-                  },
-                  onWithdraw: () {
-                    // TODO: Implement withdraw action
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Withdraw tapped')),
-                    );
-                  },
-                ),
-              ),
-              AppSpacing.verticalSpaceLG,
-
-              // Transactions Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Recent Transactions',
-                    style: AppTypography.h6.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+      body: PopScope(
+        canPop: context.canPopSafely,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          final fallback = ref.read(authStateProvider).isMerchant ? '/merchant' : '/home';
+          context.popOrGo(fallback);
+        },
+        child: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(walletInfoProvider);
+              ref.invalidate(walletTransactionsProvider);
+            },
+            child: ListView(
+              padding: AppSpacing.paddingHorizontalMD,
+              children: [
+                AppSpacing.verticalSpaceMD,
+                // Balance Card
+                walletInfoAsync.when(
+                  loading: () => const SizedBox(
+                    height: 160,
+                    child: Center(child: CircularProgressIndicator()),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      // TODO: Navigate to all transactions
+                  error: (err, stack) => ErrorState(
+                    message: err.toString(),
+                    onRetry: () => ref.invalidate(walletInfoProvider),
+                  ),
+                  data: (info) => WalletBalanceCard(
+                    info: info,
+                    onFund: () {
+                      // TODO: Implement fund action
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Fund wallet tapped')),
+                      );
                     },
-                    child: Text(
-                      'See All',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
+                    onWithdraw: () {
+                      // TODO: Implement withdraw action
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Withdraw tapped')),
+                      );
+                    },
+                  ),
+                ),
+                AppSpacing.verticalSpaceLG,
+
+                // Transactions Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Recent Transactions',
+                      style: AppTypography.h6.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              AppSpacing.verticalSpaceSM,
-
-              // Transactions List
-              transactionsAsync.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.all(AppSpacing.xl),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (err, stack) => ErrorState(
-                  message: err.toString(),
-                  onRetry: () => ref.invalidate(walletTransactionsProvider),
-                ),
-                data: (transactions) {
-                  if (transactions.isEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-                      child: Center(
-                        child: Text(
-                          'No recent transactions',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withAlpha(153),
-                          ),
+                    TextButton(
+                      onPressed: () {
+                        // TODO: Navigate to all transactions
+                      },
+                      child: Text(
+                        'See All',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    );
-                  }
+                    ),
+                  ],
+                ),
+                AppSpacing.verticalSpaceSM,
 
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: transactions.length,
-                    itemBuilder: (context, index) {
-                      return TransactionTile(
-                        transaction: transactions[index],
+                // Transactions List
+                transactionsAsync.when(
+                  loading: () => const Padding(
+                    padding: EdgeInsets.all(AppSpacing.xl),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (err, stack) => ErrorState(
+                    message: err.toString(),
+                    onRetry: () => ref.invalidate(walletTransactionsProvider),
+                  ),
+                  data: (transactions) {
+                    if (transactions.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.xl,
+                        ),
+                        child: Center(
+                          child: Text(
+                            'No recent transactions',
+                            style: AppTypography.bodyMedium.copyWith(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withAlpha(153),
+                            ),
+                          ),
+                        ),
                       );
-                    },
-                  );
-                },
-              ),
-              
-              // Extra padding at the bottom for the navigation bar
-              const SizedBox(height: 100),
-            ],
+                    }
+
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: transactions.length,
+                      itemBuilder: (context, index) {
+                        return TransactionTile(
+                          transaction: transactions[index],
+                        );
+                      },
+                    );
+                  },
+                ),
+
+                // Extra padding at the bottom for the navigation bar
+                const SizedBox(height: 100),
+              ],
+            ),
           ),
         ),
       ),

@@ -44,6 +44,34 @@ class AuthUser {
 
   bool get isMerchant => role == UserRole.merchant;
   bool get isCustomer => role == UserRole.customer;
+
+  AuthUser copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? phone,
+    UserRole? role,
+    String? token,
+    String? referralCode,
+    String? merchantId,
+    String? businessName,
+    double? walletBalance,
+    DateTime? createdAt,
+  }) {
+    return AuthUser(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      role: role ?? this.role,
+      token: token ?? this.token,
+      referralCode: referralCode ?? this.referralCode,
+      merchantId: merchantId ?? this.merchantId,
+      businessName: businessName ?? this.businessName,
+      walletBalance: walletBalance ?? this.walletBalance,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }
 
 class CustomerRegistrationParams {

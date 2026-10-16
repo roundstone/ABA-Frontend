@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../../core/router/safe_navigation.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -706,7 +707,7 @@ class _ImageSliverAppBar extends StatelessWidget {
       pinned: true,
       backgroundColor: cs.surface,
       leading: GestureDetector(
-        onTap: () => context.pop(),
+        onTap: () => context.popOrGo('/shop'),
         child: Container(
           margin: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(

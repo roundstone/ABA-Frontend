@@ -91,6 +91,7 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Container(
                     width: 96,
                     height: 96,
+                    clipBehavior: Clip.hardEdge,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white.withAlpha(20),
@@ -106,11 +107,27 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ],
                     ),
-                    child: const Center(
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedStore01,
-                        color: AppColors.secondary,
-                        size: 48,
+                    child: ClipOval(
+                      child: Image.asset(
+                        "assets/images/logo.png",
+                        width: 96,
+                        height: 96,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          width: 96,
+                          height: 96,
+                          color: AppColors.primary,
+                          alignment: Alignment.center,
+                          child: const Text(
+                            'BUYNAIJA',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -126,7 +143,7 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Column(
                       children: [
                         Text(
-                          'BUY NIGERIA',
+                          'BUYNAIJA',
                           style: AppTypography.h2.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w900,

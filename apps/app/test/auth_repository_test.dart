@@ -147,32 +147,26 @@ void main() {
   });
 
   group('Auth Presentation Widget Tests', () {
-    testWidgets('SplashScreen renders MLM merchant marketplace highlights',
-        (tester) async {
+    testWidgets('SplashScreen renders MLM merchant marketplace highlights', (
+      tester,
+    ) async {
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
-            home: SplashScreen(),
-          ),
-        ),
+        const ProviderScope(child: MaterialApp(home: SplashScreen())),
       );
       await tester.pump(const Duration(milliseconds: 500));
 
-      expect(find.text('BUY NIGERIA'), findsOneWidget);
+      expect(find.text('BUYNAIJA'), findsOneWidget);
       expect(find.text('Get Started'), findsOneWidget);
     });
 
-    testWidgets('RoleSelectionScreen renders Customer and Merchant cards',
-        (tester) async {
+    testWidgets('RoleSelectionScreen renders Customer and Merchant cards', (
+      tester,
+    ) async {
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
-            home: RoleSelectionScreen(),
-          ),
-        ),
+        const ProviderScope(child: MaterialApp(home: RoleSelectionScreen())),
       );
 
-      expect(find.text('Welcome to Buy Nigeria'), findsOneWidget);
+      expect(find.text('Welcome to BuyNaija'), findsOneWidget);
       expect(find.text('Shop, Save & Earn'), findsOneWidget);
       expect(find.text('Sell, Scale & POS'), findsOneWidget);
     });

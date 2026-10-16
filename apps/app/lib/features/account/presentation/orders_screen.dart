@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../../core/router/safe_navigation.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -20,13 +21,15 @@ class OrdersScreen extends ConsumerWidget {
       context: context,
       backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLG)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusLG),
+        ),
       ),
       builder: (context) {
         return Consumer(
           builder: (context, ref, child) {
             final currentFilter = ref.watch(orderFilterProvider);
-            
+
             return SafeArea(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -38,7 +41,9 @@ class OrdersScreen extends ConsumerWidget {
                   const Divider(height: 1),
                   ListTile(
                     title: const Text('All Orders'),
-                    trailing: currentFilter == null ? const Icon(Icons.check, color: AppColors.primary) : null,
+                    trailing: currentFilter == null
+                        ? const Icon(Icons.check, color: AppColors.primary)
+                        : null,
                     onTap: () {
                       ref.read(orderFilterProvider.notifier).state = null;
                       Navigator.pop(context);
@@ -47,7 +52,9 @@ class OrdersScreen extends ConsumerWidget {
                   ...OrderStatus.values.map((status) {
                     return ListTile(
                       title: Text(status.label),
-                      trailing: currentFilter == status ? const Icon(Icons.check, color: AppColors.primary) : null,
+                      trailing: currentFilter == status
+                          ? const Icon(Icons.check, color: AppColors.primary)
+                          : null,
                       onTap: () {
                         ref.read(orderFilterProvider.notifier).state = status;
                         Navigator.pop(context);
@@ -66,44 +73,66 @@ class OrdersScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ordersAsync = ref.watch(customerOrdersProvider);
+     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: isDark ? Colors.white : AppColors.onBackground,
+            size: 20,
+          ),
+          tooltip: 'Back',
+          onPressed: () => context.popOrGo('/home'),
+        ),
         title: const Text('Order History'),
         actions: [
           IconButton(
             icon: HugeIcon(
               icon: HugeIcons.strokeRoundedFilter,
-              color: ref.watch(orderFilterProvider) != null ? AppColors.primary : AppColors.grey,
+              color: ref.watch(orderFilterProvider) != null
+                  ? AppColors.primary
+                  : AppColors.grey,
               size: 24,
             ),
             onPressed: () => _showFilterSheet(context),
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-            child: AppTextField(
-              hintText: 'Search by Order ID or item...',
-              prefixIcon: const Icon(Icons.search, color: AppColors.grey),
-              onChanged: (val) {
-                ref.read(orderSearchQueryProvider.notifier).state = val;
-              },
-            ),
-          ),
-          Expanded(
-            child: ordersAsync.when(
-              loading: () => const LoadingState(message: 'Loading orders…'),
-              error: (e, _) => ErrorState(
-                message: 'Could not load orders.\n${e.toString()}',
-                onRetry: () => ref.invalidate(customerOrdersProvider),
+      body: PopScope(
+        canPop: context.canPopSafely,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          context.popOrGo('/home');
+        },
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
               ),
-              data: (orders) => _OrdersBody(orders: orders),
+              child: AppTextField(
+                hintText: 'Search by Order ID or item...',
+                prefixIcon: const Icon(Icons.search, color: AppColors.grey),
+                onChanged: (val) {
+                  ref.read(orderSearchQueryProvider.notifier).state = val;
+                },
+              ),
             ),
-          ),
-        ],
+            Expanded(
+              child: ordersAsync.when(
+                loading: () => const LoadingState(message: 'Loading orders…'),
+                error: (e, _) => ErrorState(
+                  message: 'Could not load orders.\n${e.toString()}',
+                  onRetry: () => ref.invalidate(customerOrdersProvider),
+                ),
+                data: (orders) => _OrdersBody(orders: orders),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
