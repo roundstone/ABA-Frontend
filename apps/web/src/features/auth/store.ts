@@ -4,9 +4,9 @@ import { User, UserRole } from './types';
 
 interface AuthState {
   user: User | null;
-  activeRole: UserRole | 'Customer' | null;
+  activeRole: UserRole | null;
   isAuthenticated: boolean;
-  login: (user: User, role: UserRole | 'Customer') => void;
+  login: (user: User, role: UserRole) => void;
   logout: () => void;
 }
 

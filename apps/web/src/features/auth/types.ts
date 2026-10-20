@@ -1,4 +1,13 @@
-export type UserRole = 'Super Admin' | 'Admin' | 'Merchant user' | 'Auditor' | 'Staff';
+export type UserRole =
+  | 'Super Admin'
+  | 'Admin'
+  | 'Customer'
+  | 'Vendor'
+  | 'Marketer'
+  // Legacy UI roles retained while their backend mappings are finalized.
+  | 'Merchant user'
+  | 'Auditor'
+  | 'Staff';
 export type UserStatus = 'Invited' | 'Active' | 'Suspended' | 'Locked' | 'Deactivated';
 
 export interface User {
@@ -9,6 +18,7 @@ export interface User {
   email: string;
   phone?: string;
   roles: UserRole[];
+  userType?: UserRole;
   status: UserStatus;
   merchantId?: string;
   referralCode?: string;
