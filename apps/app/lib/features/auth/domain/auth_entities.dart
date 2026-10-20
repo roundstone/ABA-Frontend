@@ -95,12 +95,24 @@ class MerchantOnboardingParams {
     required this.businessName,
     required this.businessType,
     this.rcNumber,
+    this.isProvisional = false,
+    this.cacDocumentName,
     required this.ownerName,
     required this.phone,
     required this.email,
+    this.idType = 'National Identity Number (NIN)',
+    this.ninNumber,
+    this.idDocumentName,
     required this.address,
+    this.marketCluster,
     required this.city,
     required this.state,
+    this.productDescription,
+    this.samplePhotosCount = 0,
+    this.certificationType,
+    this.certificationNumber,
+    this.certificationDocumentName,
+    this.agreedToFulfillmentSla = true,
     required this.bankName,
     required this.accountNumber,
   });
@@ -108,12 +120,24 @@ class MerchantOnboardingParams {
   final String businessName;
   final String businessType;
   final String? rcNumber;
+  final bool isProvisional;
+  final String? cacDocumentName;
   final String ownerName;
   final String phone;
   final String email;
+  final String idType;
+  final String? ninNumber;
+  final String? idDocumentName;
   final String address;
+  final String? marketCluster;
   final String city;
   final String state;
+  final String? productDescription;
+  final int samplePhotosCount;
+  final String? certificationType;
+  final String? certificationNumber;
+  final String? certificationDocumentName;
+  final bool agreedToFulfillmentSla;
   final String bankName;
   final String accountNumber;
 }

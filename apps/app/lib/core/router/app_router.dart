@@ -31,6 +31,9 @@ import '../../features/wallet/presentation/wallet_screen.dart';
 import '../../features/rewards/presentation/rewards_screen.dart';
 import '../../features/customer/presentation/notifications_screen.dart';
 import '../../features/merchants/presentation/merchant_directory_screen.dart';
+import '../../features/content/presentation/about_screen.dart';
+import '../../features/content/presentation/community_screen.dart';
+import '../../features/content/presentation/community_profile_screen.dart';
 import '../notifications/notification_navigation_handler.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -211,6 +214,21 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/merchants/directory', redirect: (_, __) => '/merchants'),
       GoRoute(path: '/businesses', redirect: (_, __) => '/merchants'),
+      GoRoute(
+        path: '/about',
+        builder: (context, state) => const AboutScreen(),
+      ),
+      GoRoute(
+        path: '/community',
+        builder: (context, state) => const CommunityScreen(),
+      ),
+      GoRoute(
+        path: '/community/:handle',
+        builder: (context, state) {
+          final handle = state.pathParameters['handle'] ?? '';
+          return CommunityProfileScreen(handle: handle);
+        },
+      ),
     ],
   );
 

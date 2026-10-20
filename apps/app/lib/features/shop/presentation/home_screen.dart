@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import '../../../core/router/safe_navigation.dart';
 import '../../../core/config/app_brand.dart';
+import '../../../core/router/safe_navigation.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -13,9 +13,11 @@ import '../application/shop_providers.dart';
 import '../domain/shop_entities.dart';
 import 'widgets/home_category_marquee.dart';
 import 'widgets/home_hero_banner.dart';
+import 'widgets/home_merchant_sections.dart';
 import 'widgets/home_promos.dart';
-import 'widgets/product_card.dart';
+import 'widgets/home_section_header.dart';
 
+/// Mobile Storefront Home Screen matching Web Storefront content & structure.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -84,9 +86,7 @@ class _HomeBody extends StatelessWidget {
                   icon: HugeIcons.strokeRoundedSearch01,
                   color: actionColor,
                 ),
-                onPressed: () {
-                  context.go('/shop');
-                },
+                onPressed: () => context.go('/shop'),
               ),
               NotificationIconButton(color: actionColor),
               const SizedBox(width: AppSpacing.xs),
@@ -98,95 +98,81 @@ class _HomeBody extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 1. Hero Banner Carousel
                   HomeHeroBanner(imageUrl: catalogue.featuredBannerUrl),
                   const SizedBox(height: AppSpacing.xxl),
-                  if (catalogue.categories.isNotEmpty) ...[
-                    _SectionHeader(
-                      title: 'Categories',
+
+                  // 2. Product Spotlight (Featured Products)
+                  if (featured.isNotEmpty) ...[
+                    HomeSectionHeader(
+                      title: 'Featured Products',
+                      subtitle: 'Discover top picks sponsored by our merchants',
                       onSeeAll: () => context.go('/shop'),
                     ),
+                    const SizedBox(height: AppSpacing.sm),
+                    HomeProductHorizontalList(products: featured),
+                    const SizedBox(height: AppSpacing.xxl),
+                  ],
+
+                  // 3. Trending Products
+                  if (trending.isNotEmpty) ...[
+                    HomeSectionHeader(
+                      title: 'Trending on ${AppBrand.shortName}',
+                      subtitle: 'Popular items our customers are loving right now',
+                      onSeeAll: () => context.go('/shop'),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    HomeProductHorizontalList(products: trending),
+                    const SizedBox(height: AppSpacing.xxl),
+                  ],
+
+                  // 4. Meet Businesses
+                  HomeSectionHeader(
+                    title: "Meet Nigeria's Businesses",
+                    subtitle: 'Connect directly with makers and sellers behind every product',
+                    onSeeAll: () => context.go('/merchants'),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  const HomeMeetBusinessesSection(),
+                  const SizedBox(height: AppSpacing.xxl),
+
+                  // 5. Category Marquee
+                  if (catalogue.categories.isNotEmpty) ...[
+                    HomeSectionHeader(
+                      title: 'Explore Categories',
+                      subtitle: 'Browse by craft, material & industry',
+                      onSeeAll: () => context.go('/shop'),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
                     HomeCategoryMarquee(categories: catalogue.categories),
                     const SizedBox(height: AppSpacing.xxl),
                   ],
-                  if (featured.isNotEmpty) ...[
-                    const _SectionHeader(title: 'Product Spotlight'),
-                    _ProductHorizontalList(products: featured),
-                    const SizedBox(height: AppSpacing.xxl),
-                  ],
+
+                  // 6. Merchant Spotlight Showcase
+                  HomeSectionHeader(
+                    title: 'Merchant Spotlight',
+                    subtitle: 'Top-rated sellers providing exceptional quality & service',
+                    onSeeAll: () => context.go('/merchants'),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  const HomeMerchantSpotlightSection(),
+                  const SizedBox(height: AppSpacing.xxl),
+
+                  // 7. Rewards Program Promo ("Shop. Refer. Earn. Grow.")
                   const RewardsPromo(),
                   const SizedBox(height: AppSpacing.xxl),
-                  if (trending.isNotEmpty) ...[
-                    _SectionHeader(
-                      title: 'Trending Products',
-                      onSeeAll: () => context.go('/shop'),
-                    ),
-                    _ProductHorizontalList(products: trending),
-                    const SizedBox(height: AppSpacing.xxl),
-                  ],
+
+                  // 8. Made in Nigeria Showcase
                   const MadeInAbaPromo(),
+                  const SizedBox(height: AppSpacing.xxl),
+
+                  // 9. Take Your Business Online CTA
+                  const TakeBusinessOnlinePromo(),
                 ],
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title, this.onSeeAll});
-  final String title;
-  final VoidCallback? onSeeAll;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: AppTypography.h5.copyWith(fontWeight: FontWeight.w800),
-          ),
-          if (onSeeAll != null)
-            TextButton(
-              onPressed: onSeeAll,
-              child: Text(
-                'See all',
-                style: AppTypography.bodySmall.copyWith(
-                  color: isDark ? AppColors.secondary : AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProductHorizontalList extends StatelessWidget {
-  const _ProductHorizontalList({required this.products});
-  final List<Product> products;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 280,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-        scrollDirection: Axis.horizontal,
-        itemCount: products.length,
-        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
-        itemBuilder: (context, index) {
-          return SizedBox(
-            width: 160,
-            child: ProductCard(product: products[index], listMode: false),
-          );
-        },
       ),
     );
   }

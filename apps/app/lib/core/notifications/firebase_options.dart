@@ -32,7 +32,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyMockKeyForABAErpPushNotification001',
+    apiKey: 'AIzaSyMockKeyForABAErpPushNotification0',
     appId: '1:100000000001:web:abcdef0123456789abcdef',
     messagingSenderId: '100000000001',
     projectId: 'aba-buynaija-app',
@@ -41,7 +41,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyMockKeyForABAErpPushNotification001',
+    apiKey: 'AIzaSyMockKeyForABAErpPushNotification0',
     appId: '1:100000000001:android:abcdef0123456789abcdef',
     messagingSenderId: '100000000001',
     projectId: 'aba-buynaija-app',
@@ -49,7 +49,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyMockKeyForABAErpPushNotification001',
+    apiKey: 'AIzaSyMockKeyForABAErpPushNotification0',
     appId: '1:100000000001:ios:abcdef0123456789abcdef',
     messagingSenderId: '100000000001',
     projectId: 'aba-buynaija-app',
@@ -58,7 +58,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyMockKeyForABAErpPushNotification001',
+    apiKey: 'AIzaSyMockKeyForABAErpPushNotification0',
     appId: '1:100000000001:ios:abcdef0123456789abcdef',
     messagingSenderId: '100000000001',
     projectId: 'aba-buynaija-app',

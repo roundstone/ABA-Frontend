@@ -9,6 +9,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_widgets.dart';
+import 'widgets/referral_activation_card.dart';
 
 // ─── Domain & Providers ───────────────────────────────────────────────────
 
@@ -166,6 +167,9 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
                           ],
                         ),
                         const SizedBox(height: AppSpacing.xl),
+
+                        // Referral Activation Status & Fee Notice
+                        const ReferralActivationCard(),
 
                         // KPI Cards
                         _KpiCardsRow(metrics: data.metrics),

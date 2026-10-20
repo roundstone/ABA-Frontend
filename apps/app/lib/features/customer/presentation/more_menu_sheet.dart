@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../auth/application/auth_providers.dart';
+import 'more_menu_items.dart';
 
 /// Shows the "More" overlay menu anchored above the nav bar.
 void showMoreMenu(BuildContext context) {
@@ -25,10 +26,13 @@ class _MoreMenuSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sheetBg = isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8F8F9);
-    final cs = Theme.of(context).colorScheme;
     final isMerchant = ref.watch(isMerchantProvider);
 
-    final items = _menuItems(context, cs, isMerchant, ref);
+    final items = buildMoreMenuItems(
+      context: context,
+      isMerchant: isMerchant,
+      ref: ref,
+    );
 
     return GestureDetector(
       onTap: () => Navigator.of(context).pop(), // tap outside closes
@@ -113,7 +117,7 @@ class _MoreMenuSheet extends ConsumerWidget {
 
 class _MoreMenuTile extends StatelessWidget {
   const _MoreMenuTile({required this.item});
-  final _MenuItem item;
+  final MoreMenuItem item;
 
   @override
   Widget build(BuildContext context) {
@@ -172,78 +176,3 @@ class _MoreMenuTile extends StatelessWidget {
   }
 }
 
-// ─── Menu item model ─────────────────────────────────────────────────────
-
-class _MenuItem {
-  const _MenuItem({required this.icon, required this.label, required this.color, this.route, this.onTap});
-  final List<List<dynamic>> icon;
-  final String label;
-  final Color color;
-  final String? route;
-  final void Function(BuildContext context)? onTap;
-}
-
-List<_MenuItem> _menuItems(
-  BuildContext context,
-  ColorScheme cs,
-  bool isMerchant,
-  WidgetRef ref,
-) => [
-  const _MenuItem(
-    icon: HugeIcons.strokeRoundedDashboardSquare02,
-    label: 'My Account',
-    color: Color(0xFF3B82F6),
-    route: '/account/dashboard',
-  ),
-  const _MenuItem(
-    icon: HugeIcons.strokeRoundedNotification01,
-    label: 'Notifications',
-    color: Color(0xFF6366F1),
-    route: '/notifications',
-  ),
-  const _MenuItem(
-    icon: HugeIcons.strokeRoundedStore01,
-    label: 'Businesses',
-    color: Color(0xFF10B981),
-    route: '/merchants',
-  ),
-  const _MenuItem(
-    icon: HugeIcons.strokeRoundedAward01,
-    label: 'Reward Points',
-    color: Color(0xFFF59E0B),
-    route: '/rewards',
-  ),
-  const _MenuItem(
-    icon: HugeIcons.strokeRoundedNetwork,
-    label: 'Referrals',
-    color: Color(0xFFEC4899),
-    route: '/referrals',
-  ),
-  const _MenuItem(
-    icon: HugeIcons.strokeRoundedShoppingBag01,
-    label: 'My Orders',
-    color: AppColors.primary,
-    route: '/account/orders',
-  ),
-  _MenuItem(
-    icon: isMerchant ? HugeIcons.strokeRoundedStore01 : HugeIcons.strokeRoundedLocation01,
-    label: isMerchant ? 'Merchant Hub' : 'Saved Address',
-    color: const Color(0xFF8B5CF6),
-    route: isMerchant ? '/merchant' : '/account/addresses',
-  ),
-  const _MenuItem(
-    icon: HugeIcons.strokeRoundedSettings01,
-    label: 'Settings',
-    color: Color(0xFF64748B),
-    route: '/settings',
-  ),
-  _MenuItem(
-    icon: HugeIcons.strokeRoundedLogout01,
-    label: 'Logout',
-    color: AppColors.error,
-    onTap: (ctx) {
-      ref.read(authStateProvider.notifier).logout();
-      ctx.go('/role-select');
-    },
-  ),
-];

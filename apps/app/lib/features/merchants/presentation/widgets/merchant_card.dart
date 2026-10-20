@@ -43,6 +43,7 @@ class MerchantCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Banner area with featured tag & overlapping avatar
           SizedBox(
@@ -135,6 +136,7 @@ class MerchantCard extends StatelessWidget {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Business Name + Verified badge
                 Row(

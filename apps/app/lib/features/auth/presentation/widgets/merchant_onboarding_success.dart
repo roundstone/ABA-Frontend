@@ -8,7 +8,12 @@ import '../../../../core/widgets/app_button.dart';
 
 /// Screen displayed upon successful completion of the merchant onboarding wizard.
 class MerchantOnboardingSuccess extends StatelessWidget {
-  const MerchantOnboardingSuccess({super.key});
+  const MerchantOnboardingSuccess({
+    super.key,
+    this.isProvisional = false,
+  });
+
+  final bool isProvisional;
 
   @override
   Widget build(BuildContext context) {
@@ -27,26 +32,54 @@ class MerchantOnboardingSuccess extends StatelessWidget {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: AppColors.success.withAlpha(isDark ? 40 : 20),
+                  color: isProvisional
+                      ? const Color(0xFFC28B38).withAlpha(isDark ? 40 : 20)
+                      : AppColors.success.withAlpha(isDark ? 40 : 20),
                   shape: BoxShape.circle,
                 ),
-                child: const Center(
+                child: Center(
                   child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                    color: AppColors.success,
+                    icon: isProvisional
+                        ? HugeIcons.strokeRoundedHourglass
+                        : HugeIcons.strokeRoundedCheckmarkCircle02,
+                    color: isProvisional ? const Color(0xFFC28B38) : AppColors.success,
                     size: 40,
                   ),
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
-                'Storefront Created!',
+                isProvisional
+                    ? 'Provisional Storefront Created!'
+                    : 'Application Submitted for Review!',
                 style: AppTypography.h3.copyWith(fontWeight: FontWeight.w800),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.xs),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isProvisional
+                      ? const Color(0xFFC28B38).withAlpha(25)
+                      : AppColors.primary.withAlpha(25),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  isProvisional
+                      ? 'PROVISIONAL STATUS • 60 DAYS REMAINING'
+                      : 'STATUS: UNDER ADMIN VERIFICATION',
+                  style: AppTypography.caption.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: isProvisional ? const Color(0xFFC28B38) : AppColors.primary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
               Text(
-                'Welcome to the ABA Merchant Network. Your store is now active and ready to accept orders and POS payments.',
+                isProvisional
+                    ? 'Welcome to BuyNaija! Your store is provisionally active. Please complete and submit your CAC registration within 60 days to unlock full verified merchant status.'
+                    : 'Our verification team is reviewing your CAC, NIN, and workshop details. Verification typically completes within 24–48 hours.',
                 style: AppTypography.bodySmall.copyWith(
                   color: isDark ? AppColors.darkTextSecondary : AppColors.grey,
                   height: 1.5,
