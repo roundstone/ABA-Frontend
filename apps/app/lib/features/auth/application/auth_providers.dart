@@ -1,11 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/auth_mock_repository.dart';
+import '../../../core/network/dio_client.dart';
+import '../../../core/providers/shared_preferences_provider.dart';
+import '../data/auth_remote_repository.dart';
 import '../domain/auth_entities.dart';
 import '../domain/auth_repository.dart';
 import 'auth_notifier.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthMockRepository();
+  final dio = ref.watch(dioProvider);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return AuthRemoteRepository(dio: dio, prefs: prefs);
 });
 
 final authStateProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {

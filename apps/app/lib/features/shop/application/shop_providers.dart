@@ -180,7 +180,7 @@ class CartNotifier extends AsyncNotifier<Cart> {
   Future<Cart> build() async {
     // Try to rehydrate from prefs
     final prefs = ref.read(sharedPreferencesProvider);
-    final raw = prefs.getStringList(_kCartKey);
+    final raw = prefs?.getStringList(_kCartKey);
     if (raw == null || raw.isEmpty) return const Cart();
 
     // We need the product catalogue to rebuild Product objects
@@ -212,6 +212,7 @@ class CartNotifier extends AsyncNotifier<Cart> {
 
   Future<void> _persist(Cart cart) async {
     final prefs = ref.read(sharedPreferencesProvider);
+    if (prefs == null) return;
     final encoded = cart.items.map((i) {
       final parts = [
         i.product.id,

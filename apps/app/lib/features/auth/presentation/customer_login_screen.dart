@@ -8,6 +8,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../application/auth_providers.dart';
+import 'widgets/demo_login_button.dart';
 
 class CustomerLoginScreen extends ConsumerStatefulWidget {
   const CustomerLoginScreen({super.key});
@@ -19,8 +20,8 @@ class CustomerLoginScreen extends ConsumerStatefulWidget {
 
 class _CustomerLoginScreenState extends ConsumerState<CustomerLoginScreen> {
   final _identifierController =
-      TextEditingController(text: 'jane.doe@example.com');
-  final _passwordController = TextEditingController(text: 'password123');
+      TextEditingController(text: 'yusufshehu-admin@rs.com');
+  final _passwordController = TextEditingController(text: 'password');
   bool _obscurePassword = true;
 
   @override
@@ -48,7 +49,12 @@ class _CustomerLoginScreenState extends ConsumerState<CustomerLoginScreen> {
         .loginCustomer(identifier: identifier, password: password);
 
     if (success && mounted) {
-      context.go('/home');
+      final user = ref.read(currentUserProvider);
+      if (user?.isMerchant == true) {
+        context.go('/merchant');
+      } else {
+        context.go('/home');
+      }
     }
   }
 
@@ -169,15 +175,15 @@ class _CustomerLoginScreenState extends ConsumerState<CustomerLoginScreen> {
                   onPressed: _submit,
                 ),
                 const SizedBox(height: AppSpacing.md),
-                // DemoLoginButton(
-                //   label: 'Quick Login as Jane Doe (Demo)',
-                //   icon: HugeIcons.strokeRoundedFlash,
-                //   onPressed: () {
-                //     _identifierController.text = 'jane.doe@example.com';
-                //     _passwordController.text = 'password123';
-                //     _submit();
-                //   },
-                // ),
+                DemoLoginButton(
+                  label: 'Quick Fill: Yusuf Shehu (Admin)',
+                  icon: HugeIcons.strokeRoundedFlash,
+                  onPressed: () {
+                    _identifierController.text = 'yusufshehu-admin@rs.com';
+                    _passwordController.text = 'password';
+                    _submit();
+                  },
+                ),
                 const SizedBox(height: AppSpacing.md),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

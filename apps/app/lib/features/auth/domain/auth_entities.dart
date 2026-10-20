@@ -9,8 +9,8 @@ enum UserRole {
   static UserRole fromString(String? role) {
     if (role == null) return UserRole.customer;
     final r = role.toLowerCase().trim();
-    if (r == 'merchant' || r == 'seller') return UserRole.merchant;
-    if (r == 'admin') return UserRole.admin;
+    if (r == 'merchant' || r == 'seller' || r == 'vendor') return UserRole.merchant;
+    if (r == 'admin' || r == 'super admin' || r == 'superadmin') return UserRole.admin;
     return UserRole.customer;
   }
 }
@@ -23,6 +23,7 @@ class AuthUser {
     required this.phone,
     required this.role,
     required this.token,
+    this.refreshToken,
     this.referralCode,
     this.merchantId,
     this.businessName,
@@ -36,6 +37,7 @@ class AuthUser {
   final String phone;
   final UserRole role;
   final String token;
+  final String? refreshToken;
   final String? referralCode;
   final String? merchantId;
   final String? businessName;
@@ -44,6 +46,7 @@ class AuthUser {
 
   bool get isMerchant => role == UserRole.merchant;
   bool get isCustomer => role == UserRole.customer;
+  bool get isAdmin => role == UserRole.admin;
 
   AuthUser copyWith({
     String? id,
@@ -52,6 +55,7 @@ class AuthUser {
     String? phone,
     UserRole? role,
     String? token,
+    String? refreshToken,
     String? referralCode,
     String? merchantId,
     String? businessName,
@@ -65,11 +69,48 @@ class AuthUser {
       phone: phone ?? this.phone,
       role: role ?? this.role,
       token: token ?? this.token,
+      refreshToken: refreshToken ?? this.refreshToken,
       referralCode: referralCode ?? this.referralCode,
       merchantId: merchantId ?? this.merchantId,
       businessName: businessName ?? this.businessName,
       walletBalance: walletBalance ?? this.walletBalance,
       createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'role': role.name,
+      'token': token,
+      'refreshToken': refreshToken,
+      'referralCode': referralCode,
+      'merchantId': merchantId,
+      'businessName': businessName,
+      'walletBalance': walletBalance,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+
+  factory AuthUser.fromJson(Map<String, dynamic> json) {
+    return AuthUser(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
+      role: UserRole.fromString(json['role'] as String?),
+      token: json['token'] as String? ?? '',
+      refreshToken: json['refreshToken'] as String?,
+      referralCode: json['referralCode'] as String?,
+      merchantId: json['merchantId'] as String?,
+      businessName: json['businessName'] as String?,
+      walletBalance: (json['walletBalance'] as num?)?.toDouble() ?? 0.0,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now()
+          : DateTime.now(),
     );
   }
 }
