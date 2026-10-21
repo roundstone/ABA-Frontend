@@ -421,6 +421,11 @@ export const MOCK_MERCHANTS: Merchant[] = [
     category: 'Food & Groceries',
     description: 'Fresh produce, grains, packaged foods and everyday grocery essentials.',
     isVerified: true,
+    verificationStatus: 'verified',
+    certifications: [
+      { type: 'NAFDAC', number: 'NAFDAC-01-88492', isVerified: true },
+      { type: 'SON', number: 'SON-CAP-9921', isVerified: true },
+    ],
     ownerName: 'Chinedu Okafor',
     phone: '+2348031112001',
     email: 'hello@freshharvest.example.com',

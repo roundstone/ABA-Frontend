@@ -11,9 +11,14 @@ export default function CommissionRecordsPage() {
         description="View all generated referral commissions."
         backHref="/erp/commissions"
         action={
-          <Link href="/erp/commissions/records/new">
-            <Button>Manual Adjustment</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/erp/finance/ledger">
+              <Button variant="outline">Financial Ledger</Button>
+            </Link>
+            <Link href="/erp/commissions/records/new">
+              <Button>Manual Adjustment</Button>
+            </Link>
+          </div>
         }
       />
       <CommissionRecordsTable />

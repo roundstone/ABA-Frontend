@@ -1,5 +1,5 @@
-import { Account, FinanceKPIs, JournalEntry, FinancialPeriod, Expense, Receivable, Payable } from './types';
-import { mockAccounts, mockJournals, mockPeriods, mockExpenses, mockReceivables, mockPayables } from './mocks';
+import { Account, FinanceKPIs, JournalEntry, FinancialPeriod, Expense, Receivable, Payable, CommissionLedgerEntry } from './types';
+import { mockAccounts, mockJournals, mockPeriods, mockExpenses, mockReceivables, mockPayables, mockCommissionLedger } from './mocks';
 
 let accounts = [...mockAccounts];
 let journals = [...mockJournals];
@@ -15,6 +15,11 @@ export async function getChartOfAccounts(): Promise<{ data: Account[] }> {
 export async function getGeneralLedger(): Promise<{ data: JournalEntry[] }> {
   await delay(300);
   return { data: journals };
+}
+
+export async function getCommissionLedger(): Promise<{ data: CommissionLedgerEntry[] }> {
+  await delay(300);
+  return { data: [...mockCommissionLedger] };
 }
 
 export async function getFinancialPeriods(): Promise<{ data: FinancialPeriod[] }> {

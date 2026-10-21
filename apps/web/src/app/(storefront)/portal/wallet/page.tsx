@@ -1,21 +1,24 @@
 'use client';
 
 import React from 'react';
-import { Wallet, ArrowDownLeft, ArrowUpRight, Plus, Building2, Search, Filter, Loader2 } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Plus, Building2, Search, Filter, Loader2, ShoppingBag, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { getWalletTransactions } from '@/features/portal/api';
 import { AmountText } from '@/components/patterns/AmountText';
 import { Alert } from '@/components/ui/alert';
+import { useReferralActivationStore } from '@/features/portal/referralActivationStore';
 
 export default function PortalWalletPage() {
-  const { data: transactions, isLoading, error } = useQuery({
+  const { data: baseTransactions, isLoading, error } = useQuery({
     queryKey: ['portal_wallet_transactions'],
     queryFn: async () => {
       const res = await getWalletTransactions();
       return res.data;
-    }
+    },
   });
+
+  const { isFeePaid, shoppingCreditsKobo } = useReferralActivationStore();
 
   const availableBalance = 150000000;
   const totalInflow = 245000000;
@@ -29,13 +32,28 @@ export default function PortalWalletPage() {
     );
   }
 
-  if (error || !transactions) {
+  if (error || !baseTransactions) {
     return (
       <Alert variant="destructive">
         Failed to load wallet data. Please try again.
       </Alert>
     );
   }
+
+  // Prepend referral activation shopping credit transaction if paid
+  const transactions = isFeePaid
+    ? [
+        {
+          id: 'TRX-REF-ACT-5000',
+          type: 'funding' as const,
+          title: 'Referral Activation Shopping Credit',
+          date: new Date().toISOString(),
+          amount: 500000,
+          status: 'Completed' as const,
+        },
+        ...baseTransactions,
+      ]
+    : baseTransactions;
 
   return (
     <div className="space-y-6">
@@ -52,32 +70,63 @@ export default function PortalWalletPage() {
       </div>
 
       {/* Balance Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-brand-600 rounded-xl p-6 md:p-8 text-white shadow-sm relative overflow-hidden">
-          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Available Balance (Withdrawable) */}
+        <div className="bg-brand-600 rounded-xl p-6 text-white shadow-sm relative overflow-hidden flex flex-col justify-between">
           <div className="relative z-10">
-            <p className="text-brand-100 font-medium mb-2">Available Balance</p>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight"><AmountText amountInKobo={availableBalance} /></h2>
-            <div className="mt-6 pt-6 border-t border-white/20 flex justify-between items-center text-sm">
-              <span className="text-brand-100">Total Inflow: <span className="font-bold text-white"><AmountText amountInKobo={totalInflow} /></span></span>
-              <span className="text-brand-100">Total Outflow: <span className="font-bold text-white"><AmountText amountInKobo={totalOutflow} /></span></span>
-            </div>
+            <p className="text-brand-100 font-medium mb-1 text-sm">Available Cash Balance</p>
+            <h2 className="text-3xl font-bold tracking-tight">
+              <AmountText amountInKobo={availableBalance} />
+            </h2>
+            <p className="text-xs text-brand-200 mt-2">Withdrawable to bank or spendable</p>
+          </div>
+          <div className="mt-4 pt-4 border-t border-white/20 flex justify-between text-xs text-brand-100">
+            <span>Inflow: <AmountText amountInKobo={totalInflow} /></span>
+            <span>Outflow: <AmountText amountInKobo={totalOutflow} /></span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col justify-center">
-          <h3 className="font-bold text-text mb-4">Linked Bank Account</h3>
-          <div className="flex items-start gap-4 p-4 rounded-lg border border-border bg-surface-1">
-            <div className="w-10 h-10 rounded-full bg-surface-2 flex items-center justify-center shrink-0">
-              <Building2 className="w-5 h-5 text-text-muted" />
+        {/* Shopping Credits Card (Non-Withdrawable) */}
+        <div className="bg-amber-50 rounded-xl border border-amber-300 p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-amber-800 font-bold text-sm flex items-center gap-1.5">
+                <ShoppingBag className="w-4 h-4 text-amber-700" /> Shopping Credits
+              </p>
+              <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-amber-200 text-amber-900 uppercase">
+                Non-Withdrawable
+              </span>
             </div>
-            <div className="flex-1">
-              <p className="font-bold text-text">Guarantee Trust Bank (GTB)</p>
-              <p className="text-sm text-text-muted">0123****89</p>
-              <p className="text-xs text-text-muted mt-1 uppercase tracking-wider">Jane Doe</p>
-            </div>
-            <Button variant="ghost" size="sm" className="text-brand-600 hover:bg-brand-50">Edit</Button>
+            <h2 className="text-3xl font-black text-amber-900 tracking-tight">
+              <AmountText amountInKobo={shoppingCreditsKobo} />
+            </h2>
+            <p className="text-xs text-amber-800/80 mt-2 leading-relaxed">
+              Credited from referral activation fee. Valid for purchasing all BuyNaija marketplace products.
+            </p>
           </div>
+          <div className="mt-4 pt-3 border-t border-amber-200 text-xs text-amber-900 flex items-center gap-1 font-medium">
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-700" /> Automatically applied at checkout
+          </div>
+        </div>
+
+        {/* Linked Bank Account */}
+        <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 className="font-bold text-text mb-3 text-sm">Linked Bank Account</h3>
+            <div className="flex items-start gap-3 p-3 rounded-lg border border-border bg-surface-1">
+              <div className="w-8 h-8 rounded-full bg-surface-2 flex items-center justify-center shrink-0">
+                <Building2 className="w-4 h-4 text-text-muted" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-xs text-text truncate">Guarantee Trust Bank (GTB)</p>
+                <p className="text-xs text-text-muted">0123****89</p>
+                <p className="text-[10px] text-text-muted uppercase tracking-wider">Jane Doe</p>
+              </div>
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" className="text-brand-600 hover:bg-brand-50 w-full mt-3 text-xs">
+            Manage Bank Accounts
+          </Button>
         </div>
       </div>
 
@@ -88,9 +137,9 @@ export default function PortalWalletPage() {
           <div className="flex gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-              <input 
-                type="text" 
-                placeholder="Search..." 
+              <input
+                type="text"
+                placeholder="Search..."
                 className="h-9 pl-9 pr-3 rounded-md border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 w-full sm:w-48"
               />
             </div>
@@ -99,13 +148,13 @@ export default function PortalWalletPage() {
             </Button>
           </div>
         </div>
-        
+
         <div className="divide-y divide-border">
           {transactions.map((trx) => {
             const isCredit = trx.amount > 0;
             const Icon = isCredit ? ArrowDownLeft : ArrowUpRight;
             const iconColor = isCredit ? 'text-success-main' : 'text-text-muted';
-            const iconBg = isCredit ? 'bg-success-bg' : 'bg-surface-2';
+            const iconBg = isCredit ? 'bg-success-50' : 'bg-surface-2';
             const amountColor = isCredit ? 'text-success-dark' : 'text-text';
 
             return (
@@ -113,7 +162,7 @@ export default function PortalWalletPage() {
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${iconBg}`}>
                   <Icon className={`w-6 h-6 ${iconColor}`} />
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-text truncate">{trx.title}</p>
                   <div className="flex items-center gap-2 mt-1 text-sm text-text-muted">
@@ -122,7 +171,7 @@ export default function PortalWalletPage() {
                     <span className="truncate">{trx.id}</span>
                   </div>
                 </div>
-                
+
                 <div className="text-right shrink-0">
                   <p className={`font-bold ${amountColor}`}>
                     {isCredit ? '+' : ''}<AmountText amountInKobo={Math.abs(trx.amount)} />

@@ -1,10 +1,26 @@
+export interface PortalOrderItem {
+  id: string;
+  productId: string;
+  productName: string;
+  price: number;
+  quantity: number;
+}
+
+export interface PortalShippingAddress {
+  fullName: string;
+  street: string;
+  city: string;
+  zipCode?: string;
+  phone: string;
+}
+
 export interface PortalOrder {
   id: string;
   date: string;
   status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
   total: number;
-  items: any[];
-  shippingAddress: any;
+  items: PortalOrderItem[];
+  shippingAddress: PortalShippingAddress;
   paymentMethod: string;
 }
 

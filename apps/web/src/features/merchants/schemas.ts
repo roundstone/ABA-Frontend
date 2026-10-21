@@ -20,7 +20,9 @@ export const createMerchantSchema = z.object({
   city: z.string().min(2, 'City is required'),
   state: z.string().min(2, 'State is required'),
   lga: z.string().optional(),
-  
+  // Branding & Media
+  logoUrl: z.string().optional(),
+  bannerImage: z.string().optional(),
 });
 
 export type CreateMerchantInput = z.infer<typeof createMerchantSchema>;

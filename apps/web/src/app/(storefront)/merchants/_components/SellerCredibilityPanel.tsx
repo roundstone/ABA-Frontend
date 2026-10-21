@@ -40,12 +40,36 @@ export function SellerCredibilityPanel({ merchant }: SellerCredibilityPanelProps
           <div className="mt-0.5">
             {merchant.isVerified ? (
               <Badge variant="outline" className="text-success-main border-success-main bg-success-50">Verified</Badge>
+            ) : merchant.isProvisional ? (
+              <Badge variant="outline" className="text-amber-700 border-amber-400 bg-amber-50 font-semibold">
+                Provisional (60d)
+              </Badge>
             ) : (
               <Badge variant="outline">Unverified</Badge>
             )}
           </div>
         </div>
       </div>
+
+      {/* Certifications Section */}
+      {merchant.certifications && merchant.certifications.length > 0 && (
+        <div className="border-t border-border pt-3.5 mb-3">
+          <span className="text-xs font-semibold text-text-muted uppercase tracking-wider block mb-2">
+            Verified Certifications
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {merchant.certifications.map((cert, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-brand-50 border border-brand-200 text-xs font-semibold text-brand-800"
+              >
+                <Award className="w-3.5 h-3.5 text-brand-600" />
+                <span>{cert.type}: {cert.number}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="space-y-3 text-sm border-t border-border pt-4">
         <div className="flex items-center justify-between">

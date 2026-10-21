@@ -1,336 +1,200 @@
 'use client';
-import { brand } from '@/config/brand';
-
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Store, User, MapPin, Building, ArrowRight, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Alert } from '@/components/ui/alert';
+import { merchantOnboardingSchema, MerchantOnboardingData, ONBOARDING_STEPS } from './types';
+import { OnboardingStepBusiness } from './components/OnboardingStepBusiness';
+import { OnboardingStepIdentity } from './components/OnboardingStepIdentity';
+import { OnboardingStepLocation } from './components/OnboardingStepLocation';
+import { OnboardingStepProducts } from './components/OnboardingStepProducts';
+import { OnboardingStepCertifications } from './components/OnboardingStepCertifications';
+import { OnboardingSuccess } from './components/OnboardingSuccess';
 
-// Using Zod as per rules
-const onboardingSchema = z.object({
-  businessName: z.string().min(2, "Business name is required"),
-  businessType: z.string().min(1, "Business type is required"),
-  rcNumber: z.string().optional(),
-  ownerName: z.string().min(2, "Owner name is required"),
-  phone: z.string().min(11, "Valid phone number is required"),
-  email: z.string().email("Valid email is required"),
-  address: z.string().min(5, "Address is required"),
-  city: z.string().min(2, "City is required"),
-  state: z.string().min(2, "State is required"),
-  bankName: z.string().min(2, "Bank name is required"),
-  accountNumber: z.string().length(10, "Account number must be 10 digits"),
-});
-
-type OnboardingData = z.infer<typeof onboardingSchema>;
-
-const STEPS = [
-  { id: 'business', title: 'Business Info', icon: Store },
-  { id: 'contact', title: 'Contact Details', icon: User },
-  { id: 'location', title: 'Location', icon: MapPin },
-  { id: 'settlement', title: 'Bank & Settlement', icon: Building },
-];
-
-export default function MerchantOnboarding() {
+export default function MerchantOnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const { register, handleSubmit, trigger, formState: { errors } } = useForm<OnboardingData>({
-    resolver: zodResolver(onboardingSchema),
+  const [cacUploaded, setCacUploaded] = useState(true);
+  const [idUploaded, setIdUploaded] = useState(true);
+  const [certUploaded, setCertUploaded] = useState(false);
+  const [photosCount, setPhotosCount] = useState(3);
+
+  const form = useForm<MerchantOnboardingData>({
+    resolver: zodResolver(merchantOnboardingSchema),
     mode: 'onTouched',
+    defaultValues: {
+      businessName: 'Aba Leathercraft Hub',
+      businessType: 'Footwear & Leather',
+      isProvisional: false,
+      rcNumber: 'RC-998822',
+      ownerName: 'Emeka Nwosu',
+      phone: '+2348031234567',
+      email: 'emeka@abaleather.com',
+      idType: 'National Identity Number (NIN)',
+      ninNumber: '12345678901',
+      address: '14 Faulks Road, Block C Suite 4',
+      marketCluster: 'Ariaria International Market',
+      city: 'Aba',
+      state: 'Abia',
+      bankName: 'First Bank of Nigeria',
+      accountNumber: '0123456789',
+      productDescription: 'Handcrafted genuine leather footwear, sandals, and belts',
+      capacity: '450 pairs / month',
+      samplePhotosCount: 3,
+      certificationType: 'None / Artisanal Guild',
+      confirmSupplyCapacity: true,
+      agreeToFulfillmentSla: true,
+    },
   });
 
-  const onSubmit = async (data: OnboardingData) => {
+  const onSubmit = async () => {
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    console.log('Submitted merchant onboarding', data);
+    await new Promise((resolve) => setTimeout(resolve, 1200));
     setIsSubmitting(false);
     setIsSuccess(true);
   };
 
   const handleNext = async () => {
-    let fieldsToValidate: any[] = [];
-    if (currentStep === 0) fieldsToValidate = ['businessName', 'businessType'];
-    if (currentStep === 1) fieldsToValidate = ['ownerName', 'phone', 'email'];
-    if (currentStep === 2) fieldsToValidate = ['address', 'city', 'state'];
-    
-    const isStepValid = await trigger(fieldsToValidate);
-    if (isStepValid) {
-      setCurrentStep(prev => prev + 1);
+    let fields: (keyof MerchantOnboardingData)[] = [];
+    if (currentStep === 0) fields = ['businessName', 'businessType'];
+    if (currentStep === 1) fields = ['ownerName', 'phone', 'email', 'idType', 'ninNumber'];
+    if (currentStep === 2) fields = ['address', 'marketCluster', 'city', 'state', 'bankName', 'accountNumber'];
+    if (currentStep === 3) fields = ['productDescription', 'capacity', 'samplePhotosCount'];
+    if (currentStep === 4) fields = ['certificationType', 'confirmSupplyCapacity', 'agreeToFulfillmentSla'];
+
+    const valid = await form.trigger(fields);
+    if (valid) {
+      if (currentStep < ONBOARDING_STEPS.length - 1) {
+        setCurrentStep((s) => s + 1);
+      } else {
+        form.handleSubmit(onSubmit)();
+      }
     }
   };
 
   const handleBack = () => {
-    setCurrentStep(prev => prev - 1);
+    if (currentStep > 0) setCurrentStep((s) => s - 1);
+  };
+
+  const handleAddPhoto = () => {
+    const nextCount = Math.min(4, photosCount + 1);
+    setPhotosCount(nextCount);
+    form.setValue('samplePhotosCount', nextCount);
   };
 
   if (isSuccess) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-24 text-center mt-20">
-        <div className="w-24 h-24 bg-success-bg rounded-full flex items-center justify-center mx-auto mb-8">
-          <CheckCircle2 className="w-12 h-12 text-success-dark" />
-        </div>
-        <h1 className="text-4xl font-bold text-text mb-4">Application Submitted!</h1>
-        <p className="text-lg text-text-muted mb-8">
-          Thank you for applying to become a {brand.name} Merchant. Our team will review your application and contact you within 24-48 hours.
-        </p>
-        <Link href="/">
-          <Button size="lg" className="rounded-full px-8">Return Home</Button>
-        </Link>
-      </div>
-    );
+    return <OnboardingSuccess isProvisional={form.getValues('isProvisional')} />;
   }
 
-  const StepIcon = STEPS[currentStep].icon;
+  const activeStepMeta = ONBOARDING_STEPS[currentStep];
 
   return (
-    <div className="min-h-screen bg-surface-1 py-12 animate-in fade-in duration-700 mt-20">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-brand-900 mb-4">Become a Merchant</h1>
-          <p className="text-text-muted max-w-xl mx-auto">
-            Join Nigeria's largest digital marketplace. Reach more customers, manage your digital storefront, and scale your operations.
+    <div className="min-h-screen bg-surface-1 py-12 mt-20">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-50 text-brand-700 mb-3">
+            <Store className="w-6 h-6" />
+          </div>
+          <h1 className="text-3xl font-extrabold text-text tracking-tight">Merchant Verification</h1>
+          <p className="text-xs text-text-muted mt-1 max-w-md mx-auto">
+            Complete the 5-step verification process to become an approved seller on BuyNaija.
           </p>
         </div>
 
-        {/* Progress Bar */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between relative">
-            <div className="absolute left-0 top-5 -translate-y-1/2 w-full h-1 bg-border rounded-full z-0"></div>
-            <div 
-              className="absolute left-0 top-5 -translate-y-1/2 h-1 bg-brand-600 rounded-full z-0 transition-all duration-500"
-              style={{ width: `${(currentStep / (STEPS.length - 1)) * 100}%` }}
-            ></div>
-            
-            {STEPS.map((step, index) => {
-              const Icon = step.icon;
-              const isActive = index === currentStep;
-              const isCompleted = index < currentStep;
-              
-              return (
-                <div key={step.id} className="relative z-10 flex flex-col items-center gap-2">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${isActive ? 'bg-brand-600 border-brand-600 text-white' : isCompleted ? 'bg-brand-600 border-brand-600 text-white' : 'bg-white border-border text-text-muted'}`}>
-                    {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
-                  </div>
-                  <span className={`text-xs font-semibold ${isActive || isCompleted ? 'text-brand-900' : 'text-text-muted'} hidden sm:block`}>
-                    {step.title}
-                  </span>
-                </div>
-              );
-            })}
+        {/* Linear Progress Indicator */}
+        <div className="mb-6 space-y-2">
+          <div className="flex justify-between items-center text-xs">
+            <span className="font-bold text-brand-700">Step {currentStep + 1} of 5</span>
+            <span className="text-text-muted font-medium">{activeStepMeta.title}</span>
+          </div>
+          <div className="w-full h-2 rounded-full bg-border overflow-hidden">
+            <div
+              className="h-full bg-brand-600 transition-all duration-300 rounded-full"
+              style={{ width: `${((currentStep + 1) / ONBOARDING_STEPS.length) * 100}%` }}
+            />
           </div>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-border p-6 sm:p-10">
-          <div className="flex items-center gap-3 mb-8 pb-6 border-b border-border">
-            <div className="w-12 h-12 bg-surface-2 rounded-xl flex items-center justify-center text-brand-600">
-              <StepIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-text">{STEPS[currentStep].title}</h2>
-              <p className="text-sm text-text-muted">Step {currentStep + 1} of {STEPS.length}</p>
-            </div>
+        {/* Wizard Card */}
+        <div className="bg-white rounded-2xl border border-border p-6 sm:p-8 shadow-sm">
+          <div className="mb-6 pb-4 border-b border-border">
+            <h2 className="text-xl font-bold text-text">{activeStepMeta.title}</h2>
+            <p className="text-xs text-text-muted mt-0.5">{activeStepMeta.description}</p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
-            
-            {/* Step 1: Business Info */}
+          <form onSubmit={(e) => e.preventDefault()}>
             {currentStep === 0 && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                <div>
-                  <label className="block text-sm font-semibold text-text mb-2">Business Name <span className="text-error">*</span></label>
-                  <input 
-                    {...register('businessName')} 
-                    className="w-full h-12 px-4 rounded-lg border border-border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"
-                    placeholder={`e.g. ${brand.name} Leather Works Ltd`}
-                  />
-                  {errors.businessName && <p className="text-error text-xs mt-1">{errors.businessName.message}</p>}
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-semibold text-text mb-2">Business Type <span className="text-error">*</span></label>
-                  <select 
-                    {...register('businessType')}
-                    className="w-full h-12 px-4 rounded-lg border border-border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all bg-white"
-                  >
-                    <option value="">Select type...</option>
-                    <option value="retail">Retail Shop</option>
-                    <option value="wholesale">Wholesale / Distributor</option>
-                    <option value="manufacturer">Manufacturer / Artisan</option>
-                    <option value="franchise">Franchise Outlet</option>
-                  </select>
-                  {errors.businessType && <p className="text-error text-xs mt-1">{errors.businessType.message}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-text mb-2">RC Number / Tax ID <span className="text-text-muted font-normal">(Optional)</span></label>
-                  <input 
-                    {...register('rcNumber')} 
-                    className="w-full h-12 px-4 rounded-lg border border-border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"
-                    placeholder="e.g. RC123456"
-                  />
-                </div>
-              </div>
+              <OnboardingStepBusiness
+                form={form}
+                cacUploaded={cacUploaded}
+                onUploadCac={() => setCacUploaded(true)}
+              />
             )}
-
-            {/* Step 2: Contact Info */}
             {currentStep === 1 && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                <div>
-                  <label className="block text-sm font-semibold text-text mb-2">Owner / Contact Name <span className="text-error">*</span></label>
-                  <input 
-                    {...register('ownerName')} 
-                    className="w-full h-12 px-4 rounded-lg border border-border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"
-                    placeholder="e.g. John Doe"
-                  />
-                  {errors.ownerName && <p className="text-error text-xs mt-1">{errors.ownerName.message}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-text mb-2">Phone Number <span className="text-error">*</span></label>
-                  <input 
-                    {...register('phone')} 
-                    className="w-full h-12 px-4 rounded-lg border border-border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"
-                    placeholder="e.g. 08012345678"
-                  />
-                  {errors.phone && <p className="text-error text-xs mt-1">{errors.phone.message}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-text mb-2">Email Address <span className="text-error">*</span></label>
-                  <input 
-                    type="email"
-                    {...register('email')} 
-                    className="w-full h-12 px-4 rounded-lg border border-border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"
-                    placeholder="e.g. contact@business.com"
-                  />
-                  {errors.email && <p className="text-error text-xs mt-1">{errors.email.message}</p>}
-                </div>
-              </div>
+              <OnboardingStepIdentity
+                form={form}
+                idUploaded={idUploaded}
+                onUploadId={() => setIdUploaded(true)}
+              />
             )}
-
-            {/* Step 3: Location */}
             {currentStep === 2 && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                <div>
-                  <label className="block text-sm font-semibold text-text mb-2">Store Address <span className="text-error">*</span></label>
-                  <textarea 
-                    {...register('address')} 
-                    className="w-full p-4 rounded-lg border border-border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all resize-none h-24"
-                    placeholder="e.g. 15 Ariaria International Market"
-                  />
-                  {errors.address && <p className="text-error text-xs mt-1">{errors.address.message}</p>}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-text mb-2">City <span className="text-error">*</span></label>
-                    <input 
-                      {...register('city')} 
-                      className="w-full h-12 px-4 rounded-lg border border-border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"
-                      placeholder="e.g. Lagos"
-                    />
-                    {errors.city && <p className="text-error text-xs mt-1">{errors.city.message}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-text mb-2">State <span className="text-error">*</span></label>
-                    <select 
-                      {...register('state')}
-                      className="w-full h-12 px-4 rounded-lg border border-border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all bg-white"
-                    >
-                      <option value="">Select state...</option>
-                      <option value="Abia">Abia</option>
-                      <option value="Imo">Imo</option>
-                      <option value="Enugu">Enugu</option>
-                      <option value="Anambra">Anambra</option>
-                      <option value="Ebonyi">Ebonyi</option>
-                      <option value="Rivers">Rivers</option>
-                    </select>
-                    {errors.state && <p className="text-error text-xs mt-1">{errors.state.message}</p>}
-                  </div>
-                </div>
-              </div>
+              <OnboardingStepLocation form={form} />
             )}
-
-            {/* Step 4: Settlement */}
             {currentStep === 3 && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                <Alert variant="default" className="bg-brand-50 border-brand-200">
-                  <Building className="w-4 h-4 text-brand-600" />
-                  <p className="text-sm text-brand-800 ml-2">This account will be used to settle your earnings.</p>
-                </Alert>
-
-                <div>
-                  <label className="block text-sm font-semibold text-text mb-2">Bank Name <span className="text-error">*</span></label>
-                  <select 
-                    {...register('bankName')} 
-                    className="w-full h-12 px-4 rounded-lg border border-border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all bg-white"
-                  >
-                    <option value="">Select a bank...</option>
-                    <option value="access">Access Bank</option>
-                    <option value="fidelity">Fidelity Bank</option>
-                    <option value="firstbank">First Bank of Nigeria</option>
-                    <option value="fcmb">First City Monument Bank (FCMB)</option>
-                    <option value="gtb">Guarantee Trust Bank (GTB)</option>
-                    <option value="stanbic">Stanbic IBTC Bank</option>
-                    <option value="uba">United Bank for Africa (UBA)</option>
-                    <option value="union">Union Bank</option>
-                    <option value="wema">Wema Bank</option>
-                    <option value="zenith">Zenith Bank</option>
-                  </select>
-                  {errors.bankName && <p className="text-error text-xs mt-1">{errors.bankName.message}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-text mb-2">Account Number <span className="text-error">*</span></label>
-                  <input 
-                    {...register('accountNumber')} 
-                    className="w-full h-12 px-4 rounded-lg border border-border focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"
-                    placeholder="10 digit account number"
-                    maxLength={10}
-                  />
-                  {errors.accountNumber && <p className="text-error text-xs mt-1">{errors.accountNumber.message}</p>}
-                </div>
-              </div>
+              <OnboardingStepProducts
+                form={form}
+                photosCount={photosCount}
+                onAddPhoto={handleAddPhoto}
+              />
+            )}
+            {currentStep === 4 && (
+              <OnboardingStepCertifications
+                form={form}
+                certUploaded={certUploaded}
+                onUploadCert={() => setCertUploaded(true)}
+              />
             )}
 
-            {/* Actions */}
-            <div className="flex items-center justify-between mt-10 pt-6 border-t border-border">
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
               {currentStep > 0 ? (
-                <Button type="button" variant="outline" onClick={handleBack} disabled={isSubmitting} className="h-12 px-6">
-                  <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleBack}
+                  disabled={isSubmitting}
+                  className="rounded-xl px-5"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
                 </Button>
               ) : (
-                <div></div> // Placeholder for flex-between
+                <div />
               )}
 
-              {currentStep < STEPS.length - 1 ? (
-                <Button type="button" onClick={handleNext} className="h-12 px-8 rounded-full">
-                  Continue <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              ) : (
-                <Button type="submit" disabled={isSubmitting} className="h-12 px-8 rounded-full">
-                  {isSubmitting ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...</>
-                  ) : (
-                    'Submit Application'
-                  )}
-                </Button>
-              )}
+              <Button
+                type="button"
+                onClick={handleNext}
+                disabled={isSubmitting}
+                className="font-bold rounded-xl px-7"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...
+                  </>
+                ) : currentStep === ONBOARDING_STEPS.length - 1 ? (
+                  'Submit for Verification'
+                ) : (
+                  <>
+                    Continue <ArrowRight className="w-4 h-4 ml-1.5" />
+                  </>
+                )}
+              </Button>
             </div>
-
           </form>
         </div>
-
       </div>
     </div>
   );

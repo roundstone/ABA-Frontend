@@ -1,21 +1,20 @@
 'use client';
 import { brand } from '@/config/brand';
-
-
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Mail, Lock, Phone, User, Users } from 'lucide-react';
+import { Mail, Lock, Phone, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { signup } from '@/features/auth/api/auth.api';
 import { SignupInput, signupSchema } from '@/features/auth/schemas';
+import { ReferralSignupField } from '@/features/auth/components/ReferralSignupField';
 
 import { Suspense } from 'react';
 
 function StorefrontRegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const refCodeParam = searchParams.get('ref');
+  const refCodeParam = searchParams.get('ref') || searchParams.get('referrer') || '';
   
   const [formData, setFormData] = useState({
     first_name: '',
@@ -25,7 +24,7 @@ function StorefrontRegisterContent() {
     phone: '',
     password: '',
     confirm_password: '',
-    referralCode: refCodeParam || '',
+    referralCode: refCodeParam,
     acceptTerms: false
   });
   
@@ -198,25 +197,11 @@ function StorefrontRegisterContent() {
               </div>
             </div>
 
-            <div className="pt-2">
-              <label className="block text-sm font-medium text-text mb-1">Referral Code (Optional)</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Users className="h-5 w-5 text-brand-500" />
-                </div>
-                <input
-                  type="text"
-                  name="referralCode"
-                  value={formData.referralCode}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-brand-200 rounded-md text-text focus:outline-none focus:ring-2 focus:ring-brand-500 bg-brand-50 sm:text-sm uppercase"
-                  placeholder={`e.g., $${brand.referralCodePrefix}JANE-123`}
-                />
-              </div>
-              {formData.referralCode && (
-                <p className="mt-1 text-xs text-success-main font-medium">Referral code applied!</p>
-              )}
-            </div>
+            <ReferralSignupField
+              value={formData.referralCode}
+              onChange={(val) => setFormData(prev => ({ ...prev, referralCode: val }))}
+              disabled={isLoading}
+            />
           </div>
 
           <div className="flex items-start mt-4">

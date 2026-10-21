@@ -13,16 +13,21 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { createMerchant } from '@/features/merchant/api';
 
+import { ImageUploadField } from '@/components/patterns/ImageUploadField';
+
 export default function NewMerchantPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<CreateMerchantInput>({
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<CreateMerchantInput>({
     resolver: zodResolver(createMerchantSchema),
     defaultValues: {
       type: 'Partner',
     }
   });
+
+  const logoUrl = watch('logoUrl');
+  const bannerImage = watch('bannerImage');
 
   const onSubmit = async (data: CreateMerchantInput) => {
     setIsSubmitting(true);
@@ -138,6 +143,34 @@ export default function NewMerchantPage() {
                 <label className="text-sm font-medium">LGA (Optional)</label>
                 <Input {...register('lga')} placeholder="Ikeja LGA" error={errors.lga?.message} />
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Branding & Media */}
+        <div className="bg-surface rounded-xl border border-border overflow-hidden">
+          <div className="bg-surface-2 px-6 py-4 border-b border-border">
+            <h3 className="font-medium text-lg">Branding & Storefront Media</h3>
+            <p className="text-xs text-text-muted mt-0.5">Upload vendor brand assets displayed on the public storefront and receipts.</p>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <ImageUploadField
+                label="Store Logo / Brand Avatar"
+                description="Square logo displayed on badges, listings, and checkout."
+                aspectRatio="square"
+                maxFiles={1}
+                values={logoUrl ? [logoUrl] : []}
+                onChange={(urls) => setValue('logoUrl', urls[0] || '')}
+              />
+              <ImageUploadField
+                label="Storefront Cover Banner"
+                description="Header banner displayed on the merchant profile page."
+                aspectRatio="banner"
+                maxFiles={1}
+                values={bannerImage ? [bannerImage] : []}
+                onChange={(urls) => setValue('bannerImage', urls[0] || '')}
+              />
             </div>
           </div>
         </div>

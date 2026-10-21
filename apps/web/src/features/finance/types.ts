@@ -86,3 +86,22 @@ export interface Invoice {
 
 export type Receivable = Invoice;
 export type Payable = Invoice;
+
+export interface CommissionLedgerEntry {
+  id: string;
+  date: string;
+  commissionId: string;
+  commissionNumber: string;
+  orderNumber: string;
+  beneficiaryName: string;
+  beneficiaryId: string;
+  level: number;
+  stage: 'Accrual' | 'Wallet Credited' | 'Payout Disbursed' | 'Reversed';
+  journalEntryNumber: string;
+  debitAccount: { code: string; name: string };
+  creditAccount: { code: string; name: string };
+  amountInKobo: number;
+  runningPayableBalanceInKobo: number;
+  status: 'Posted' | 'Pending' | 'Reversed';
+  notes?: string;
+}

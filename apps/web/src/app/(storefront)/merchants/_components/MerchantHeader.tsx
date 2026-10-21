@@ -59,9 +59,11 @@ export function MerchantHeader({ merchant }: MerchantHeaderProps) {
               <span className="flex items-center gap-1">
                 <Star className="w-4 h-4 text-warning-main fill-warning-main" /> {merchant.rating} ({merchant.reviewCount} Reviews)
               </span>
-              {merchant.isVerified && (
+              {merchant.isVerified ? (
                 <span className="bg-white/20 px-2 py-0.5 rounded font-medium text-xs uppercase tracking-wide">Verified Merchant</span>
-              )}
+              ) : merchant.isProvisional ? (
+                <span className="bg-amber-500/90 text-white px-2 py-0.5 rounded font-medium text-xs uppercase tracking-wide">Provisional Seller (60d)</span>
+              ) : null}
               <span className="text-sm opacity-90">{merchant.followerCount} Followers</span>
             </div>
           </div>
