@@ -1,3 +1,7 @@
+import 'dart:math';
+
+import 'package:app/core/config/app_brand.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,33 +26,52 @@ class _CustomerRegisterScreenState
     extends ConsumerState<CustomerRegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _referralController = TextEditingController();
-  bool _acceptTerms = true;
+  bool _acceptTerms = false;
   bool _obscurePassword = true;
+
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Debug: pre-fill with registration credentials
+    if (kDebugMode) {
+      _nameController.text = 'David Osagie Enabulele';
+      final random = DateTime.now().millisecondsSinceEpoch;
+      _emailController.text = 'david$random@gmail.com';
+      _usernameController.text = 'david$random';
+      final randomPhone = Random().nextInt(99999999);
+      _phoneController.text = '081$randomPhone';
+      _passwordController.text = 'password123';
+      _confirmPasswordController.text = 'password123';
+      _referralController.text = '';
+    }
+  }
 
   @override
   void dispose() {
-    for (final c in [
-      _nameController, _emailController, _phoneController,
-      _passwordController, _referralController,
+    for (final controller in [
+      _nameController,
+      _emailController,
+      _usernameController,
+      _phoneController,
+      _passwordController,
+      _confirmPasswordController,
+      _referralController,
     ]) {
-      c.dispose();
+      controller.dispose();
     }
+
     super.dispose();
   }
 
   Future<void> _submit() async {
-    final name = _nameController.text.trim();
-    final email = _emailController.text.trim();
-    final phone = _phoneController.text.trim();
-    final password = _passwordController.text;
-
-    if (name.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please complete all required fields.')),
-      );
+    if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
 
@@ -59,15 +82,25 @@ class _CustomerRegisterScreenState
       return;
     }
 
-    final success = await ref.read(authStateProvider.notifier).registerCustomer(
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final username = _usernameController.text.trim();
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+    final referralCode = _referralController.text.trim();
+
+    final success = await ref
+        .read(authStateProvider.notifier)
+        .registerCustomer(
           CustomerRegistrationParams(
             fullName: name,
             email: email,
+            username: username,
             phone: phone,
             password: password,
-            referralCode: _referralController.text.trim().isEmpty
-                ? null
-                : _referralController.text.trim(),
+            confirmPassword: confirmPassword,
+            referralCode: referralCode.isEmpty ? null : referralCode,
           ),
         );
 
@@ -107,8 +140,9 @@ class _CustomerRegisterScreenState
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.xs),
+
               Text(
-                'Join the ABA community. Shop, refer friends, and earn commissions.',
+                'Join the ${AppBrand.name} community. Shop, refer friends, and earn commissions.',
                 style: AppTypography.bodySmall.copyWith(
                   color: isDark ? AppColors.darkTextSecondary : AppColors.grey,
                 ),
@@ -126,19 +160,28 @@ class _CustomerRegisterScreenState
                   ),
                   child: Text(
                     authState.errorMessage!,
-                    style:
-                        AppTypography.caption.copyWith(color: AppColors.error),
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.error,
+                    ),
                   ),
                 ),
-              CustomerRegisterFields(
-                nameController: _nameController,
-                emailController: _emailController,
-                phoneController: _phoneController,
-                passwordController: _passwordController,
-                referralController: _referralController,
-                obscurePassword: _obscurePassword,
-                onToggleObscurePassword: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
+              Form(
+                key: _formKey,
+                child: CustomerRegisterFields(
+                  nameController: _nameController,
+                  emailController: _emailController,
+                  phoneController: _phoneController,
+                  usernameController: _usernameController,
+                  passwordController: _passwordController,
+                  confirmPasswordController: _confirmPasswordController,
+                  referralController: _referralController,
+                  obscurePassword: _obscurePassword,
+                  onToggleObscurePassword: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                ),
               ),
               CheckboxListTile(
                 value: _acceptTerms,
@@ -163,8 +206,9 @@ class _CustomerRegisterScreenState
                 children: [
                   Text(
                     'Already have an account? ',
-                    style:
-                        AppTypography.bodySmall.copyWith(color: AppColors.grey),
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.grey,
+                    ),
                   ),
                   TextButton(
                     onPressed: () => context.go('/login/customer'),

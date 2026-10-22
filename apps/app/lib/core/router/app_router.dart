@@ -1,16 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/application/auth_providers.dart';
+import '../../features/auth/domain/auth_entities.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/presentation/role_selection_screen.dart';
 import '../../features/auth/presentation/customer_login_screen.dart';
 import '../../features/auth/presentation/customer_register_screen.dart';
 import '../../features/auth/presentation/merchant_login_screen.dart';
 import '../../features/auth/presentation/merchant_onboarding_screen.dart';
+import '../../features/auth/presentation/forgot_password_screen.dart';
+import '../../features/auth/presentation/reset_password_screen.dart';
 import '../../features/customer/presentation/customer_shell.dart';
 import '../../features/customer/presentation/dashboard_screen.dart';
 import '../../features/customer/presentation/marketer_profile_screen.dart';
 import '../../features/customer/presentation/referrals_screen.dart';
+import '../../features/customer/presentation/commission_ledger_screen.dart';
 import '../../features/shop/presentation/home_screen.dart';
 import '../../features/shop/presentation/shop_screen.dart';
 import '../../features/shop/presentation/product_detail_screen.dart';
@@ -77,6 +81,30 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/merchants/onboarding',
         builder: (context, state) => const MerchantOnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) {
+          final roleStr = state.uri.queryParameters['role'];
+          final email = state.uri.queryParameters['email'];
+          return ForgotPasswordScreen(
+            role: UserRole.fromString(roleStr),
+            initialEmail: email,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/reset-password',
+        builder: (context, state) {
+          final roleStr = state.uri.queryParameters['role'];
+          final email = state.uri.queryParameters['email'];
+          final token = state.uri.queryParameters['token'];
+          return ResetPasswordScreen(
+            role: UserRole.fromString(roleStr),
+            initialEmail: email,
+            initialToken: token,
+          );
+        },
       ),
 
       // ── Customer shell with bottom nav ─────────────────────────────────
@@ -178,6 +206,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/referrals/profile',
         builder: (context, state) => const MarketerProfileScreen(),
       ),
+      GoRoute(
+        path: '/referrals/ledger',
+        builder: (context, state) => const CommissionLedgerScreen(),
+      ),
+      GoRoute(path: '/account/ledger', redirect: (_, __) => '/referrals/ledger'),
       GoRoute(
         path: '/rewards',
         builder: (context, state) => const RewardsScreen(),

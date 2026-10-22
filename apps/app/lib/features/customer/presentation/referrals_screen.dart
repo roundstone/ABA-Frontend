@@ -143,23 +143,39 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
                             Expanded(
                               child: AppButton(
                                 label: 'Marketer',
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                                 icon: const HugeIcon(
                                   icon: HugeIcons.strokeRoundedNetwork,
                                   color: Colors.white,
-                                  size: 18,
+                                  size: 16,
                                 ),
                                 onPressed: () =>
                                     context.push('/referrals/profile'),
                               ),
                             ),
-                            const SizedBox(width: AppSpacing.sm),
+                            const SizedBox(width: AppSpacing.xs),
                             Expanded(
                               child: AppButton(
-                                label: 'Share Link',
+                                label: 'Ledger',
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                icon: const HugeIcon(
+                                  icon: HugeIcons.strokeRoundedBook02,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                onPressed: () =>
+                                    context.push('/referrals/ledger'),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.xs),
+                            Expanded(
+                              child: AppButton(
+                                label: 'Share',
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                                 icon: const HugeIcon(
                                   icon: HugeIcons.strokeRoundedShare01,
                                   color: Colors.white,
-                                  size: 18,
+                                  size: 16,
                                 ),
                                 onPressed: () {},
                               ),

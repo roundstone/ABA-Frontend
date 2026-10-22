@@ -1,11 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/logging/app_logger.dart';
 import '../domain/auth_entities.dart';
 import '../domain/auth_repository.dart';
 
 class AuthNotifier extends StateNotifier<AuthState> {
   AuthNotifier({required AuthRepository repository})
-      : _repository = repository,
-        super(const AuthState()) {
+    : _repository = repository,
+      super(const AuthState()) {
     _checkStoredUser();
   }
 
@@ -27,13 +28,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final user = await _repository.loginCustomer(
+      final loggedInUser = await _repository.loginCustomer(
         identifier: identifier,
         password: password,
       );
+      final user = await _repository.getStoredUser() ?? loggedInUser;
+      
       state = state.copyWith(user: user, isLoading: false);
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.e('Customer login failed', error: e, stackTrace: stackTrace);
       state = state.copyWith(
         isLoading: false,
         errorMessage: e.toString().replaceAll('Exception: ', ''),
@@ -48,7 +52,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final user = await _repository.registerCustomer(params);
       state = state.copyWith(user: user, isLoading: false);
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.e('Customer registration failed', error: e, stackTrace: stackTrace);
       state = state.copyWith(
         isLoading: false,
         errorMessage: e.toString().replaceAll('Exception: ', ''),
@@ -85,6 +90,48 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(user: user, isLoading: false);
       return true;
     } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> forgotPassword(String email) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _repository.forgotPassword(email: email);
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e, stackTrace) {
+      AppLogger.e('Forgot password failed', error: e, stackTrace: stackTrace);
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword({
+    required String token,
+    required String password,
+    required String confirmPassword,
+    String? email,
+  }) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _repository.resetPassword(
+        token: token,
+        password: password,
+        confirmPassword: confirmPassword,
+        email: email,
+      );
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e, stackTrace) {
+      AppLogger.e('Reset password failed', error: e, stackTrace: stackTrace);
       state = state.copyWith(
         isLoading: false,
         errorMessage: e.toString().replaceAll('Exception: ', ''),

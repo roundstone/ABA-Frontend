@@ -152,4 +152,37 @@ class AuthMockRepository implements AuthRepository {
     await Future.delayed(const Duration(milliseconds: 200));
     _currentUser = null;
   }
+
+  @override
+  Future<void> forgotPassword({required String email}) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (email.trim().isEmpty || !email.contains('@')) {
+      throw Exception('Please provide a valid email address.');
+    }
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String token,
+    required String password,
+    required String confirmPassword,
+    String? email,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (token.trim().isEmpty) {
+      throw Exception('Reset token or code is required.');
+    }
+    if (password.length < 6) {
+      throw Exception('Password must be at least 6 characters.');
+    }
+    if (password != confirmPassword) {
+      throw Exception('Passwords do not match.');
+    }
+  }
+
+  @override
+  Future<String?> refreshToken() async {
+    await Future.delayed(const Duration(milliseconds: 150));
+    return 'mock-refreshed-jwt-token';
+  }
 }

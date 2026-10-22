@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../core/router/safe_navigation.dart';
 import '../../../core/theme/app_colors.dart';
@@ -136,11 +137,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               title: const Text('Change Password'),
               trailing: const Icon(Icons.chevron_right, size: 20),
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Password reset link sent to your email.'),
-                  ),
-                );
+                final user = ref.read(currentUserProvider);
+                final emailParam = user?.email.isNotEmpty == true
+                    ? Uri.encodeComponent(user!.email)
+                    : '';
+                context.push('/forgot-password?role=customer&email=$emailParam');
               },
             ),
             const SizedBox(height: AppSpacing.md),

@@ -12,6 +12,7 @@ class AppButton extends StatelessWidget {
   final Widget? icon;
   final bool isLoading;
   final bool isFullWidth;
+  final EdgeInsetsGeometry? padding;
 
   const AppButton({
     super.key,
@@ -21,6 +22,7 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.isLoading = false,
     this.isFullWidth = true,
+    this.padding,
   });
 
   const AppButton.primary({
@@ -30,6 +32,7 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.isLoading = false,
     this.isFullWidth = true,
+    this.padding,
   }) : type = AppButtonType.primary;
 
   const AppButton.secondary({
@@ -39,6 +42,7 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.isLoading = false,
     this.isFullWidth = true,
+    this.padding,
   }) : type = AppButtonType.secondary;
 
   const AppButton.outlined({
@@ -48,6 +52,7 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.isLoading = false,
     this.isFullWidth = true,
+    this.padding,
   }) : type = AppButtonType.outlined;
 
   const AppButton.text({
@@ -57,6 +62,7 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.isLoading = false,
     this.isFullWidth = false,
+    this.padding,
   }) : type = AppButtonType.text;
 
   const AppButton.destructive({
@@ -66,6 +72,7 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.isLoading = false,
     this.isFullWidth = true,
+    this.padding,
   }) : type = AppButtonType.destructive;
 
   @override
@@ -88,15 +95,19 @@ class AppButton extends StatelessWidget {
                   : cs.primary,
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.xs),
         ] else if (icon != null) ...[
           icon!,
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.xs),
         ],
-        Text(
-          label,
-          style: AppTypography.label.copyWith(
-            fontWeight: FontWeight.w600,
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.label.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
@@ -111,7 +122,7 @@ class AppButton extends StatelessWidget {
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             elevation: 0,
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            padding: padding ?? const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             shape: const RoundedRectangleBorder(
               borderRadius: AppSpacing.borderRadiusLG,
             ),
@@ -126,7 +137,7 @@ class AppButton extends StatelessWidget {
             backgroundColor: isDark ? const Color(0xFF333333) : const Color(0xFFE0E0E0),
             foregroundColor: cs.onSurface,
             elevation: 0,
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            padding: padding ?? const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             shape: const RoundedRectangleBorder(
               borderRadius: AppSpacing.borderRadiusLG,
             ),
@@ -142,7 +153,7 @@ class AppButton extends StatelessWidget {
             foregroundColor: Colors.white,
             disabledBackgroundColor: AppColors.error.withAlpha(128),
             elevation: 0,
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            padding: padding ?? const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             shape: const RoundedRectangleBorder(
               borderRadius: AppSpacing.borderRadiusLG,
             ),
@@ -156,7 +167,7 @@ class AppButton extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             foregroundColor: cs.onSurface,
             side: BorderSide(color: isDark ? Colors.white24 : AppColors.border),
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            padding: padding ?? const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             shape: const RoundedRectangleBorder(
               borderRadius: AppSpacing.borderRadiusLG,
             ),
@@ -169,7 +180,7 @@ class AppButton extends StatelessWidget {
           onPressed: isLoading ? null : onPressed,
           style: TextButton.styleFrom(
             foregroundColor: cs.primary,
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            padding: padding ?? const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             shape: const RoundedRectangleBorder(
               borderRadius: AppSpacing.borderRadiusMD,
             ),

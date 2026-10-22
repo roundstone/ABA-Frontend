@@ -44,7 +44,9 @@ void main() {
           fullName: 'Chisom Obi',
           email: 'chisom@example.com',
           phone: '+2348011223344',
+          username: 'chisom',
           password: 'securePass123',
+          confirmPassword: 'securePass123',
           referralCode: 'REF-JANE100',
         ),
       );
@@ -98,6 +100,38 @@ void main() {
       await repository.logout();
       expect(await repository.getStoredUser(), isNull);
     });
+
+    test('forgotPassword succeeds with valid email and rejects empty', () async {
+      await repository.forgotPassword(email: 'customer@example.com');
+      expect(
+        () => repository.forgotPassword(email: ''),
+        throwsException,
+      );
+    });
+
+    test('resetPassword verifies token and matching passwords', () async {
+      await repository.resetPassword(
+        token: '123456',
+        password: 'newPassword123',
+        confirmPassword: 'newPassword123',
+        email: 'customer@example.com',
+      );
+
+      expect(
+        () => repository.resetPassword(
+          token: '123456',
+          password: 'newPassword123',
+          confirmPassword: 'mismatchPassword',
+        ),
+        throwsException,
+      );
+    });
+
+    test('refreshToken returns new valid access token', () async {
+      final token = await repository.refreshToken();
+      expect(token, isNotNull);
+      expect(token, equals('mock-refreshed-jwt-token'));
+    });
   });
 
   group('AuthNotifier Tests', () {
@@ -131,6 +165,25 @@ void main() {
       expect(notifier.state.isAuthenticated, isTrue);
       expect(notifier.state.isMerchant, isTrue);
       expect(notifier.state.role, equals(UserRole.merchant));
+    });
+
+    test('forgotPassword sets loading state and returns success', () async {
+      final success = await notifier.forgotPassword('customer@example.com');
+      expect(success, isTrue);
+      expect(notifier.state.isLoading, isFalse);
+      expect(notifier.state.errorMessage, isNull);
+    });
+
+    test('resetPassword validates and updates state', () async {
+      final success = await notifier.resetPassword(
+        token: '123456',
+        password: 'newPassword123',
+        confirmPassword: 'newPassword123',
+        email: 'customer@example.com',
+      );
+      expect(success, isTrue);
+      expect(notifier.state.isLoading, isFalse);
+      expect(notifier.state.errorMessage, isNull);
     });
 
     test('logout resets auth state to unauthenticated', () async {

@@ -1,9 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../logging/dio_log_interceptor.dart';
 import '../providers/shared_preferences_provider.dart';
 import 'api_endpoints.dart';
 
+import 'token_refresh_interceptor.dart';
+
 export 'api_endpoints.dart';
+export 'api_error.dart';
+export 'api_response.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
@@ -17,18 +22,10 @@ final dioProvider = Provider<Dio>((ref) {
     },
   ));
 
-  dio.interceptors.add(InterceptorsWrapper(
-    onRequest: (options, handler) {
-      final token = prefs?.getString('auth_access_token');
-      if (token != null && token.isNotEmpty) {
-        options.headers['Authorization'] = 'Bearer $token';
-      }
-      return handler.next(options);
-    },
-    onError: (DioException e, handler) {
-      return handler.next(e);
-    },
-  ));
+  dio.interceptors.addAll([
+    TokenRefreshInterceptor(dio: dio, prefs: prefs),
+    DioLogInterceptor(),
+  ]);
 
   return dio;
 });

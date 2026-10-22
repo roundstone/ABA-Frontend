@@ -14,8 +14,12 @@ class MerchantStepBusiness extends StatelessWidget {
     required this.rcController,
     required this.isProvisional,
     required this.cacUploaded,
+    this.logoUploaded = true,
+    this.bannerUploaded = true,
     required this.onProvisionalChanged,
     required this.onUploadCac,
+    this.onUploadLogo,
+    this.onUploadBanner,
   });
 
   final TextEditingController nameController;
@@ -23,8 +27,12 @@ class MerchantStepBusiness extends StatelessWidget {
   final TextEditingController rcController;
   final bool isProvisional;
   final bool cacUploaded;
+  final bool logoUploaded;
+  final bool bannerUploaded;
   final ValueChanged<bool> onProvisionalChanged;
   final VoidCallback onUploadCac;
+  final VoidCallback? onUploadLogo;
+  final VoidCallback? onUploadBanner;
 
   @override
   Widget build(BuildContext context) {
@@ -150,6 +158,40 @@ class MerchantStepBusiness extends StatelessWidget {
             ),
           ),
         ],
+        const SizedBox(height: AppSpacing.lg),
+        Text(
+          'Storefront Branding & Media (Logo & Banner)',
+          style: AppTypography.caption.copyWith(
+            fontWeight: FontWeight.w700,
+            color: isDark ? Colors.white70 : AppColors.onBackground,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Row(
+          children: [
+            Expanded(
+              child: MerchantUploadBox(
+                title: 'Store Logo',
+                subtitle: logoUploaded
+                    ? 'logo_uploaded.png'
+                    : 'Square logo (1:1)',
+                isUploaded: logoUploaded,
+                onTap: onUploadLogo ?? () {},
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: MerchantUploadBox(
+                title: 'Cover Banner',
+                subtitle: bannerUploaded
+                    ? 'banner_uploaded.jpg'
+                    : 'Header banner (3:1)',
+                isUploaded: bannerUploaded,
+                onTap: onUploadBanner ?? () {},
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }

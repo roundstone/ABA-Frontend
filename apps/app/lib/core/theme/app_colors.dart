@@ -15,6 +15,7 @@ class AppColors {
   static const Color onBackground = Color(0xFF111827); // text
   static const Color onSurface = Color(0xFF111827); // text
   static const Color grey = Color(0xFF5B6472); // text-muted
+  static const Color textSecondary = Color(0xFF5B6472); // alias text-muted
   static const Color textSubtle = Color(0xFF8A93A0); // text-subtle
   static const Color border = Color(0xFFE3E6EB); // border
   static const Color formBg = Color(0xFFF1F3F6); // surface-2
@@ -29,6 +30,7 @@ class AppColors {
   // Dark Theme Colors
   static const Color darkBackground = Color(0xFF121212);
   static const Color darkSurface = Color(0xFF1E1E1E);
+  static const Color darkBorder = Color(0xFF2A2A2A);
   static const Color darkTextPrimary = Color(0xFFFFFFFF);
   static const Color darkTextSecondary = Color(0xFFB0B0B0);
   static const Color darkFormBg = Color(0xFF2A2A2A);

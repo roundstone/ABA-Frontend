@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
@@ -47,6 +48,7 @@ class _MerchantProductFormSheetState extends State<MerchantProductFormSheet> {
 
   late String _category;
   late MerchantProductStatus _status;
+  late String _imageUrl;
   bool _isSaving = false;
 
   static const _categories = [
@@ -55,6 +57,13 @@ class _MerchantProductFormSheetState extends State<MerchantProductFormSheet> {
     'Fashion & Textiles',
     'Accessories',
     'Crafts & Gifts',
+  ];
+
+  static const _sampleProductImages = [
+    'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=600&q=80',
+    'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=600&q=80',
+    'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80',
+    'https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=600&q=80',
   ];
 
   @override
@@ -77,6 +86,7 @@ class _MerchantProductFormSheetState extends State<MerchantProductFormSheet> {
     _descCtrl = TextEditingController(text: p?.description ?? '');
     _category = p?.category ?? _categories.first;
     _status = p?.status ?? MerchantProductStatus.active;
+    _imageUrl = p?.imageUrl ?? _sampleProductImages.first;
   }
 
   @override
@@ -125,6 +135,59 @@ class _MerchantProductFormSheetState extends State<MerchantProductFormSheet> {
                 style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: AppSpacing.md),
+
+              // Product Image Upload
+              Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      _imageUrl,
+                      width: 72,
+                      height: 72,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 72,
+                        height: 72,
+                        color: Colors.grey.shade300,
+                        child: const Icon(Icons.image, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Product Cover Image (1:1)',
+                          style: AppTypography.caption.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Upload photo or pick sample (JPEG, PNG up to 5MB)',
+                          style: AppTypography.caption.copyWith(color: AppColors.grey, fontSize: 11),
+                        ),
+                        const SizedBox(height: 6),
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          ),
+                          icon: const Icon(Icons.cloud_upload_outlined, size: 16),
+                          label: const Text('Change Photo', style: TextStyle(fontSize: 12)),
+                          onPressed: () {
+                            final nextIndex = (_sampleProductImages.indexOf(_imageUrl) + 1) % _sampleProductImages.length;
+                            setState(() => _imageUrl = _sampleProductImages[nextIndex]);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+
               AppTextField(
                 label: 'Product Name',
                 controller: _nameCtrl,
@@ -234,8 +297,7 @@ class _MerchantProductFormSheetState extends State<MerchantProductFormSheet> {
       stock: int.tryParse(_stockCtrl.text.trim()) ?? 0,
       description: _descCtrl.text.trim(),
       status: _status,
-      imageUrl: widget.existingProduct?.imageUrl ??
-          'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=400&q=80',
+      imageUrl: _imageUrl,
       updatedAt: DateTime.now(),
     );
     final ok = await widget.onSave(product);

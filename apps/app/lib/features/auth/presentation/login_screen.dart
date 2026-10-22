@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../core/theme/app_colors.dart';
@@ -6,76 +8,309 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../application/auth_providers.dart';
+import '../domain/auth_entities.dart';
+import 'widgets/demo_login_button.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+/// Shared Login Screen for both Customer and Merchant roles.
+class LoginScreen extends ConsumerStatefulWidget {
+  const LoginScreen({
+    super.key,
+    this.role = UserRole.customer,
+  });
+
+  final UserRole role;
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+
+  bool get _isMerchant => widget.role == UserRole.merchant;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isMerchant) {
+      _identifierController.text = 'emeka@abaleather.com';
+      _passwordController.text = 'password123';
+    } else if (kDebugMode) {
+      _identifierController.text = 'yusufshehu-admin@rs.com';
+      _passwordController.text = 'password';
+    }
+  }
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
+  Future<void> _submit() async {
+    ref.read(authStateProvider.notifier).clearError();
+    final identifier = _identifierController.text.trim();
+    final password = _passwordController.text;
+
+    if (identifier.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isMerchant
+                ? 'Please enter your business email and password'
+                : 'Please enter your email/phone and password',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final success = _isMerchant
+        ? await ref.read(authStateProvider.notifier).loginMerchant(
+              identifier: identifier,
+              password: password,
+            )
+        : await ref.read(authStateProvider.notifier).loginCustomer(
+              identifier: identifier,
+              password: password,
+            );
+
+    if (success && mounted) {
+      final user = ref.read(currentUserProvider);
+      if (_isMerchant || user?.isMerchant == true) {
+        context.go('/merchant');
+      } else {
+        context.go('/home');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authStateProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final badgeColor = _isMerchant ? AppColors.success : AppColors.info;
+    final badgeText =
+        _isMerchant ? 'MERCHANT & SELLER PORTAL' : 'CUSTOMER PORTAL';
+    final title = _isMerchant ? 'Merchant Sign In' : 'Welcome Back';
+    final subtitle = _isMerchant
+        ? 'Access your vendor orders, inventory catalog, and in-store POS.'
+        : 'Sign in to manage your orders, referrals, and wallet balance.';
+    final identifierLabel =
+        _isMerchant ? 'Business Email or Phone' : 'Email or Phone';
+    final identifierHint = _isMerchant
+        ? 'Enter business email or phone'
+        : 'Enter your email or phone';
+    final submitButtonLabel =
+        _isMerchant ? 'Sign In to Merchant Hub' : 'Sign In';
+
     return Scaffold(
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: isDark ? Colors.white : AppColors.onBackground,
+            size: 20,
+          ),
+          onPressed: () => context.go('/role-select'),
+        ),
+      ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Welcome to BUYNAIJA',
-                style: AppTypography.h3.copyWith(fontWeight: FontWeight.w800),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'Sign in to continue',
-                style: AppTypography.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-              AppTextField(
-                label: 'Email',
-                hintText: 'Enter your email',
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                prefixIcon: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedMail01,
-                  color: AppColors.grey,
-                  size: 16,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: badgeColor.withAlpha(isDark ? 40 : 20),
+                      borderRadius: AppSpacing.avatarRadius,
+                    ),
+                    child: Text(
+                      badgeText,
+                      style: AppTypography.caption.copyWith(
+                        color: badgeColor,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              AppTextField(
-                label: 'Password',
-                hintText: 'Enter your password',
-                controller: _passwordController,
-                obscureText: true,
-                prefixIcon: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedLockPassword,
-                  color: AppColors.grey,
-                  size: 16,
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  title,
+                  style: AppTypography.h3.copyWith(fontWeight: FontWeight.w800),
+                  textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              AppButton.primary(
-                label: 'Login',
-                onPressed: () => context.go('/home'),
-              ),
-            ],
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  subtitle,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.grey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                if (authState.errorMessage != null)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withAlpha(20),
+                      borderRadius: AppSpacing.borderRadiusMD,
+                      border: Border.all(color: AppColors.error.withAlpha(60)),
+                    ),
+                    child: Text(
+                      authState.errorMessage!,
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.error,
+                      ),
+                    ),
+                  ),
+                AppTextField(
+                  label: identifierLabel,
+                  hintText: identifierHint,
+                  controller: _identifierController,
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIcon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedMail01,
+                    color: AppColors.grey,
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppTextField(
+                  label: 'Password',
+                  hintText: 'Enter your password',
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  prefixIcon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedLockPassword,
+                    color: AppColors.grey,
+                    size: 16,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: HugeIcon(
+                      icon: _obscurePassword
+                          ? HugeIcons.strokeRoundedView
+                          : HugeIcons.strokeRoundedViewOffSlash,
+                      color: AppColors.grey,
+                      size: 16,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      final emailParam = Uri.encodeComponent(
+                        _identifierController.text.trim(),
+                      );
+                      context.go(
+                        '/forgot-password?role=${widget.role.name}&email=$emailParam',
+                      );
+                    },
+                    child: Text(
+                      'Forgot Password?',
+                      style: AppTypography.caption.copyWith(
+                        color: isDark ? AppColors.secondary : AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                AppButton.primary(
+                  label: submitButtonLabel,
+                  isLoading: authState.isLoading,
+                  onPressed: _submit,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                if (_isMerchant)
+                  DemoLoginButton(
+                    label: 'Quick Fill (Demo Merchant: Emeka)',
+                    icon: HugeIcons.strokeRoundedStore01,
+                    onPressed: () {
+                      _identifierController.text = 'emeka@abaleather.com';
+                      _passwordController.text = 'password123';
+                      _submit();
+                    },
+                  )
+                else if (kDebugMode)
+                  DemoLoginButton(
+                    label: 'Quick Fill (Admin / Customer)',
+                    icon: HugeIcons.strokeRoundedUser,
+                    onPressed: () {
+                      _identifierController.text = 'yusufshehu-admin@rs.com';
+                      _passwordController.text = 'password';
+                      _submit();
+                    },
+                  ),
+                const SizedBox(height: AppSpacing.md),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _isMerchant
+                          ? 'New manufacturer or artisan? '
+                          : "Don't have an account? ",
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.grey,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => context.go(
+                        _isMerchant
+                            ? '/merchants/onboarding'
+                            : '/register/customer',
+                      ),
+                      child: Text(
+                        _isMerchant ? 'Apply Now' : 'Sign Up',
+                        style: AppTypography.bodySmall.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Center(
+                  child: TextButton(
+                    onPressed: () => context.go(
+                      _isMerchant ? '/login/customer' : '/login/merchant',
+                    ),
+                    child: Text(
+                      _isMerchant
+                          ? 'Looking to buy products? Sign in as Customer'
+                          : 'Are you a seller? Sign in as Merchant',
+                      style: AppTypography.caption.copyWith(
+                        color: isDark ? AppColors.secondary : AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

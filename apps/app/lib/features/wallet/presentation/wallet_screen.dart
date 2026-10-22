@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../core/router/safe_navigation.dart';
 import '../../auth/application/auth_providers.dart';
@@ -96,6 +97,57 @@ class WalletScreen extends ConsumerWidget {
                         const SnackBar(content: Text('Withdraw tapped')),
                       );
                     },
+                  ),
+                ),
+                AppSpacing.verticalSpaceMD,
+
+                // Commission Flow Ledger Card
+                InkWell(
+                  onTap: () => context.push('/referrals/ledger'),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm + 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E2820) : const Color(0xFFF1F8F3),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF2C3E30) : const Color(0xFFD0E6D5),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const HugeIcon(
+                          icon: HugeIcons.strokeRoundedBook02,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Commission Flow Ledger',
+                                style: AppTypography.bodySmall.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Trace double-entry journal entries from order to bank payout',
+                                style: AppTypography.caption.copyWith(
+                                  color: isDark ? AppColors.darkTextSecondary : AppColors.grey,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right, color: AppColors.grey, size: 20),
+                      ],
+                    ),
                   ),
                 ),
                 AppSpacing.verticalSpaceLG,

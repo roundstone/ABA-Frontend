@@ -15,6 +15,8 @@ class AppTextField extends StatelessWidget {
   final void Function(String)? onChanged;
   final int maxLines;
   final bool enabled;
+  final String? errorText;
+  final AutovalidateMode? autovalidateMode;
 
   const AppTextField({
     super.key,
@@ -29,6 +31,8 @@ class AppTextField extends StatelessWidget {
     this.onChanged,
     this.maxLines = 1,
     this.enabled = true,
+    this.errorText,
+    this.autovalidateMode,
   });
 
   @override
@@ -38,25 +42,17 @@ class AppTextField extends StatelessWidget {
 
     final border = OutlineInputBorder(
       borderRadius: AppSpacing.borderRadiusMD,
-      borderSide: BorderSide(
-        color: isDark ? Colors.white24 : AppColors.border,
-      ),
+      borderSide: BorderSide(color: isDark ? Colors.white24 : AppColors.border),
     );
 
     const errorBorder = OutlineInputBorder(
       borderRadius: AppSpacing.borderRadiusMD,
-      borderSide: BorderSide(
-        color: AppColors.error,
-        width: 1.5,
-      ),
+      borderSide: BorderSide(color: AppColors.error, width: 1.5),
     );
 
     const focusedBorder = OutlineInputBorder(
       borderRadius: AppSpacing.borderRadiusMD,
-      borderSide: BorderSide(
-        color: AppColors.primary,
-        width: 1.5,
-      ),
+      borderSide: BorderSide(color: AppColors.primary, width: 1.5),
     );
 
     return Column(
@@ -81,6 +77,7 @@ class AppTextField extends StatelessWidget {
           onChanged: onChanged,
           maxLines: maxLines,
           enabled: enabled,
+          autovalidateMode: autovalidateMode,
           style: AppTypography.bodyMedium.copyWith(color: cs.onSurface),
           decoration: InputDecoration(
             hintText: hintText,
@@ -91,8 +88,8 @@ class AppTextField extends StatelessWidget {
                 ? Padding(
                     padding: const EdgeInsets.only(left: 12, right: 8),
                     child: Center(
-                      widthFactor: 1.0,
-                      heightFactor: 1.0,
+                      widthFactor: 1,
+                      heightFactor: 1,
                       child: prefixIcon,
                     ),
                   )
@@ -105,8 +102,8 @@ class AppTextField extends StatelessWidget {
                 ? Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: Center(
-                      widthFactor: 1.0,
-                      heightFactor: 1.0,
+                      widthFactor: 1,
+                      heightFactor: 1,
                       child: suffixIcon,
                     ),
                   )
@@ -133,6 +130,16 @@ class AppTextField extends StatelessWidget {
             ),
           ),
         ),
+        if (errorText != null) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            errorText!,
+            style: AppTypography.label.copyWith(
+              fontWeight: FontWeight.w500,
+              color: AppColors.error,
+            ),
+          ),
+        ],
       ],
     );
   }

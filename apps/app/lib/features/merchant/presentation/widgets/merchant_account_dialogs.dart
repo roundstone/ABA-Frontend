@@ -1,34 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../auth/application/auth_providers.dart';
+import '../../../auth/domain/auth_entities.dart';
+import '../../../auth/presentation/widgets/logout_dialog.dart';
 
 void showConfirmLogoutDialog(BuildContext context, WidgetRef ref) {
-  showDialog(
+  showAppLogoutDialog(
     context: context,
-    builder: (ctx) => AlertDialog(
-      title: const Text('Logout Merchant?'),
-      content: const Text(
-        'Are you sure you want to sign out of your merchant portal?',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-          onPressed: () {
-            Navigator.pop(ctx);
-            Navigator.pop(context);
-            ref.read(authStateProvider.notifier).logout();
-            context.go('/role-select');
-          },
-          child: const Text('Logout', style: TextStyle(color: Colors.white)),
-        ),
-      ],
-    ),
+    ref: ref,
+    role: UserRole.merchant,
   );
 }
 

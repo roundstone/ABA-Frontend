@@ -9,8 +9,12 @@ enum UserRole {
   static UserRole fromString(String? role) {
     if (role == null) return UserRole.customer;
     final r = role.toLowerCase().trim();
-    if (r == 'merchant' || r == 'seller' || r == 'vendor') return UserRole.merchant;
-    if (r == 'admin' || r == 'super admin' || r == 'superadmin') return UserRole.admin;
+    if (r == 'merchant' || r == 'seller' || r == 'vendor') {
+      return UserRole.merchant;
+    }
+    if (r == 'admin' || r == 'super admin' || r == 'superadmin') {
+      return UserRole.admin;
+    }
     return UserRole.customer;
   }
 }
@@ -120,14 +124,18 @@ class CustomerRegistrationParams {
     required this.fullName,
     required this.email,
     required this.phone,
+    required this.username,
     required this.password,
+    required this.confirmPassword,
     this.referralCode,
   });
 
   final String fullName;
   final String email;
   final String phone;
+  final String username;
   final String password;
+  final String confirmPassword;
   final String? referralCode;
 }
 
@@ -184,11 +192,7 @@ class MerchantOnboardingParams {
 }
 
 class AuthState {
-  const AuthState({
-    this.user,
-    this.isLoading = false,
-    this.errorMessage,
-  });
+  const AuthState({this.user, this.isLoading = false, this.errorMessage});
 
   final AuthUser? user;
   final bool isLoading;
