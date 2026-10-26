@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/features/auth/domain/auth_entities.dart';
 import 'package:app/features/auth/data/auth_mock_repository.dart';
 import 'package:app/features/auth/application/auth_notifier.dart';
+import 'package:app/features/auth/application/auth_providers.dart';
 import 'package:app/features/auth/presentation/splash_screen.dart';
 import 'package:app/features/auth/presentation/role_selection_screen.dart';
 
@@ -197,6 +198,14 @@ void main() {
       expect(notifier.state.isAuthenticated, isFalse);
       expect(notifier.state.user, isNull);
     });
+
+    test('AuthNotifier initializes synchronously with stored user on startup', () {
+      repository.persistUser(AuthMockRepository.demoCustomer);
+      final preloadedNotifier = AuthNotifier(repository: repository);
+      expect(preloadedNotifier.state.isAuthenticated, isTrue);
+      expect(preloadedNotifier.state.user?.name, equals('Jane Doe'));
+      expect(preloadedNotifier.state.user?.isCustomer, isTrue);
+    });
   });
 
   group('Auth Presentation Widget Tests', () {
@@ -210,6 +219,25 @@ void main() {
 
       expect(find.text('BUYNAIJA'), findsOneWidget);
       expect(find.text('Get Started'), findsOneWidget);
+    });
+
+    testWidgets('SplashScreen displays Continue to App when authenticated', (
+      tester,
+    ) async {
+      final repo = AuthMockRepository();
+      repo.persistUser(AuthMockRepository.demoCustomer);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(repo),
+          ],
+          child: const MaterialApp(home: SplashScreen()),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.text('Continue to App'), findsOneWidget);
     });
 
     testWidgets('RoleSelectionScreen renders Customer and Merchant cards', (

@@ -746,16 +746,10 @@ class _ImageSliverAppBar extends StatelessWidget {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            if (images.isNotEmpty)
-              Image.network(
-                images[selectedIndex],
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: Colors.grey.shade100,
-                ),
-              )
-            else
-              Container(color: Colors.grey.shade100),
+            AppNetworkImage.product(
+              imageUrl: images.isNotEmpty ? images[selectedIndex] : null,
+              fit: BoxFit.cover,
+            ),
 
             // Thumbnail strip
             if (images.length > 1)
@@ -1067,15 +1061,11 @@ class _RelatedProductsRail extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: ClipRRect(
+                        child: AppNetworkImage.product(
+                          imageUrl: p.imageUrl,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
                           borderRadius: AppSpacing.borderRadiusMD,
-                          child: p.imageUrl.isNotEmpty
-                              ? Image.network(
-                                  p.imageUrl,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                )
-                              : Container(color: Theme.of(context).colorScheme.surfaceContainerHighest),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.xs),

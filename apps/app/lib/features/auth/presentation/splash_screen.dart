@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../application/auth_providers.dart';
 import 'widgets/splash_badge_row.dart';
 
 /// Animated Splash Screen communicating the MLM Merchant Marketplace.
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
@@ -47,6 +49,17 @@ class _SplashScreenState extends State<SplashScreen>
           ),
         );
 
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        final auth = ref.read(authStateProvider);
+        if (auth.isAuthenticated) {
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (mounted) _navigateToNext();
+          });
+        }
+      }
+    });
+
     _controller.forward();
   }
 
@@ -57,7 +70,17 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateToNext() {
-    context.go('/role-select');
+    if (!mounted) return;
+    final auth = ref.read(authStateProvider);
+    if (auth.isAuthenticated) {
+      if (auth.isMerchant) {
+        context.go('/merchant');
+      } else {
+        context.go('/home');
+      }
+    } else {
+      context.go('/role-select');
+    }
   }
 
   @override
@@ -215,7 +238,9 @@ class _SplashScreenState extends State<SplashScreen>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Get Started',
+                            ref.watch(isAuthenticatedProvider)
+                                ? 'Continue to App'
+                                : 'Get Started',
                             style: AppTypography.buttonLarge.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w800,

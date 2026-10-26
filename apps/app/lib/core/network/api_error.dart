@@ -20,12 +20,15 @@ class ApiError implements Exception {
   @override
   String toString() => message;
 
-  factory ApiError.fromJson(Map<String, dynamic> json, {int defaultStatusCode = 500}) {
+  factory ApiError.fromJson(
+    Map<String, dynamic> json, {
+    int defaultStatusCode = 500,
+  }) {
     final code = (json['statusCode'] as num?)?.toInt() ?? defaultStatusCode;
     final rawMsg = json['message'];
     final success = json['success'] as bool? ?? false;
     final timestamp = json['timestamp'] as String?;
-    
+
     String parsedMessage = 'An unexpected error occurred ($code).';
 
     if (rawMsg is String && rawMsg.trim().isNotEmpty) {
@@ -59,13 +62,15 @@ class ApiError implements Exception {
         return const ApiError(
           success: false,
           statusCode: 408,
-          message: 'Connection timed out. Please check your internet connection.',
+          message:
+              'Connection timed out. Please check your internet connection.',
         );
       case DioExceptionType.connectionError:
         return const ApiError(
           success: false,
           statusCode: 503,
-          message: 'Unable to reach the server. Please verify your internet connection.',
+          message:
+              'Unable to reach the server. Please verify your internet connection.',
         );
       case DioExceptionType.badResponse:
         return ApiError(

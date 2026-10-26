@@ -39,7 +39,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _identifierController.text = 'emeka@abaleather.com';
       _passwordController.text = 'password123';
     } else if (kDebugMode) {
-      _identifierController.text = 'yusufshehu-admin@rs.com';
+      _identifierController.text = 'davidenabs@gmail.com';
       _passwordController.text = 'password';
     }
   }

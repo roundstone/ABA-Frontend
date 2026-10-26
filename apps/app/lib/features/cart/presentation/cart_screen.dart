@@ -78,12 +78,10 @@ class _CartBody extends ConsumerWidget {
               AppSpacing.sm,
             ),
             itemCount: cart.items.length,
-            separatorBuilder: (_, __) =>
-                const SizedBox(height: AppSpacing.sm),
+            separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
             itemBuilder: (context, i) => _CartItem(
               item: cart.items[i],
-              onRemove: () =>
-                  notifier.removeFromCart(cart.items[i].product.id),
+              onRemove: () => notifier.removeFromCart(cart.items[i].product.id),
               onDecrease: () => notifier.updateQuantity(
                 cart.items[i].product.id,
                 cart.items[i].quantity - 1,
@@ -144,26 +142,11 @@ class _CartItem extends StatelessWidget {
       child: Row(
         children: [
           // Product image
-          ClipRRect(
+          AppNetworkImage.product(
+            imageUrl: p.imageUrl,
+            width: 72,
+            height: 72,
             borderRadius: AppSpacing.borderRadiusSM,
-            child: Image.network(
-              p.imageUrl,
-              width: 72,
-              height: 72,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                width: 72,
-                height: 72,
-                color: Colors.grey.shade100,
-                child: const Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedImageNotFound01,
-                    size: 24,
-                    color: AppColors.grey,
-                  ),
-                ),
-              ),
-            ),
           ),
           const SizedBox(width: AppSpacing.sm),
 
@@ -174,8 +157,9 @@ class _CartItem extends StatelessWidget {
               children: [
                 Text(
                   p.name,
-                  style: AppTypography.bodySmall
-                      .copyWith(fontWeight: FontWeight.w600),
+                  style: AppTypography.bodySmall.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -259,22 +243,17 @@ class _QtyStepper extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _StepBtn(
-            icon: HugeIcons.strokeRoundedMinusSign,
-            onTap: onDecrease,
-          ),
+          _StepBtn(icon: HugeIcons.strokeRoundedMinusSign, onTap: onDecrease),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             child: Text(
               '$quantity',
-              style: AppTypography.bodySmall
-                  .copyWith(fontWeight: FontWeight.w700),
+              style: AppTypography.bodySmall.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
-          _StepBtn(
-            icon: HugeIcons.strokeRoundedPlusSign,
-            onTap: onIncrease,
-          ),
+          _StepBtn(icon: HugeIcons.strokeRoundedPlusSign, onTap: onIncrease),
         ],
       ),
     );
@@ -317,31 +296,30 @@ class _OrderSummary extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Widget row(String label, double value, {bool bold = false}) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                label,
-                style: bold
-                    ? AppTypography.bodyMedium
-                        .copyWith(fontWeight: FontWeight.w700)
-                    : AppTypography.bodySmall.copyWith(
-                        color: cs.onSurface.withAlpha(160),
-                      ),
-              ),
-              Text(
-                formatNaira(value),
-                style: bold
-                    ? AppTypography.bodyMedium.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: cs.primary,
-                      )
-                    : AppTypography.bodySmall,
-              ),
-            ],
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: bold
+                ? AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w700)
+                : AppTypography.bodySmall.copyWith(
+                    color: cs.onSurface.withAlpha(160),
+                  ),
           ),
-        );
+          Text(
+            formatNaira(value),
+            style: bold
+                ? AppTypography.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: cs.primary,
+                  )
+                : AppTypography.bodySmall,
+          ),
+        ],
+      ),
+    );
 
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -364,10 +342,7 @@ class _OrderSummary extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           row('Subtotal (${cart.itemCount} items)', cart.subtotal),
-          row(
-            'Shipping',
-            cart.shipping,
-          ),
+          row('Shipping', cart.shipping),
           if (cart.shipping == 0)
             Align(
               alignment: Alignment.centerRight,

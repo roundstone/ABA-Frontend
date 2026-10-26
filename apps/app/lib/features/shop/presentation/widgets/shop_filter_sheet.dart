@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../application/shop_providers.dart';
 import '../../domain/shop_entities.dart';
+import 'shop_filter_widgets.dart';
 
 /// Launch the filter bottom sheet.
 void showShopFilterSheet(BuildContext context) {
@@ -37,40 +36,32 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
     Navigator.of(context).pop();
   }
 
-  void _reset() {
-    setState(() => _local = const ShopFilter());
-  }
+  void _reset() => setState(() => _local = const ShopFilter());
 
-  // Derived options from catalogue
-  List<String> get _brands {
-    final cat = ref.read(shopCatalogueProvider).valueOrNull;
-    if (cat == null) return [];
-    return cat.products.map((p) => p.brand).toSet().toList()..sort();
-  }
+  List<String> get _brands =>
+      ref.read(shopCatalogueProvider).valueOrNull?.products.map((p) => p.brand).toSet().toList() ??
+      const [];
 
-  List<String> get _merchants {
-    return ['Aba Shoemakers', 'Nigerian Fabrics', 'Lagos Boutique', 'Local Artisans'];
-  }
+  static const _merchants = [
+    'Aba Shoemakers',
+    'Nigerian Fabrics',
+    'Lagos Boutique',
+    'Local Artisans',
+  ];
 
   List<String> get _colors {
-    final cat = ref.read(shopCatalogueProvider).valueOrNull;
-    if (cat == null) return [];
-    final all = <String>{};
-    for (final p in cat.products) {
-      if (p.colors != null) all.addAll(p.colors!);
-    }
-    return all.toList()..sort();
+    final prods = ref.read(shopCatalogueProvider).valueOrNull?.products;
+    if (prods == null) return const [];
+    return {for (final p in prods) if (p.colors != null) ...p.colors!}.toList()..sort();
   }
 
-  List<ShopCategory> get _categories {
-    final cat = ref.read(shopCatalogueProvider).valueOrNull;
-    if (cat == null) return [];
-    return cat.categories;
-  }
+  List<ShopCategory> get _categories =>
+      ref.read(productCategoriesProvider).valueOrNull ??
+      ref.read(shopCatalogueProvider).valueOrNull?.categories ??
+      const [];
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return DraggableScrollableSheet(
@@ -87,44 +78,7 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
         ),
         child: Column(
           children: [
-            // Handle + header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.sm,
-                AppSpacing.md,
-                0,
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.white.withAlpha(40)
-                          : Colors.black.withAlpha(20),
-                      borderRadius: AppSpacing.avatarRadius,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    children: [
-                      Text('Filter',
-                          style: AppTypography.h6
-                              .copyWith(fontWeight: FontWeight.w700)),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: _reset,
-                        child: Text('Reset all',
-                            style:
-                                AppTypography.bodySmall.copyWith(color: AppColors.grey)),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            FilterSheetHeader(isDark: isDark, onReset: _reset),
 
             // Scrollable filter sections
             Expanded(
@@ -133,9 +87,9 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 children: [
                   // Categories
-                  _FilterSection(
+                  FilterSection(
                     title: 'Categories',
-                    child: _CategoryTree(
+                    child: CategoryTreeWidget(
                       categories: _categories,
                       selectedSlugs: _local.categories,
                       isDark: isDark,
@@ -154,52 +108,24 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                   ),
 
                   // Price range
-                  _FilterSection(
+                  FilterSection(
                     title: 'Price Range',
-                    child: Column(
-                      children: [
-                        RangeSlider(
-                          values: RangeValues(
-                            _local.priceRange.$1,
-                            _local.priceRange.$2,
-                          ),
-                          min: 0,
-                          max: 500000,
-                          divisions: 100,
-                          activeColor: cs.primary,
-                          labels: RangeLabels(
-                            '₦${(_local.priceRange.$1 / 1000).toStringAsFixed(0)}k',
-                            '₦${(_local.priceRange.$2 / 1000).toStringAsFixed(0)}k',
-                          ),
-                          onChanged: (v) => setState(() => _local =
-                              _local.copyWith(priceRange: (v.start, v.end))),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '₦${(_local.priceRange.$1 / 1000).toStringAsFixed(0)}k',
-                              style: AppTypography.bodySmall,
-                            ),
-                            Text(
-                              '₦${(_local.priceRange.$2 / 1000).toStringAsFixed(0)}k',
-                              style: AppTypography.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ],
+                    child: PriceRangeSlider(
+                      range: _local.priceRange,
+                      onChanged: (v) =>
+                          setState(() => _local = _local.copyWith(priceRange: v)),
                     ),
                   ),
 
                   // Brands
-                  _FilterSection(
+                  FilterSection(
                     title: 'Brand',
                     child: Wrap(
                       spacing: AppSpacing.xs,
                       runSpacing: AppSpacing.xs,
                       children: _brands.map((brand) {
                         final selected = _local.brands.contains(brand);
-                        return _FilterChip(
+                        return FilterChipWidget(
                           label: brand,
                           selected: selected,
                           onTap: () => setState(() {
@@ -215,14 +141,14 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                   ),
 
                   // Merchants
-                  _FilterSection(
+                  FilterSection(
                     title: 'Merchant',
                     child: Wrap(
                       spacing: AppSpacing.xs,
                       runSpacing: AppSpacing.xs,
                       children: _merchants.map((merchant) {
                         final selected = _local.merchants.contains(merchant);
-                        return _FilterChip(
+                        return FilterChipWidget(
                           label: merchant,
                           selected: selected,
                           onTap: () => setState(() {
@@ -238,14 +164,14 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                   ),
 
                   // Colors
-                  _FilterSection(
+                  FilterSection(
                     title: 'Color',
                     child: Wrap(
                       spacing: AppSpacing.xs,
                       runSpacing: AppSpacing.xs,
                       children: _colors.map((color) {
                         final selected = _local.colors.contains(color);
-                        return _FilterChip(
+                        return FilterChipWidget(
                           label: color,
                           selected: selected,
                           onTap: () => setState(() {
@@ -261,7 +187,7 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                   ),
 
                   // Rating
-                  _FilterSection(
+                  FilterSection(
                     title: 'Minimum Rating',
                     child: Row(
                       children: List.generate(5, (i) {
@@ -269,7 +195,7 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                         final selected = _local.ratings.contains(star);
                         return Padding(
                           padding: const EdgeInsets.only(right: AppSpacing.xs),
-                          child: _FilterChip(
+                          child: FilterChipWidget(
                             label: '$star★',
                             selected: selected,
                             onTap: () => setState(() {
@@ -296,8 +222,7 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                 AppSpacing.md,
                 AppSpacing.sm,
                 AppSpacing.md,
-                AppSpacing.md +
-                    MediaQuery.of(context).padding.bottom,
+                AppSpacing.md + MediaQuery.of(context).padding.bottom,
               ),
               child: SizedBox(
                 width: double.infinity,
@@ -310,169 +235,6 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _FilterSection extends StatelessWidget {
-  const _FilterSection({required this.title, required this.child});
-  final String title;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: AppTypography.bodyMedium
-                  .copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: AppSpacing.sm),
-          child,
-          const Divider(height: AppSpacing.xl),
-        ],
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: AppSpacing.animationFast,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs,
-        ),
-        decoration: BoxDecoration(
-          color: selected ? cs.primary : cs.surfaceContainerHighest,
-          borderRadius: AppSpacing.avatarRadius,
-          border: selected
-              ? null
-              : Border.all(color: cs.outline.withAlpha(80), width: 1),
-        ),
-        child: Text(
-          label,
-          style: AppTypography.label.copyWith(
-            color: selected ? Colors.white : cs.onSurface,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CategoryTree extends StatefulWidget {
-  const _CategoryTree({
-    required this.categories,
-    required this.selectedSlugs,
-    required this.onToggle,
-    required this.isDark,
-  });
-
-  final List<ShopCategory> categories;
-  final List<String> selectedSlugs;
-  final ValueChanged<String> onToggle;
-  final bool isDark;
-
-  @override
-  State<_CategoryTree> createState() => _CategoryTreeState();
-}
-
-class _CategoryTreeState extends State<_CategoryTree> {
-  final Set<String> _expanded = {};
-
-  Widget _buildNode(ShopCategory node) {
-    final fullPath = node.slug;
-    final isSelected = widget.selectedSlugs.contains(fullPath);
-    final hasChildren = node.children.isNotEmpty;
-    final isExpanded = _expanded.contains(node.id);
-
-    final color = widget.isDark ? AppColors.secondary : AppColors.primary;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InkWell(
-          onTap: () {
-            widget.onToggle(fullPath);
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Row(
-              children: [
-                if (hasChildren)
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        if (isExpanded) {
-                          _expanded.remove(node.id);
-                        } else {
-                          _expanded.add(node.id);
-                        }
-                      });
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: Icon(
-                        isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
-                        size: 20,
-                        color: AppColors.grey,
-                      ),
-                    ),
-                  )
-                else
-                  const SizedBox(width: 28),
-                Expanded(
-                  child: Text(
-                    node.name,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: isSelected ? color : null,
-                      fontWeight: isSelected ? FontWeight.w700 : null,
-                    ),
-                  ),
-                ),
-                Text(
-                  '(${node.productCount})',
-                  style: AppTypography.label.copyWith(color: AppColors.grey),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (hasChildren && isExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 28.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: node.children.map((child) => _buildNode(child)).toList(),
-            ),
-          ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: widget.categories.map((c) => _buildNode(c)).toList(),
     );
   }
 }

@@ -75,7 +75,7 @@ class ApiResponse<T> {
   /// Safely extracts the inner `data` payload whether the response is wrapped
   /// in `{ "success": true, "data": ... }` or returned as bare data.
   static dynamic unwrap(dynamic responseData) {
-    if (responseData is Map<String, dynamic>) {
+    if (responseData is Map) {
       if (responseData.containsKey('data')) {
         return responseData['data'];
       }
@@ -87,11 +87,11 @@ class ApiResponse<T> {
   /// Safely unwraps a `Map<String, dynamic>` from a response.
   static Map<String, dynamic> unwrapMap(dynamic responseData) {
     final unwrapped = unwrap(responseData);
-    if (unwrapped is Map<String, dynamic>) {
-      return unwrapped;
+    if (unwrapped is Map) {
+      return Map<String, dynamic>.from(unwrapped);
     }
-    if (responseData is Map<String, dynamic>) {
-      return responseData;
+    if (responseData is Map) {
+      return Map<String, dynamic>.from(responseData);
     }
     return const {};
   }
@@ -103,7 +103,7 @@ class ApiResponse<T> {
     if (unwrapped is List) {
       return unwrapped;
     }
-    if (unwrapped is Map<String, dynamic> && unwrapped.containsKey('data') && unwrapped['data'] is List) {
+    if (unwrapped is Map && unwrapped.containsKey('data') && unwrapped['data'] is List) {
       return unwrapped['data'] as List<dynamic>;
     }
     if (responseData is List) {

@@ -1,68 +1,94 @@
-import 'package:app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../../core/network/list_query_params.dart';
 import '../../../core/router/safe_navigation.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../checkout/domain/checkout_entities.dart';
+import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/paginated_list_view.dart';
+import '../application/address_providers.dart';
+import '../domain/address_entities.dart';
+import 'widgets/add_address_sheet.dart';
 import 'widgets/address_card.dart';
 
-final savedAddressesProvider =
-    StateNotifierProvider<SavedAddressesNotifier, List<CheckoutAddress>>((ref) {
-      return SavedAddressesNotifier();
-    });
-
-class SavedAddressesNotifier extends StateNotifier<List<CheckoutAddress>> {
-  SavedAddressesNotifier()
-    : super([
-        const CheckoutAddress(
-          id: 'addr_1',
-          label: 'Home',
-          fullName: 'Jane Doe',
-          street: '123 Market Street, Victoria Island',
-          city: 'Lagos',
-          state: 'Lagos',
-          zipCode: '101241',
-          phone: '+234 801 234 5678',
-          isDefault: true,
-        ),
-        const CheckoutAddress(
-          id: 'addr_2',
-          label: 'Office / Store',
-          fullName: 'Jane Doe',
-          street: '45 Faulks Road, Ariaria Market',
-          city: 'Aba',
-          state: 'Abia',
-          zipCode: '450211',
-          phone: '+234 801 234 5678',
-          isDefault: false,
-        ),
-      ]);
-
-  void addAddress(CheckoutAddress address) {
-    if (address.isDefault) {
-      state = state.map((a) => a.copyWith(isDefault: false)).toList();
-    }
-    state = [...state, address];
-  }
-
-  void removeAddress(String id) {
-    state = state.where((a) => a.id != id).toList();
-  }
-
-  void setDefault(String id) {
-    state = state.map((a) => a.copyWith(isDefault: a.id == id)).toList();
-  }
-}
-
-class SavedAddressesScreen extends ConsumerWidget {
+class SavedAddressesScreen extends ConsumerStatefulWidget {
   const SavedAddressesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final addresses = ref.watch(savedAddressesProvider);
+  ConsumerState<SavedAddressesScreen> createState() =>
+      _SavedAddressesScreenState();
+}
+
+class _SavedAddressesScreenState extends ConsumerState<SavedAddressesScreen> {
+  final _searchCtrl = TextEditingController();
+  bool _isLoading = true;
+  ListQueryParams _params = const ListQueryParams(
+    page: 1,
+    limit: 20,
+    orderBy: 'createdAt:DESC',
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    try {
+      await ref.read(addressesProvider.notifier).loadAddresses(params: _params);
+    } catch (e) {
+      debugPrint('Failed to load addresses: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _loadMore() async {
+    try {
+      await ref.read(addressesProvider.notifier).loadMore();
+    } catch (e) {
+      debugPrint('Failed to load more addresses: $e');
+    }
+  }
+
+  void _onSearch(String term) {
+    setState(() => _params = _params.withSearch(term.trim().isEmpty ? null : term.trim()));
+    _load();
+  }
+
+  void _toggleSort() {
+    final next = _params.sortDirection == SortDirection.desc ? SortDirection.asc : SortDirection.desc;
+    setState(() => _params = _params.withSort('createdAt', next));
+    _load();
+  }
+
+  void _showAddDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const AddAddressSheet(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final addresses = ref.watch(addressesProvider);
+    final notifier = ref.watch(addressesProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isSortedAsc = _params.sortDirection == SortDirection.asc;
 
     return Scaffold(
       appBar: AppBar(
@@ -78,9 +104,22 @@ class SavedAddressesScreen extends ConsumerWidget {
         title: const Text('Saved Addresses'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: HugeIcon(
+              icon: isSortedAsc
+                  ? HugeIcons.strokeRoundedSorting02
+                  : HugeIcons.strokeRoundedSorting01,
+              size: 20,
+            ),
+            tooltip: isSortedAsc ? 'Sort: Oldest first' : 'Sort: Newest first',
+            onPressed: _toggleSort,
+          ),
+          IconButton(
+            icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedAdd01,
+              size: 20,
+            ),
             tooltip: 'Add Address',
-            onPressed: () => _showAddDialog(context, ref),
+            onPressed: _showAddDialog,
           ),
         ],
       ),
@@ -90,142 +129,111 @@ class SavedAddressesScreen extends ConsumerWidget {
           if (didPop) return;
           context.popOrGo('/home');
         },
-        child: addresses.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.location_off_outlined,
-                      size: 64,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(
-                      'No saved addresses yet',
-                      style: AppTypography.titleMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    ElevatedButton(
-                      onPressed: () => _showAddDialog(context, ref),
-                      child: const Text('Add New Address'),
-                    ),
-                  ],
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.xs,
+              ),
+              child: AppTextField(
+                controller: _searchCtrl,
+                hintText: 'Search by label, street, city...',
+                prefixIcon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedSearch01,
+                  color: AppColors.grey,
+                  size: 18,
                 ),
-              )
-            : ListView.separated(
+                suffixIcon: _searchCtrl.text.isNotEmpty
+                    ? IconButton(
+                        icon: const HugeIcon(
+                          icon: HugeIcons.strokeRoundedCancel01,
+                          color: AppColors.grey,
+                          size: 16,
+                        ),
+                        onPressed: () { _searchCtrl.clear(); _onSearch(''); },
+                      )
+                    : null,
+                onChanged: _onSearch,
+              ),
+            ),
+            Expanded(
+              child: PaginatedListView<DeliveryAddress>(
+                items: addresses,
+                isLoading: _isLoading,
+                isLoadingMore: notifier.isLoadingMore,
+                hasMore: notifier.hasMore,
+                onRefresh: _load,
+                onLoadMore: _loadMore,
+                prefetchDistance: 250.0,
+                showBottomLoader: true,
                 padding: const EdgeInsets.all(AppSpacing.md),
-                itemCount: addresses.length,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(height: AppSpacing.sm),
-                itemBuilder: (context, index) {
-                  final addr = addresses[index];
+                separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+                emptyWidget: _buildEmptyState(isDark),
+                itemBuilder: (context, addr, index) {
                   return AddressCard(
-                    address: addr,
+                    address: addr.toCheckoutAddress(),
                     isDark: isDark,
                     onSetDefault: () => ref
-                        .read(savedAddressesProvider.notifier)
+                        .read(addressesProvider.notifier)
                         .setDefault(addr.id),
                     onDelete: () => ref
-                        .read(savedAddressesProvider.notifier)
-                        .removeAddress(addr.id),
+                        .read(addressesProvider.notifier)
+                        .deleteAddress(addr.id),
                   );
                 },
               ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  void _showAddDialog(BuildContext context, WidgetRef ref) {
-    final formKey = GlobalKey<FormState>();
-    final labelCtrl = TextEditingController(text: 'Home');
-    final streetCtrl = TextEditingController();
-    final cityCtrl = TextEditingController(text: 'Aba');
-    final stateCtrl = TextEditingController(text: 'Abia');
-    final phoneCtrl = TextEditingController(text: '+234 ');
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: AppSpacing.md,
-          right: AppSpacing.md,
-          top: AppSpacing.md,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + AppSpacing.md,
-        ),
-        child: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('Add Delivery Address', style: AppTypography.titleMedium),
-              const SizedBox(height: AppSpacing.sm),
-              TextFormField(
-                controller: labelCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Label (e.g. Home, Office)',
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              TextFormField(
-                controller: streetCtrl,
-                decoration: const InputDecoration(labelText: 'Street Address'),
-                validator: (v) => v == null || v.isEmpty
-                    ? 'Street address is required'
-                    : null,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: cityCtrl,
-                      decoration: const InputDecoration(labelText: 'City'),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: TextFormField(
-                      controller: stateCtrl,
-                      decoration: const InputDecoration(labelText: 'State'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              TextFormField(
-                controller: phoneCtrl,
-                decoration: const InputDecoration(labelText: 'Contact Phone'),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              ElevatedButton(
-                onPressed: () {
-                  if (formKey.currentState?.validate() ?? false) {
-                    ref
-                        .read(savedAddressesProvider.notifier)
-                        .addAddress(
-                          CheckoutAddress(
-                            id: 'addr_${DateTime.now().millisecondsSinceEpoch}',
-                            label: labelCtrl.text.trim(),
-                            fullName: 'Jane Doe',
-                            street: streetCtrl.text.trim(),
-                            city: cityCtrl.text.trim(),
-                            state: stateCtrl.text.trim(),
-                            zipCode: '450001',
-                            phone: phoneCtrl.text.trim(),
-                            isDefault: false,
-                          ),
-                        );
-                    Navigator.pop(ctx);
-                  }
-                },
-                child: const Text('Save Address'),
-              ),
-            ],
+  Widget _buildEmptyState(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedMapPin,
+            color: isDark ? Colors.white : AppColors.onBackground,
+            size: 40,
           ),
-        ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            _params.search != null ? 'No matching addresses' : 'No saved addresses yet',
+            style: AppTypography.titleMedium,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            _params.search != null
+                ? 'Try adjusting your search query.'
+                : 'Add your delivery address for faster checkout.',
+            style: AppTypography.bodySmall.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          if (_params.search != null)
+            AppButton(
+              label: 'Clear Search',
+              onPressed: () {
+                _searchCtrl.clear();
+                _onSearch('');
+              },
+              type: AppButtonType.secondary,
+            )
+          else
+            AppButton(
+              label: 'Add New Address',
+              onPressed: _showAddDialog,
+              type: AppButtonType.secondary,
+            ),
+        ],
       ),
     );
   }

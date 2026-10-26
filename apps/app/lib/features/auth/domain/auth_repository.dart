@@ -15,7 +15,11 @@ abstract class AuthRepository {
 
   Future<AuthUser> onboardMerchant(MerchantOnboardingParams params);
 
+  AuthUser? getStoredUserSync();
+
   Future<AuthUser?> getStoredUser();
+
+  Future<void> persistUser(AuthUser user);
 
   Future<void> logout();
 

@@ -3,6 +3,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../domain/merchant_product_entities.dart';
 
@@ -139,20 +140,11 @@ class _MerchantProductFormSheetState extends State<MerchantProductFormSheet> {
               // Product Image Upload
               Row(
                 children: [
-                  ClipRRect(
+                  AppNetworkImage.product(
+                    imageUrl: _imageUrl,
+                    width: 72,
+                    height: 72,
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      _imageUrl,
-                      width: 72,
-                      height: 72,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 72,
-                        height: 72,
-                        color: Colors.grey.shade300,
-                        child: const Icon(Icons.image, color: Colors.grey),
-                      ),
-                    ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(

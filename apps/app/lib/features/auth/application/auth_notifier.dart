@@ -6,19 +6,23 @@ import '../domain/auth_repository.dart';
 class AuthNotifier extends StateNotifier<AuthState> {
   AuthNotifier({required AuthRepository repository})
     : _repository = repository,
-      super(const AuthState()) {
+      super(AuthState(user: repository.getStoredUserSync())) {
     _checkStoredUser();
   }
 
   final AuthRepository _repository;
 
   Future<void> _checkStoredUser() async {
-    state = state.copyWith(isLoading: true);
     try {
       final user = await _repository.getStoredUser();
-      state = state.copyWith(user: user, isLoading: false);
-    } catch (_) {
-      state = state.copyWith(isLoading: false);
+      if (user != null && state.user != user) {
+        state = state.copyWith(user: user);
+      }
+    } catch (e, stackTrace) {
+      AppLogger.w(
+        'Failed during background checkStoredUser: $e',
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -145,7 +149,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = const AuthState();
   }
 
-  void updateProfile({String? name, String? phone, String? businessName}) {
+  Future<void> updateProfile({
+    String? name,
+    String? phone,
+    String? businessName,
+  }) async {
     if (state.user != null) {
       final updated = state.user!.copyWith(
         name: name,
@@ -153,6 +161,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         businessName: businessName,
       );
       state = state.copyWith(user: updated);
+      await _repository.persistUser(updated);
     }
   }
 

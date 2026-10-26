@@ -44,131 +44,175 @@ class _ShopBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final shopState = ref.watch(shopNotifierProvider);
-    final products = ref.watch(filteredProductsProvider);
+    final paginatedState = ref.watch(paginatedProductsNotifierProvider);
+    final products = paginatedState.items;
     final catalogueAsync = ref.watch(shopCatalogueProvider);
-    final categories =
-        catalogueAsync.valueOrNull?.categories ?? const <ShopCategory>[];
+    final categoriesAsync = ref.watch(productCategoriesProvider);
+    final categories = categoriesAsync.valueOrNull ??
+        catalogueAsync.valueOrNull?.categories ??
+        const <ShopCategory>[];
     final cartCount = ref.watch(cartProvider).valueOrNull?.itemCount ?? 0;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          // ── App bar
-          _ShopSliverAppBar(cartCount: cartCount),
+      body: InfiniteScrollListener(
+        onLoadMore: () =>
+            ref.read(paginatedProductsNotifierProvider.notifier).loadMore(),
+        hasMore: paginatedState.hasMore,
+        isLoading: paginatedState.isLoading,
+        isLoadingMore: paginatedState.isLoadingMore,
+        prefetchDistance: 250.0,
+        child: RefreshIndicator(
+          onRefresh: () => ref
+              .read(paginatedProductsNotifierProvider.notifier)
+              .fetchFirstPage(),
+          child: CustomScrollView(
+            slivers: [
+              // ── App bar
+              _ShopSliverAppBar(cartCount: cartCount),
 
-          // ── Search bar
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.sm,
-              AppSpacing.md,
-              0,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: ShopSearchBar(
-                initialValue: shopState.searchQuery,
-                onChanged: (q) =>
-                    ref.read(shopNotifierProvider.notifier).setSearch(q),
-              ),
-            ),
-          ),
-
-          // ── Category chips
-          SliverToBoxAdapter(
-            child: CategoryChipBar(
-              categories: categories,
-              selected: shopState.selectedCategory,
-              onSelect: (cat) =>
-                  ref.read(shopNotifierProvider.notifier).setCategory(cat),
-            ),
-          ),
-
-          // ── Sort / filter / view mode bar
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.xs,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: _ShopToolbar(
-                sort: shopState.sort,
-                viewMode: shopState.viewMode,
-                filterActive: shopState.filter.isActive,
-                productCount: products.length,
-              ),
-            ),
-          ),
-
-          // ── Ads Banner
-          const SliverPadding(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.sm,
-              AppSpacing.md,
-              AppSpacing.sm,
-            ),
-            sliver: SliverToBoxAdapter(child: _AdsBanner()),
-          ),
-
-          // ── Product grid / list
-          if (products.isEmpty)
-            const SliverFillRemaining(child: _EmptyProducts())
-          else if (shopState.viewMode == ViewMode.grid)
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                0,
-                AppSpacing.md,
-                AppSpacing.xl + AppSpacing.xxxl, // nav bar clearance
-              ),
-              sliver: SliverGrid(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) => ProductCard(product: products[i]),
-                  childCount: products.length,
+              // ── Search bar
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                  AppSpacing.md,
+                  0,
                 ),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: AppSpacing.sm,
-                  mainAxisSpacing: AppSpacing.sm,
-                  childAspectRatio: 0.68,
+                sliver: SliverToBoxAdapter(
+                  child: ShopSearchBar(
+                    initialValue: shopState.searchQuery,
+                    onChanged: (q) =>
+                        ref.read(shopNotifierProvider.notifier).setSearch(q),
+                  ),
                 ),
               ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                0,
-                AppSpacing.md,
-                AppSpacing.xl + AppSpacing.xxxl,
-              ),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) =>
-                      ProductCard(product: products[i], listMode: true),
-                  childCount: products.length,
+
+              // ── Category chips
+              SliverToBoxAdapter(
+                child: CategoryChipBar(
+                  categories: categories,
+                  selected: shopState.selectedCategory,
+                  isLoading: categoriesAsync.isLoading && categories.isEmpty,
+                  onSelect: (cat) =>
+                      ref.read(shopNotifierProvider.notifier).setCategory(cat),
                 ),
               ),
-            ),
 
-          // ── Bottom Sections
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.only(top: AppSpacing.xl),
-              child: _PopularBrands(),
-            ),
+              // ── Sort / filter / view mode bar
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.xs,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: _ShopToolbar(
+                    sort: shopState.sort,
+                    viewMode: shopState.viewMode,
+                    filterActive: shopState.filter.isActive,
+                    productCount: paginatedState.totalCount > 0
+                        ? paginatedState.totalCount
+                        : products.length,
+                  ),
+                ),
+              ),
+
+              // ── Ads Banner
+              const SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                ),
+                sliver: SliverToBoxAdapter(child: _AdsBanner()),
+              ),
+
+              // ── Product grid / list
+              if (paginatedState.isInitialLoading)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(AppSpacing.xxl),
+                    child: Center(child: CircularProgressIndicator.adaptive()),
+                  ),
+                )
+              else if (products.isEmpty)
+                const SliverFillRemaining(child: _EmptyProducts())
+              else if (shopState.viewMode == ViewMode.grid)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    0,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                  ),
+                  sliver: SliverGrid(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, i) => ProductCard(product: products[i]),
+                      childCount: products.length,
+                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: AppSpacing.sm,
+                      mainAxisSpacing: AppSpacing.sm,
+                      childAspectRatio: 0.68,
+                    ),
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    0,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                  ),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, i) =>
+                          ProductCard(product: products[i], listMode: true),
+                      childCount: products.length,
+                    ),
+                  ),
+                ),
+
+              // ── Bottom Loading Indicator
+              if (paginatedState.isLoadingMore)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                    child: Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator.adaptive(
+                          strokeWidth: 2.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+              // ── Bottom Sections
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.only(top: AppSpacing.xl),
+                  child: _PopularBrands(),
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                  child: _RelatedSearches(),
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 120), // Clearance for floating nav bar
+              ),
+            ],
           ),
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
-              child: _RelatedSearches(),
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 120), // Clearance for floating nav bar
-          ),
-        ],
+        ),
       ),
     );
   }

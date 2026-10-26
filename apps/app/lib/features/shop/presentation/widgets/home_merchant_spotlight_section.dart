@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../../merchants/application/merchant_providers.dart';
 
 /// Highlighted Merchant Spotlight Showcase Card (Web Doc 06 / SpotlightSection).
@@ -52,10 +53,11 @@ class HomeMerchantSpotlightSection extends ConsumerWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.network(
-                      spotlight.bannerImage,
+                    AppNetworkImage(
+                      imageUrl: spotlight.bannerImage,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      fallbackType: AppImageFallbackType.banner,
+                      errorWidget: (_, __, ___) => Container(
                         color: AppColors.primary,
                       ),
                     ),
@@ -103,17 +105,10 @@ class HomeMerchantSpotlightSection extends ConsumerWidget {
                 padding: const EdgeInsets.all(AppSpacing.md),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundImage: NetworkImage(spotlight.logoUrl),
-                      onBackgroundImageError: (_, __) {},
-                      child: Text(
-                        spotlight.name.substring(0, 1),
-                        style: AppTypography.h5.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    AppNetworkImage.avatar(
+                      imageUrl: spotlight.logoUrl,
+                      size: 48,
+                      name: spotlight.name,
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(

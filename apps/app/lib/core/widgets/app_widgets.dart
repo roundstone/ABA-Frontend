@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+export 'app_network_image.dart';
+export 'infinite_scroll_listener.dart';
+export 'paginated_list_view.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../features/customer/domain/customer_entities.dart';
 import '../theme/app_colors.dart';
@@ -58,7 +61,11 @@ class ErrorState extends StatelessWidget {
               color: AppColors.error,
             ),
             AppSpacing.verticalSpaceSM,
-            Text(message, textAlign: TextAlign.center, style: AppTypography.bodyMedium),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppTypography.bodyMedium,
+            ),
             if (onRetry != null) ...[
               AppSpacing.verticalSpaceMD,
               ElevatedButton(onPressed: onRetry, child: const Text('Retry')),

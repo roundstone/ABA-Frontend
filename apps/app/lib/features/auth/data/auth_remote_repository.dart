@@ -21,6 +21,7 @@ class AuthRemoteRepository implements AuthRepository {
   static const _refreshKey = 'auth_refresh_token';
   static const _userKey = 'auth_user_data';
   static const _tokenTimestampKey = 'auth_token_timestamp';
+  static const _refreshTokenTimestampKey = 'auth_refresh_token_timestamp';
 
   @override
   Future<AuthUser> loginCustomer({
@@ -48,7 +49,10 @@ class AuthRemoteRepository implements AuthRepository {
       if (_prefs != null && access.isNotEmpty) {
         await _prefs.setString(_tokenKey, access);
         await _prefs.setInt(_tokenTimestampKey, DateTime.now().millisecondsSinceEpoch);
-        if (refresh != null) await _prefs.setString(_refreshKey, refresh);
+        if (refresh != null) {
+          await _prefs.setString(_refreshKey, refresh);
+          await _prefs.setInt(_refreshTokenTimestampKey, DateTime.now().millisecondsSinceEpoch);
+        }
       }
 
       final initialUser = data['user'] is Map<String, dynamic>
@@ -63,9 +67,7 @@ class AuthRemoteRepository implements AuthRepository {
         initialData: initialUser,
       );
 
-      if (_prefs != null) {
-        await _prefs.setString(_userKey, jsonEncode(user.toJson()));
-      }
+      await persistUser(user);
       return user;
     } on DioException catch (e) {
       if ((id.contains('jane') || id.contains('emeka')) &&
@@ -73,9 +75,7 @@ class AuthRemoteRepository implements AuthRepository {
         final mock = id.contains('emeka')
             ? AuthMockRepository.demoMerchant
             : AuthMockRepository.demoCustomer;
-        if (_prefs != null) {
-          await _prefs.setString(_userKey, jsonEncode(mock.toJson()));
-        }
+        await persistUser(mock);
         return mock;
       }
       throw ApiError.fromDio(e);
@@ -194,13 +194,15 @@ class AuthRemoteRepository implements AuthRepository {
         final initialUser = data['user'] is Map<String, dynamic>
             ? data['user'] as Map<String, dynamic>
             : null;
-        return _fetchProfile(
+        final user = await _fetchProfile(
           access,
           refresh,
           p.email.trim(),
           UserRole.customer,
           initialData: initialUser,
         );
+        await persistUser(user);
+        return user;
       }
       return loginCustomer(identifier: p.email.trim(), password: p.password);
     } on DioException catch (e) {
@@ -226,7 +228,7 @@ class AuthRemoteRepository implements AuthRepository {
         },
       );
       final data = ApiResponse.unwrapMap(res.data);
-      return AuthUser(
+      final user = AuthUser(
         id: (data['id'] ?? data['merchant_id'] ?? 'MERCH-NEW').toString(),
         name: p.ownerName,
         email: p.email,
@@ -237,22 +239,58 @@ class AuthRemoteRepository implements AuthRepository {
         businessName: p.businessName,
         createdAt: DateTime.now(),
       );
+      await persistUser(user);
+      return user;
     } on DioException catch (e) {
       throw ApiError.fromDio(e);
     }
   }
 
   @override
-  Future<AuthUser?> getStoredUser() async {
+  AuthUser? getStoredUserSync() {
     final raw = _prefs?.getString(_userKey);
-    if (raw != null && raw.isNotEmpty) {
+    final token = _prefs?.getString(_tokenKey);
+    if (raw != null && raw.isNotEmpty && token != null && token.isNotEmpty) {
       try {
-        return AuthUser.fromJson(jsonDecode(raw) as Map<String, dynamic>);
-      } catch (_) {
+        final user = AuthUser.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+        final refresh = _prefs?.getString(_refreshKey) ?? user.refreshToken;
+        return user.copyWith(token: token, refreshToken: refresh);
+      } catch (e, stackTrace) {
+        AppLogger.w('Failed to parse stored user json: $e', stackTrace: stackTrace);
         return null;
       }
     }
     return null;
+  }
+
+  @override
+  Future<AuthUser?> getStoredUser() async {
+    return getStoredUserSync();
+  }
+
+  @override
+  Future<void> persistUser(AuthUser user) async {
+    final prefs = _prefs;
+    if (prefs == null) return;
+    try {
+      await prefs.setString(_userKey, jsonEncode(user.toJson()));
+      if (user.token.isNotEmpty) {
+        await prefs.setString(_tokenKey, user.token);
+        await prefs.setInt(
+          _tokenTimestampKey,
+          DateTime.now().millisecondsSinceEpoch,
+        );
+      }
+      if (user.refreshToken != null && user.refreshToken!.isNotEmpty) {
+        await prefs.setString(_refreshKey, user.refreshToken!);
+        await prefs.setInt(
+          _refreshTokenTimestampKey,
+          DateTime.now().millisecondsSinceEpoch,
+        );
+      }
+    } catch (e, stackTrace) {
+      AppLogger.e('Failed to persist user to SharedPreferences', error: e, stackTrace: stackTrace);
+    }
   }
 
   @override
@@ -273,6 +311,7 @@ class AuthRemoteRepository implements AuthRepository {
         await _prefs.remove(_refreshKey);
         await _prefs.remove(_userKey);
         await _prefs.remove(_tokenTimestampKey);
+        await _prefs.remove(_refreshTokenTimestampKey);
       }
     }
   }
@@ -345,6 +384,10 @@ class AuthRemoteRepository implements AuthRepository {
           );
           if (newRefreshToken != null && newRefreshToken.isNotEmpty) {
             await _prefs.setString(_refreshKey, newRefreshToken);
+            await _prefs.setInt(
+              _refreshTokenTimestampKey,
+              DateTime.now().millisecondsSinceEpoch,
+            );
           }
         }
         AppLogger.i('Access token successfully refreshed');

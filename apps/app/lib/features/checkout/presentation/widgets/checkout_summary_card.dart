@@ -97,22 +97,13 @@ class _CheckoutSummaryCardState extends State<CheckoutSummaryCard> {
                   final item = widget.cart.items[index];
                   return Row(
                     children: [
-                      ClipRRect(
+                      AppNetworkImage.product(
+                        imageUrl: item.product.images.isNotEmpty
+                            ? item.product.images.first
+                            : null,
+                        width: 32,
+                        height: 32,
                         borderRadius: BorderRadius.circular(4),
-                        child: Image.network(
-                          item.product.images.isNotEmpty
-                              ? item.product.images.first
-                              : '',
-                          width: 32,
-                          height: 32,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            width: 32,
-                            height: 32,
-                            color: AppColors.surface2,
-                            child: const Icon(Icons.image, size: 14),
-                          ),
-                        ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(

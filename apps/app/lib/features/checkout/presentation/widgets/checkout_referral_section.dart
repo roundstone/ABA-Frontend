@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../domain/checkout_entities.dart';
 
@@ -71,10 +72,10 @@ class CheckoutReferralSection extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundImage: NetworkImage(appliedReferral!.imageUrl),
-                    backgroundColor: AppColors.primary.withAlpha(30),
+                  AppNetworkImage.avatar(
+                    imageUrl: appliedReferral!.imageUrl,
+                    size: 36,
+                    name: appliedReferral!.name,
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
@@ -166,9 +167,10 @@ class CheckoutReferralSection extends StatelessWidget {
                     final c = searchResults[index];
                     return ListTile(
                       dense: true,
-                      leading: CircleAvatar(
-                        radius: 14,
-                        backgroundImage: NetworkImage(c.imageUrl),
+                      leading: AppNetworkImage.avatar(
+                        imageUrl: c.imageUrl,
+                        size: 28,
+                        name: c.name,
                       ),
                       title: Text(
                         c.name,

@@ -1,87 +1,14 @@
-// Domain entities — pure Dart, no framework dependencies.
-// Mirrors the shapes in: apps/web/src/services/mock/public.service.ts
+export 'product.dart';
+export 'product_variant.dart';
+export 'shop_category.dart';
+import 'product.dart';
+import 'shop_category.dart';
 
 // ─── Enums ────────────────────────────────────────────────────────────────
 
 enum SortOrder { featured, nameAsc, nameDesc, priceLow, priceHigh, newest }
 
 enum ViewMode { grid, list }
-
-// ─── Product ──────────────────────────────────────────────────────────────
-
-class Product {
-  const Product({
-    required this.id,
-    required this.name,
-    required this.slug,
-    required this.price,
-    required this.category,
-    required this.brand,
-    required this.rating,
-    required this.reviewCount,
-    required this.stock,
-    required this.images,
-    this.description,
-    this.discount,
-    this.colors,
-    this.sizes,
-    this.tags,
-    this.isFeatured = false,
-    this.isNew = false,
-  });
-
-  final String id;
-  final String name;
-  final String slug;
-  final double price;
-  final String category;
-  final String brand;
-  final double rating;
-  final int reviewCount;
-  final int stock;
-  final List<String> images;
-  final String? description;
-
-  /// Discount percentage (0-100). null means no discount.
-  final double? discount;
-  final List<String>? colors;
-  final List<String>? sizes;
-  final List<String>? tags;
-  final bool isFeatured;
-  final bool isNew;
-
-  /// Primary image fallback
-  String get imageUrl => images.isNotEmpty ? images.first : '';
-
-  double get discountedPrice =>
-      discount != null ? price * (1 - discount! / 100) : price;
-
-  bool get hasDiscount => discount != null && discount! > 0;
-
-  bool get inStock => stock > 0;
-}
-
-// ─── Category ─────────────────────────────────────────────────────────────
-
-class ShopCategory {
-  const ShopCategory({
-    required this.id,
-    required this.name,
-    required this.slug,
-    this.parentId,
-    this.imageUrl,
-    this.productCount = 0,
-    this.children = const [],
-  });
-
-  final String id;
-  final String name;
-  final String slug;
-  final String? parentId;
-  final String? imageUrl;
-  final int productCount;
-  final List<ShopCategory> children;
-}
 
 // ─── Cart ─────────────────────────────────────────────────────────────────
 

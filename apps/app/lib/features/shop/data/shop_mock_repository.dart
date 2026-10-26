@@ -1,3 +1,4 @@
+import '../../../core/network/list_query_params.dart';
 import '../domain/shop_entities.dart';
 import '../domain/shop_repository.dart';
 
@@ -68,7 +69,7 @@ class ShopMockRepository implements ShopRepository {
 
   // ─── Static mock products ─────────────────────────────────────────────────
 
-  static final _products = <Product>[
+  static const _products = <Product>[
     Product(
       id: 'p001',
       name: 'Wander Pack Heaven Backpack',
@@ -315,7 +316,7 @@ class ShopMockRepository implements ShopRepository {
   @override
   Future<ShopCatalogue> fetchCatalogue() async {
     await Future.delayed(const Duration(milliseconds: 700));
-    return ShopCatalogue(
+    return const ShopCatalogue(
       products: _products,
       categories: _categories,
       featuredBannerUrl:
@@ -339,6 +340,14 @@ class ShopMockRepository implements ShopRepository {
     SortOrder sort = SortOrder.featured,
     int page = 1,
     int pageSize = 20,
+    String? search,
+    int? categoryId,
+    int? brandId,
+    int? vendorId,
+    double? minPrice,
+    double? maxPrice,
+    double? rating,
+    ListQueryParams? queryParams,
   }) async {
     await Future.delayed(const Duration(milliseconds: 500));
     var result = List<Product>.from(_products);
@@ -372,6 +381,23 @@ class ShopMockRepository implements ShopRepository {
           .toList();
     }
 
+    final effectiveSearch = queryParams?.search ?? search;
+    if (effectiveSearch != null && effectiveSearch.trim().isNotEmpty) {
+      final q = effectiveSearch.trim().toLowerCase();
+      result = result
+          .where((p) =>
+              p.name.toLowerCase().contains(q) ||
+              p.brand.toLowerCase().contains(q) ||
+              p.category.toLowerCase().contains(q))
+          .toList();
+    }
+
+    if (categoryId != null) {
+      result = result
+          .where((p) => p.categoryId == categoryId || p.category.toLowerCase().contains(categoryId.toString()))
+          .toList();
+    }
+
     switch (sort) {
       case SortOrder.nameAsc:
         result.sort((a, b) => a.name.compareTo(b.name));
@@ -395,8 +421,11 @@ class ShopMockRepository implements ShopRepository {
     return result.sublist(start.clamp(0, result.length), end);
   }
 
+  static List<ShopCategory> get defaultCategories =>
+      List.unmodifiable(_categories);
+
   @override
-  Future<List<ShopCategory>> fetchCategories() async {
+  Future<List<ShopCategory>> fetchCategories({ListQueryParams? params}) async {
     await Future.delayed(const Duration(milliseconds: 300));
     return List.unmodifiable(_categories);
   }

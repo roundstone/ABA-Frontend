@@ -23,7 +23,9 @@ class MerchantProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFE2E8F0);
+    final borderColor = isDark
+        ? const Color(0xFF2C2C2C)
+        : const Color(0xFFE2E8F0);
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -46,32 +48,14 @@ class MerchantProductCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
+              AppNetworkImage.product(
+                imageUrl: product.imageUrl,
+                width: 64,
+                height: 64,
                 borderRadius: AppSpacing.borderRadiusMD,
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF1F5F9),
-                  child: product.imageUrl.isNotEmpty
-                      ? Image.network(
-                          product.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Center(
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedImage01,
-                              size: 24,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        )
-                      : const Center(
-                          child: HugeIcon(
-                            icon: HugeIcons.strokeRoundedImage01,
-                            size: 24,
-                            color: Colors.grey,
-                          ),
-                        ),
-                ),
+                backgroundColor: isDark
+                    ? const Color(0xFF2A2A2A)
+                    : const Color(0xFFF1F5F9),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -87,7 +71,9 @@ class MerchantProductCard extends StatelessWidget {
                             product.name,
                             style: AppTypography.titleSmall.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -101,7 +87,9 @@ class MerchantProductCard extends StatelessWidget {
                     Text(
                       'SKU: ${product.sku} • ${product.category}',
                       style: AppTypography.caption.copyWith(
-                        color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                        color: isDark
+                            ? Colors.white60
+                            : const Color(0xFF64748B),
                         fontSize: 11.5,
                       ),
                       maxLines: 1,
@@ -115,7 +103,9 @@ class MerchantProductCard extends StatelessWidget {
                           formatNaira(product.price),
                           style: AppTypography.bodyMedium.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.secondary : AppColors.primary,
+                            color: isDark
+                                ? AppColors.secondary
+                                : AppColors.primary,
                           ),
                         ),
                         if (product.costPrice > 0)
@@ -156,7 +146,10 @@ class MerchantProductCard extends StatelessWidget {
                 ),
                 style: TextButton.styleFrom(
                   visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                 ),
               ),
               const SizedBox(width: 4),
@@ -167,15 +160,17 @@ class MerchantProductCard extends StatelessWidget {
                   size: 14,
                   color: Color(0xFF64748B),
                 ),
-                label: const Text(
-                  'Edit',
-                  style: TextStyle(fontSize: 12),
-                ),
+                label: const Text('Edit', style: TextStyle(fontSize: 12)),
                 style: OutlinedButton.styleFrom(
                   visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   side: BorderSide(
-                    color: isDark ? const Color(0xFF3B4252) : const Color(0xFFCBD5E1),
+                    color: isDark
+                        ? const Color(0xFF3B4252)
+                        : const Color(0xFFCBD5E1),
                   ),
                 ),
               ),

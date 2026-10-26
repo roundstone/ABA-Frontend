@@ -5,8 +5,8 @@ import '../logging/app_logger.dart';
 import 'api_endpoints.dart';
 import 'api_response.dart';
 
-/// Interceptor that handles access token expiry (after 1 hour) and 401 recovery
-/// by exchanging refresh tokens at [ApiEndpoints.auth.refresh].
+/// Interceptor that handles access token expiry (after 14 minutes) and 401 recovery
+/// by exchanging refresh tokens (valid for 6 days) at [ApiEndpoints.auth.refresh].
 class TokenRefreshInterceptor extends QueuedInterceptor {
   TokenRefreshInterceptor({
     required this.dio,
@@ -19,7 +19,13 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
   static const _tokenKey = 'auth_access_token';
   static const _refreshKey = 'auth_refresh_token';
   static const _tokenTimestampKey = 'auth_token_timestamp';
-  static const Duration _tokenValidityDuration = Duration(hours: 1);
+  static const _refreshTokenTimestampKey = 'auth_refresh_token_timestamp';
+
+  /// Access token is valid for 14 minutes.
+  static const Duration _accessTokenValidityDuration = Duration(minutes: 14);
+
+  /// Refresh token is valid for 6 days.
+  static const Duration _refreshTokenValidityDuration = Duration(days: 6);
 
   late final Dio _refreshDio = Dio(
     BaseOptions(
@@ -50,16 +56,29 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
     var token = prefs?.getString(_tokenKey);
     final refreshToken = prefs?.getString(_refreshKey);
     final tokenTimestamp = prefs?.getInt(_tokenTimestampKey);
+    final refreshTimestamp = prefs?.getInt(_refreshTokenTimestampKey);
 
     if (!isAuthEndpoint && token != null && token.isNotEmpty) {
-      // Check if 1 hour has elapsed since last token generation/refresh
-      if (tokenTimestamp != null && refreshToken != null && refreshToken.isNotEmpty) {
-        final age = DateTime.now().millisecondsSinceEpoch - tokenTimestamp;
-        if (age >= _tokenValidityDuration.inMilliseconds) {
-          AppLogger.i('Token is older than 1 hour (${(age / 60000).toStringAsFixed(1)} mins). Proactively refreshing...');
-          final refreshed = await _performTokenRefresh(refreshToken, token);
-          if (refreshed != null && refreshed.isNotEmpty) {
-            token = refreshed;
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        // 1. Check if refresh token has expired (6 days)
+        if (refreshTimestamp != null) {
+          final refreshAge = DateTime.now().millisecondsSinceEpoch - refreshTimestamp;
+          if (refreshAge >= _refreshTokenValidityDuration.inMilliseconds) {
+            AppLogger.w('Refresh token expired after 6 days (${(refreshAge / 86400000).toStringAsFixed(1)} days). Re-auth required.');
+            await _clearSession();
+            return handler.next(options);
+          }
+        }
+
+        // 2. Check if access token has elapsed 14 minutes since generation/refresh
+        if (tokenTimestamp != null) {
+          final age = DateTime.now().millisecondsSinceEpoch - tokenTimestamp;
+          if (age >= _accessTokenValidityDuration.inMilliseconds) {
+            AppLogger.i('Access token is older than 14 minutes (${(age / 60000).toStringAsFixed(1)} mins). Proactively refreshing...');
+            final refreshed = await _performTokenRefresh(refreshToken, token);
+            if (refreshed != null && refreshed.isNotEmpty) {
+              token = refreshed;
+            }
           }
         }
       }
@@ -82,8 +101,19 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
         path.contains('/auth/refresh');
 
     final refreshToken = prefs?.getString(_refreshKey);
+    final refreshTimestamp = prefs?.getInt(_refreshTokenTimestampKey);
 
     if (statusCode == 401 && !isAuthEndpoint && refreshToken != null && refreshToken.isNotEmpty) {
+      // Check if refresh token is within 6 days
+      if (refreshTimestamp != null) {
+        final refreshAge = DateTime.now().millisecondsSinceEpoch - refreshTimestamp;
+        if (refreshAge >= _refreshTokenValidityDuration.inMilliseconds) {
+          AppLogger.w('Cannot refresh on 401: Refresh token has expired after 6 days.');
+          await _clearSession();
+          return handler.next(err);
+        }
+      }
+
       AppLogger.w('Received 401 Unauthorized for $path. Attempting token refresh...');
       final currentToken = prefs?.getString(_tokenKey) ?? '';
       final newToken = await _performTokenRefresh(refreshToken, currentToken);
@@ -98,10 +128,23 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
         } on DioException catch (retryErr) {
           return handler.next(retryErr);
         }
+      } else {
+        await _clearSession();
       }
+    } else if (statusCode == 401 && !isAuthEndpoint) {
+      await _clearSession();
     }
 
     return handler.next(err);
+  }
+
+  Future<void> _clearSession() async {
+    if (prefs != null) {
+      await prefs!.remove(_tokenKey);
+      await prefs!.remove(_refreshKey);
+      await prefs!.remove(_tokenTimestampKey);
+      await prefs!.remove(_refreshTokenTimestampKey);
+    }
   }
 
   Future<String?> _performTokenRefresh(String refreshToken, String currentToken) async {
@@ -128,10 +171,12 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
 
       if (newAccess != null && newAccess.isNotEmpty) {
         if (prefs != null) {
+          final now = DateTime.now().millisecondsSinceEpoch;
           await prefs!.setString(_tokenKey, newAccess);
-          await prefs!.setInt(_tokenTimestampKey, DateTime.now().millisecondsSinceEpoch);
+          await prefs!.setInt(_tokenTimestampKey, now);
           if (newRefresh != null && newRefresh.isNotEmpty) {
             await prefs!.setString(_refreshKey, newRefresh);
+            await prefs!.setInt(_refreshTokenTimestampKey, now);
           }
         }
         AppLogger.i('Token refresh successful');

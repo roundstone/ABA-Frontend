@@ -45,14 +45,27 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/splash',
     redirect: (context, state) {
       final loc = state.matchedLocation;
+      final auth = ref.read(authStateProvider);
+
       final isMerchantPortal =
           loc == '/merchant' || loc.startsWith('/merchant/');
       if (isMerchantPortal) {
-        final auth = ref.read(authStateProvider);
         if (!auth.isAuthenticated || !auth.isMerchant) {
           return '/login/merchant';
         }
       }
+
+      final isAuthScreen = loc == '/login' ||
+          loc == '/login/customer' ||
+          loc == '/login/merchant' ||
+          loc == '/register' ||
+          loc == '/register/customer' ||
+          loc == '/role-select';
+
+      if (auth.isAuthenticated && isAuthScreen) {
+        return auth.isMerchant ? '/merchant' : '/home';
+      }
+
       return null;
     },
     routes: [
@@ -264,6 +277,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  ref.listen<AuthState>(authStateProvider, (previous, next) {
+    if (previous?.isAuthenticated != next.isAuthenticated ||
+        previous?.user?.role != next.user?.role) {
+      router.refresh();
+    }
+  });
 
   NotificationNavigationHandler.instance.attachRouter(router);
   return router;

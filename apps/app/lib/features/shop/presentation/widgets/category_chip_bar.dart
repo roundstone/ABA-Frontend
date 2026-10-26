@@ -1,23 +1,22 @@
-import 'package:app/core/theme/app_spacing.dart';
-import 'package:app/core/theme/app_typography.dart';
-import 'package:app/features/shop/domain/shop_entities.dart';
 import 'package:flutter/material.dart';
-// import '../../../core/theme/app_spacing.dart';
-// import '../../../core/theme/app_typography.dart';
-// import '../../shop/domain/shop_entities.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../domain/shop_entities.dart';
 
-/// Horizontal scrollable category chip strip.
+/// Horizontal scrollable category chip strip supporting live categories and loading state.
 class CategoryChipBar extends StatelessWidget {
   const CategoryChipBar({
     super.key,
     required this.categories,
     required this.selected,
     required this.onSelect,
+    this.isLoading = false,
   });
 
   final List<ShopCategory> categories;
   final String? selected;
   final ValueChanged<String?> onSelect;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -25,19 +24,23 @@ class CategoryChipBar extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? cs.secondary : cs.primary;
 
+    if (isLoading && categories.isEmpty) {
+      return _buildSkeletonBar(context, isDark);
+    }
+
     return SizedBox(
-      height: 32,
+      height: 36,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs,
+          vertical: 2,
         ),
         scrollDirection: Axis.horizontal,
         itemCount: categories.length + 1, // +1 for "All"
         separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.xs),
         itemBuilder: (context, i) {
           if (i == 0) {
-            final isAll = selected == null;
+            final isAll = selected == null || selected!.isEmpty;
             return _CategoryChip(
               label: 'All',
               isSelected: isAll,
@@ -47,7 +50,12 @@ class CategoryChipBar extends StatelessWidget {
             );
           }
           final cat = categories[i - 1];
-          final isSel = selected == cat.name;
+          final isSel = selected != null &&
+              (selected == cat.name ||
+                  selected == cat.slug ||
+                  selected == cat.id ||
+                  selected!.toLowerCase() == cat.name.toLowerCase());
+
           return _CategoryChip(
             label: cat.name,
             isSelected: isSel,
@@ -56,6 +64,29 @@ class CategoryChipBar extends StatelessWidget {
             isDark: isDark,
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildSkeletonBar(BuildContext context, bool isDark) {
+    return SizedBox(
+      height: 36,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: 2,
+        ),
+        scrollDirection: Axis.horizontal,
+        itemCount: 6,
+        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.xs),
+        itemBuilder: (context, i) => Container(
+          width: i == 0 ? 48 : 84,
+          height: 32,
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE5E7EB),
+            borderRadius: AppSpacing.avatarRadius,
+          ),
+        ),
       ),
     );
   }
@@ -69,6 +100,7 @@ class _CategoryChip extends StatelessWidget {
     required this.primaryColor,
     required this.isDark,
   });
+
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
@@ -96,7 +128,13 @@ class _CategoryChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: AppSpacing.avatarRadius,
-          border: isSelected ? null : Border.all(color: isDark ? Colors.transparent : primaryColor.withAlpha(50)),
+          border: isSelected
+              ? null
+              : Border.all(
+                  color: isDark
+                      ? Colors.transparent
+                      : primaryColor.withAlpha(50),
+                ),
         ),
         child: Text(
           label,

@@ -86,5 +86,58 @@ void main() {
       await repo.logout();
       expect(await repo.getStoredUser(), isNull);
     });
+
+    test('persists user session and restores synchronously across app restarts', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final dio = Dio();
+      final repo = AuthRemoteRepository(dio: dio, prefs: prefs);
+
+      final dummyUser = AuthUser(
+        id: 'CUST-999',
+        name: 'Persistent Customer',
+        email: 'persistent@example.com',
+        phone: '+2348000000000',
+        role: UserRole.customer,
+        token: 'persistent-jwt-token',
+        refreshToken: 'persistent-refresh-token',
+        createdAt: DateTime(2026, 10, 23),
+      );
+
+      await repo.persistUser(dummyUser);
+
+      // Simulate app restart by creating a new repository instance with the same prefs
+      final restartedRepo = AuthRemoteRepository(dio: dio, prefs: prefs);
+
+      final storedSync = restartedRepo.getStoredUserSync();
+      expect(storedSync, isNotNull);
+      expect(storedSync?.id, equals('CUST-999'));
+      expect(storedSync?.name, equals('Persistent Customer'));
+      expect(storedSync?.token, equals('persistent-jwt-token'));
+      expect(storedSync?.refreshToken, equals('persistent-refresh-token'));
+      expect(storedSync?.isCustomer, isTrue);
+
+      final storedAsync = await restartedRepo.getStoredUser();
+      expect(storedAsync?.id, equals(storedSync?.id));
+    });
+
+    test('returns null if token was removed or empty', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final repo = AuthRemoteRepository(dio: Dio(), prefs: prefs);
+
+      final dummyUser = AuthUser(
+        id: 'CUST-999',
+        name: 'Persistent Customer',
+        email: 'persistent@example.com',
+        phone: '+2348000000000',
+        role: UserRole.customer,
+        token: '',
+        createdAt: DateTime.now(),
+      );
+
+      await repo.persistUser(dummyUser);
+      expect(repo.getStoredUserSync(), isNull);
+    });
   });
 }

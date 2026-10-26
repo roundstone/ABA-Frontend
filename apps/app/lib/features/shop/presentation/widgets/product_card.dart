@@ -33,7 +33,8 @@ class _GridCard extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cartNotifier = ref.read(cartProvider.notifier);
-    final cartItems = (ref.watch(cartProvider).valueOrNull ?? const Cart()).items;
+    final cartItems =
+        (ref.watch(cartProvider).valueOrNull ?? const Cart()).items;
     final inCart = cartItems.any((i) => i.product.id == product.id);
 
     return GestureDetector(
@@ -138,7 +139,9 @@ class _GridCard extends ConsumerWidget {
                                 formatNaira(product.discountedPrice),
                                 style: AppTypography.bodySmall.copyWith(
                                   fontWeight: FontWeight.w800,
-                                  color: isDark ? AppColors.secondary : cs.primary,
+                                  color: isDark
+                                      ? AppColors.secondary
+                                      : cs.primary,
                                 ),
                               ),
                               if (product.hasDiscount)
@@ -175,7 +178,9 @@ class _GridCard extends ConsumerWidget {
                             decoration: BoxDecoration(
                               color: inCart
                                   ? (isDark ? AppColors.secondary : cs.primary)
-                                  : (isDark ? AppColors.secondary.withAlpha(20) : cs.primary.withAlpha(20)),
+                                  : (isDark
+                                        ? AppColors.secondary.withAlpha(20)
+                                        : cs.primary.withAlpha(20)),
                               shape: BoxShape.circle,
                             ),
                             child: Center(
@@ -184,9 +189,13 @@ class _GridCard extends ConsumerWidget {
                                     ? HugeIcons.strokeRoundedTick01
                                     : HugeIcons.strokeRoundedShoppingCart01,
                                 size: 15,
-                                color: inCart 
-                                    ? (isDark ? const Color(0xFF1E1E1E) : Colors.white) 
-                                    : (isDark ? AppColors.secondary : cs.primary),
+                                color: inCart
+                                    ? (isDark
+                                          ? const Color(0xFF1E1E1E)
+                                          : Colors.white)
+                                    : (isDark
+                                          ? AppColors.secondary
+                                          : cs.primary),
                               ),
                             ),
                           ),
@@ -215,8 +224,7 @@ class _ListCard extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cartNotifier = ref.read(cartProvider.notifier);
-    final inCart = (ref.watch(cartProvider).valueOrNull ?? const Cart())
-        .items
+    final inCart = (ref.watch(cartProvider).valueOrNull ?? const Cart()).items
         .any((i) => i.product.id == product.id);
 
     return GestureDetector(
@@ -319,15 +327,21 @@ class _ListCard extends ConsumerWidget {
                             decoration: BoxDecoration(
                               color: inCart
                                   ? (isDark ? AppColors.secondary : cs.primary)
-                                  : (isDark ? AppColors.secondary.withAlpha(15) : cs.primary.withAlpha(15)),
+                                  : (isDark
+                                        ? AppColors.secondary.withAlpha(15)
+                                        : cs.primary.withAlpha(15)),
                               borderRadius: AppSpacing.borderRadiusSM,
                             ),
                             child: Text(
                               inCart ? 'In cart' : 'Add',
                               style: AppTypography.label.copyWith(
-                                color: inCart 
-                                    ? (isDark ? const Color(0xFF1E1E1E) : Colors.white) 
-                                    : (isDark ? AppColors.secondary : cs.primary),
+                                color: inCart
+                                    ? (isDark
+                                          ? const Color(0xFF1E1E1E)
+                                          : Colors.white)
+                                    : (isDark
+                                          ? AppColors.secondary
+                                          : cs.primary),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -362,47 +376,11 @@ class _ProductImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (url.isEmpty) {
-      return Container(
-        width: width,
-        height: height,
-        color: Colors.grey.shade200,
-        child: const Center(
-          child: HugeIcon(
-            icon: HugeIcons.strokeRoundedImage01,
-            size: 32,
-            color: AppColors.grey,
-          ),
-        ),
-      );
-    }
-    return Image.network(
-      url,
+    return AppNetworkImage.product(
+      imageUrl: url,
       width: width,
       height: height,
       fit: fit,
-      loadingBuilder: (_, child, progress) => progress == null
-          ? child
-          : Container(
-              width: width,
-              height: height,
-              color: Colors.grey.shade100,
-              child: const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-      errorBuilder: (_, __, ___) => Container(
-        width: width,
-        height: height,
-        color: Colors.grey.shade100,
-        child: const Center(
-          child: HugeIcon(
-            icon: HugeIcons.strokeRoundedImageNotFound01,
-            size: 28,
-            color: AppColors.grey,
-          ),
-        ),
-      ),
     );
   }
 }
@@ -418,7 +396,7 @@ class _DiscountBadge extends StatelessWidget {
         horizontal: AppSpacing.xs + 2,
         vertical: 2,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.error,
         borderRadius: AppSpacing.borderRadiusXS,
       ),
@@ -442,8 +420,8 @@ class _NewBadge extends StatelessWidget {
         horizontal: AppSpacing.xs + 2,
         vertical: 2,
       ),
-      decoration: BoxDecoration(
-        color: const Color(0xFF10B981),
+      decoration: const BoxDecoration(
+        color: Color(0xFF10B981),
         borderRadius: AppSpacing.borderRadiusXS,
       ),
       child: Text(

@@ -143,8 +143,18 @@ class AuthMockRepository implements AuthRepository {
   }
 
   @override
+  AuthUser? getStoredUserSync() {
+    return _currentUser;
+  }
+
+  @override
   Future<AuthUser?> getStoredUser() async {
     return _currentUser;
+  }
+
+  @override
+  Future<void> persistUser(AuthUser user) async {
+    _currentUser = user;
   }
 
   @override

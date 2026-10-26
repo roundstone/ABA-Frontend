@@ -70,8 +70,8 @@ class _ShopSearchBarState extends State<ShopSearchBar> {
                       _ctrl.clear();
                       widget.onChanged('');
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.sm),
+                    child: const Padding(
+                      padding: EdgeInsets.all(AppSpacing.sm),
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedCancel01,
                         size: AppSpacing.iconSizeSM,
@@ -82,9 +82,7 @@ class _ShopSearchBarState extends State<ShopSearchBar> {
                 : const SizedBox.shrink(),
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: AppSpacing.sm,
-          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         ),
       ),
     );

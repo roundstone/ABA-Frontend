@@ -3,20 +3,21 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 
+import '../../../../core/widgets/app_network_image.dart';
+
 class MerchantBannerImage extends StatelessWidget {
   const MerchantBannerImage({super.key, this.imageUrl});
   final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
-    if (imageUrl != null && imageUrl!.isNotEmpty) {
-      return Image.network(
-        imageUrl!,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const MerchantBannerFallback(),
-      );
-    }
-    return const MerchantBannerFallback();
+    return AppNetworkImage(
+      imageUrl: imageUrl,
+      fit: BoxFit.cover,
+      fallbackType: AppImageFallbackType.banner,
+      placeholder: (_) => const MerchantBannerFallback(),
+      errorWidget: (_, __, ___) => const MerchantBannerFallback(),
+    );
   }
 }
 
@@ -56,21 +57,17 @@ class MerchantLogoAvatar extends StatelessWidget {
           width: 2,
         ),
         boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2)),
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: logoUrl != null && logoUrl!.isNotEmpty
-          ? Image.network(
-              logoUrl!,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => MerchantLogoFallback(name: name),
-            )
-          : MerchantLogoFallback(name: name),
+      child: AppNetworkImage(
+        imageUrl: logoUrl,
+        fit: BoxFit.cover,
+        fallbackType: AppImageFallbackType.merchant,
+        placeholder: (_) => MerchantLogoFallback(name: name),
+        errorWidget: (_, __, ___) => MerchantLogoFallback(name: name),
+      ),
     );
   }
 }

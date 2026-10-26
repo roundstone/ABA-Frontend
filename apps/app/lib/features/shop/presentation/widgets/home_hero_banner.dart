@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_network_image.dart';
 
 /// Interactive Hero Banner Carousel matching Web Storefront (HeroBanner.tsx).
 /// Slides through the 3 authentic local banners with page indicator & tap actions.
@@ -102,16 +103,14 @@ class _HomeHeroBannerState extends State<HomeHeroBanner> {
                         Image.asset(
                           banner.assetPath,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => widget.imageUrl != null &&
-                                  widget.imageUrl!.isNotEmpty
-                              ? Image.network(
-                                  widget.imageUrl!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    color: AppColors.primary,
-                                  ),
-                                )
-                              : Container(color: AppColors.primary),
+                          errorBuilder: (_, __, ___) => AppNetworkImage(
+                            imageUrl: widget.imageUrl,
+                            fit: BoxFit.cover,
+                            fallbackType: AppImageFallbackType.banner,
+                            errorWidget: (_, __, ___) => Container(
+                              color: AppColors.primary,
+                            ),
+                          ),
                         ),
 
                         // Gradient overlay for contrast

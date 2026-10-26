@@ -20,22 +20,13 @@ class ReviewItemsPreview extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Row(
               children: [
-                ClipRRect(
+                AppNetworkImage.product(
+                  imageUrl: item.product.images.isNotEmpty
+                      ? item.product.images.first
+                      : null,
+                  width: 36,
+                  height: 36,
                   borderRadius: BorderRadius.circular(6),
-                  child: Image.network(
-                    item.product.images.isNotEmpty
-                        ? item.product.images.first
-                        : '',
-                    width: 36,
-                    height: 36,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 36,
-                      height: 36,
-                      color: AppColors.surface2,
-                      child: const Icon(Icons.image, size: 16),
-                    ),
-                  ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
