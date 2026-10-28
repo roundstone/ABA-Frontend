@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../features/auth/domain/auth_entities.dart';
 import '../logging/app_logger.dart';
 import 'api_endpoints.dart';
 import 'api_response.dart';
@@ -11,15 +13,19 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
   TokenRefreshInterceptor({
     required this.dio,
     required this.prefs,
+    this.onSessionExpired,
   });
 
   final Dio dio;
   final SharedPreferences? prefs;
+  final void Function(UserRole role)? onSessionExpired;
 
   static const _tokenKey = 'auth_access_token';
   static const _refreshKey = 'auth_refresh_token';
+  static const _userKey = 'auth_user_data';
   static const _tokenTimestampKey = 'auth_token_timestamp';
   static const _refreshTokenTimestampKey = 'auth_refresh_token_timestamp';
+  static const _lastKnownRoleKey = 'auth_last_known_role';
 
   /// Access token is valid for 14 minutes.
   static const Duration _accessTokenValidityDuration = Duration(minutes: 14);
@@ -65,7 +71,9 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
           final refreshAge = DateTime.now().millisecondsSinceEpoch - refreshTimestamp;
           if (refreshAge >= _refreshTokenValidityDuration.inMilliseconds) {
             AppLogger.w('Refresh token expired after 6 days (${(refreshAge / 86400000).toStringAsFixed(1)} days). Re-auth required.');
+            final role = _resolveUserRole();
             await _clearSession();
+            onSessionExpired?.call(role);
             return handler.next(options);
           }
         }
@@ -98,10 +106,15 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
     final path = err.requestOptions.path;
     final isAuthEndpoint = path.contains('/auth/login') ||
         path.contains('/auth/signup') ||
-        path.contains('/auth/refresh');
+        path.contains('/auth/refresh') ||
+        path.contains('/auth/forgot-password') ||
+        path.contains('/auth/reset-password');
 
     final refreshToken = prefs?.getString(_refreshKey);
     final refreshTimestamp = prefs?.getInt(_refreshTokenTimestampKey);
+    final role = _resolveUserRole();
+    final hadSession = (prefs?.getString(_tokenKey)?.isNotEmpty ?? false) ||
+        (refreshToken != null && refreshToken.isNotEmpty);
 
     if (statusCode == 401 && !isAuthEndpoint && refreshToken != null && refreshToken.isNotEmpty) {
       // Check if refresh token is within 6 days
@@ -110,6 +123,7 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
         if (refreshAge >= _refreshTokenValidityDuration.inMilliseconds) {
           AppLogger.w('Cannot refresh on 401: Refresh token has expired after 6 days.');
           await _clearSession();
+          if (hadSession) onSessionExpired?.call(role);
           return handler.next(err);
         }
       }
@@ -126,16 +140,39 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
           final retryResponse = await dio.fetch(reqOptions);
           return handler.resolve(retryResponse);
         } on DioException catch (retryErr) {
+          if (retryErr.response?.statusCode == 401) {
+            await _clearSession();
+            if (hadSession) onSessionExpired?.call(role);
+          }
           return handler.next(retryErr);
         }
       } else {
         await _clearSession();
+        if (hadSession) onSessionExpired?.call(role);
       }
     } else if (statusCode == 401 && !isAuthEndpoint) {
       await _clearSession();
+      if (hadSession) onSessionExpired?.call(role);
     }
 
     return handler.next(err);
+  }
+
+  UserRole _resolveUserRole() {
+    final rawUser = prefs?.getString(_userKey);
+    if (rawUser != null && rawUser.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(rawUser);
+        if (decoded is Map<String, dynamic>) {
+          return UserRole.fromString(decoded['role'] as String?);
+        }
+      } catch (_) {}
+    }
+    final lastKnown = prefs?.getString(_lastKnownRoleKey);
+    if (lastKnown != null && lastKnown.isNotEmpty) {
+      return UserRole.fromString(lastKnown);
+    }
+    return UserRole.customer;
   }
 
   Future<void> _clearSession() async {
@@ -144,6 +181,7 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
       await prefs!.remove(_refreshKey);
       await prefs!.remove(_tokenTimestampKey);
       await prefs!.remove(_refreshTokenTimestampKey);
+      await prefs!.remove(_userKey);
     }
   }
 
@@ -158,11 +196,6 @@ class TokenRefreshInterceptor extends QueuedInterceptor {
       final res = await _refreshDio.post(
         ApiEndpoints.auth.refresh,
         data: {'refresh_token': refreshToken},
-        options: Options(
-          headers: {
-            if (currentToken.isNotEmpty) 'Authorization': 'Bearer $currentToken',
-          },
-        ),
       );
 
       final data = ApiResponse.unwrapMap(res.data);

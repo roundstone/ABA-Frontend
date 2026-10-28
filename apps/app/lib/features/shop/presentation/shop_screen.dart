@@ -544,12 +544,16 @@ class _AdsBannerState extends State<_AdsBanner> {
   }
 }
 
-class _PopularBrands extends StatelessWidget {
+class _PopularBrands extends ConsumerWidget {
   const _PopularBrands();
 
   @override
-  Widget build(BuildContext context) {
-    final brands = ['Nike', 'Adidas', 'Gucci', 'Aba Artisans', 'Puma', 'Zara'];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final brandsAsync = ref.watch(popularBrandsProvider);
+    final brands = brandsAsync.valueOrNull?.map((b) => b.name).toList() ??
+        const ['Nike', 'Adidas', 'Gucci', 'Aba Artisans', 'Puma', 'Zara'];
+    if (brands.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -573,7 +577,9 @@ class _PopularBrands extends StatelessWidget {
               backgroundColor: Theme.of(
                 context,
               ).colorScheme.surfaceContainerHighest,
-              onPressed: () {},
+              onPressed: () {
+                ref.read(shopNotifierProvider.notifier).setSearch(brands[i]);
+              },
               side: BorderSide.none,
               shape: const RoundedRectangleBorder(
                 borderRadius: AppSpacing.borderRadiusSM,

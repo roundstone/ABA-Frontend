@@ -6,105 +6,159 @@ import '../domain/shop_repository.dart';
 import 'shop_mock_repository.dart';
 
 /// Real API implementation of [ShopRepository].
-/// Talks directly to ABA ERP backend endpoints:
-/// - Product Categories: [ApiEndpoints.productCategories.base]
-/// - Products: [ApiEndpoints.products.base]
 class ShopRemoteRepository implements ShopRepository {
   ShopRemoteRepository({Dio? dio})
       : _dio = dio ?? Dio(BaseOptions(baseUrl: ApiEndpoints.baseUrl));
 
   final Dio _dio;
 
-  static String _mapSortOrder(SortOrder sort) {
-    switch (sort) {
-      case SortOrder.priceLow:
-        return 'base_selling_price:ASC';
-      case SortOrder.priceHigh:
-        return 'base_selling_price:DESC';
-      case SortOrder.nameAsc:
-        return 'name:ASC';
-      case SortOrder.nameDesc:
-        return 'name:DESC';
-      case SortOrder.newest:
-      case SortOrder.featured:
-        return 'createdAt:DESC';
-    }
-  }
+  static String _mapSortOrder(SortOrder sort) => switch (sort) {
+        SortOrder.priceLow => 'base_selling_price:ASC',
+        SortOrder.priceHigh => 'base_selling_price:DESC',
+        SortOrder.nameAsc => 'name:ASC',
+        SortOrder.nameDesc => 'name:DESC',
+        SortOrder.newest || SortOrder.featured => 'createdAt:DESC',
+      };
+
+  static List<Product> _parseProducts(dynamic data) => ApiResponse.unwrapList(data)
+      .whereType<Map>()
+      .map((item) => Product.fromJson(Map<String, dynamic>.from(item)))
+      .toList();
+
+  static List<ShopCategory> _parseCategories(dynamic data) => ApiResponse.unwrapList(data)
+      .whereType<Map>()
+      .map((item) => ShopCategory.fromJson(Map<String, dynamic>.from(item)))
+      .toList();
 
   @override
   Future<List<ShopCategory>> fetchCategories({ListQueryParams? params}) async {
     try {
-      final query = params ??
-          const ListQueryParams(
-            page: 1,
-            limit: 10,
-            orderBy: 'createdAt:DESC',
-            isActive: true,
-          );
-
-      final res = await _dio.get(
-        ApiEndpoints.productCategories.base,
-        queryParameters: query.toMap(),
-      );
-
-      final list = ApiResponse.unwrapList(res.data);
-      final categories = list
-          .whereType<Map>()
-          .map((item) => ShopCategory.fromJson(Map<String, dynamic>.from(item)))
-          .toList();
-
-      if (categories.isNotEmpty) {
-        return categories;
-      }
-      return ShopMockRepository.defaultCategories;
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        AppLogger.i('ShopRemoteRepository: Categories endpoint requires authentication (401). Serving local categories.');
-      } else {
-        AppLogger.w('ShopRemoteRepository: fetchCategories failed (${e.message}), falling back to local');
-      }
-      return ShopMockRepository.defaultCategories;
+      final q = params ?? const ListQueryParams(page: 1, limit: 50, orderBy: 'createdAt:DESC', isActive: true, includeCounts: true);
+      final res = await _dio.get(ApiEndpoints.productCategories.base, queryParameters: q.toMap());
+      final categories = _parseCategories(res.data);
+      if (categories.isNotEmpty) return categories;
     } catch (e) {
-      AppLogger.e('ShopRemoteRepository: unexpected error in fetchCategories', error: e);
-      return ShopMockRepository.defaultCategories;
+      AppLogger.w('ShopRemoteRepository: fetchCategories fallback: $e');
     }
+    return ShopMockRepository.defaultCategories;
+  }
+
+  @override
+  Future<List<ShopCategory>> fetchSubcategories({ListQueryParams? params}) async {
+    try {
+      final q = params ?? const ListQueryParams(page: 1, limit: 50, orderBy: 'createdAt:DESC', isActive: true, includeCounts: true);
+      final res = await _dio.get(ApiEndpoints.productSubcategories.base, queryParameters: q.toMap());
+      final subcategories = _parseCategories(res.data);
+      if (subcategories.isNotEmpty) return subcategories;
+    } catch (e) {
+      AppLogger.w('ShopRemoteRepository: fetchSubcategories failed, fallback to local');
+    }
+    return ShopMockRepository().fetchSubcategories(params: params);
+  }
+
+  @override
+  Future<ShopCategory?> fetchSubcategoryById(String id) async {
+    if (int.tryParse(id) != null) {
+      try {
+        final res = await _dio.get(ApiEndpoints.productSubcategories.byId(id), queryParameters: const {'includeCounts': true});
+        final map = ApiResponse.unwrapMap(res.data);
+        if (map.isNotEmpty) return ShopCategory.fromJson(map);
+      } catch (e) {
+        AppLogger.w('ShopRemoteRepository: fetchSubcategoryById($id) failed: $e');
+      }
+    } else {
+      try {
+        final list = await fetchSubcategories(params: ListQueryParams(search: id, limit: 5));
+        final match = list.where((s) => s.slug == id || s.id == id).firstOrNull;
+        if (match != null && match.id.isNotEmpty && int.tryParse(match.id) != null) {
+          return fetchSubcategoryById(match.id);
+        }
+      } catch (_) {}
+    }
+    return ShopMockRepository().fetchSubcategoryById(id);
   }
 
   @override
   Future<ShopCatalogue> fetchCatalogue() async {
     try {
-      final categories = await fetchCategories();
-      final products = await fetchProducts();
-      return ShopCatalogue(
-        products: products,
-        categories: categories,
-        featuredBannerUrl: '',
-      );
+      return ShopCatalogue(products: await fetchProducts(), categories: await fetchCategories(), featuredBannerUrl: '');
     } catch (e) {
       AppLogger.w('ShopRemoteRepository: fetchCatalogue fallback: $e');
-      final fallbackRepo = ShopMockRepository();
-      return fallbackRepo.fetchCatalogue();
+      return ShopMockRepository().fetchCatalogue();
     }
   }
 
   @override
   Future<Product?> fetchProductById(String id) async {
-    try {
-      final res = await _dio.get(
-        ApiEndpoints.products.byId(id),
-        queryParameters: const {'includeVariants': true},
-      );
-      final map = ApiResponse.unwrapMap(res.data);
-      if (map.isNotEmpty) {
-        return Product.fromJson(map);
+    if (int.tryParse(id) != null) {
+      try {
+        final res = await _dio.get(ApiEndpoints.products.byId(id), queryParameters: const {'includeVariants': true});
+        final map = ApiResponse.unwrapMap(res.data);
+        if (map.isNotEmpty) return Product.fromJson(map);
+      } catch (e) {
+        AppLogger.w('ShopRemoteRepository: fetchProductById($id) failed: $e');
       }
-    } on DioException catch (e) {
-      AppLogger.w('ShopRemoteRepository: fetchProductById($id) failed: ${e.message}');
-    } catch (e) {
-      AppLogger.e('ShopRemoteRepository: error in fetchProductById($id)', error: e);
+    } else {
+      try {
+        final matching = await fetchProducts(search: id, pageSize: 5);
+        final match = matching.where((p) => p.slug == id || p.id == id).firstOrNull ?? (matching.isNotEmpty ? matching.first : null);
+        if (match != null && match.id.isNotEmpty && int.tryParse(match.id) != null) {
+          return fetchProductById(match.id);
+        }
+      } catch (_) {}
     }
-    final fallbackRepo = ShopMockRepository();
-    return fallbackRepo.fetchProductById(id);
+    return ShopMockRepository().fetchProductById(id);
+  }
+
+  @override
+  Future<ProductVariant?> fetchProductVariantById(String id) async {
+    if (int.tryParse(id) != null) {
+      try {
+        final res = await _dio.get(ApiEndpoints.productVariants.byId(id));
+        final map = ApiResponse.unwrapMap(res.data);
+        if (map.isNotEmpty) return ProductVariant.fromJson(map);
+      } catch (e) {
+        AppLogger.w('ShopRemoteRepository: fetchProductVariantById($id) failed: $e');
+      }
+    }
+    return ShopMockRepository().fetchProductVariantById(id);
+  }
+
+  @override
+  Future<List<Product>> fetchFeaturedProducts() async {
+    try {
+      final res = await _dio.get(ApiEndpoints.storefront.featuredProducts);
+      final products = _parseProducts(res.data);
+      if (products.isNotEmpty) return products;
+    } catch (e) {
+      AppLogger.w('ShopRemoteRepository: fetchFeaturedProducts fallback: $e');
+    }
+    return ShopMockRepository().fetchFeaturedProducts();
+  }
+
+  @override
+  Future<List<Product>> fetchTrendingProducts() async {
+    try {
+      final res = await _dio.get(ApiEndpoints.storefront.trendingProducts);
+      final products = _parseProducts(res.data);
+      if (products.isNotEmpty) return products;
+    } catch (e) {
+      AppLogger.w('ShopRemoteRepository: fetchTrendingProducts fallback: $e');
+    }
+    return ShopMockRepository().fetchTrendingProducts();
+  }
+
+  @override
+  Future<List<Brand>> fetchPopularBrands() async {
+    try {
+      final res = await _dio.get(ApiEndpoints.storefront.popularBrands);
+      final list = ApiResponse.unwrapList(res.data);
+      final brands = list.whereType<Map>().map((i) => Brand.fromJson(Map<String, dynamic>.from(i))).toList();
+      if (brands.isNotEmpty) return brands;
+    } catch (e) {
+      AppLogger.w('ShopRemoteRepository: fetchPopularBrands fallback: $e');
+    }
+    return ShopMockRepository().fetchPopularBrands();
   }
 
   @override
@@ -115,6 +169,7 @@ class ShopRemoteRepository implements ShopRepository {
     int pageSize = 20,
     String? search,
     int? categoryId,
+    int? subcategoryId,
     int? brandId,
     int? vendorId,
     double? minPrice,
@@ -128,98 +183,51 @@ class ShopRemoteRepository implements ShopRepository {
         'limit': queryParams?.limit ?? pageSize,
         'orderBy': queryParams?.orderBy ?? _mapSortOrder(sort),
         'isActive': queryParams?.isActive ?? true,
-        'includeVariants': queryParams?.includeVariants ?? true,
+        'includeVariants': true,
       };
 
       final effectiveSearch = queryParams?.search ?? search;
-      if (effectiveSearch != null && effectiveSearch.trim().isNotEmpty) {
-        query['search'] = effectiveSearch.trim();
+      if (effectiveSearch != null && effectiveSearch.isNotEmpty) {
+        query['search'] = effectiveSearch;
       }
 
-      final effectiveCategoryId = queryParams?.categoryId ??
-          categoryId ??
-          (filter?.categories.isNotEmpty == true
-              ? int.tryParse(filter!.categories.first)
-              : null);
-      if (effectiveCategoryId != null) {
-        query['categoryId'] = effectiveCategoryId;
-      }
+      final effectiveCatId = categoryId ?? int.tryParse(queryParams?.customParams['categoryId']?.toString() ?? '');
+      if (effectiveCatId != null) query['categoryId'] = effectiveCatId;
 
-      final effectiveBrandId = brandId ??
-          (filter?.brands.isNotEmpty == true
-              ? int.tryParse(filter!.brands.first.replaceAll(RegExp(r'[^0-9]'), ''))
-              : null);
-      if (effectiveBrandId != null) {
-        query['brandId'] = effectiveBrandId;
-      }
+      final effectiveSubcatId = subcategoryId ?? int.tryParse(queryParams?.customParams['subcategoryId']?.toString() ?? '');
+      if (effectiveSubcatId != null) query['subcategoryId'] = effectiveSubcatId;
 
-      final effectiveVendorId = vendorId ??
-          (filter?.merchants.isNotEmpty == true
-              ? int.tryParse(filter!.merchants.first.replaceAll(RegExp(r'[^0-9]'), ''))
-              : null);
+      final effectiveBrandId = brandId ?? int.tryParse(queryParams?.customParams['brandId']?.toString() ?? '');
+      if (effectiveBrandId != null) query['brandId'] = effectiveBrandId;
+
+      final customMerchant = int.tryParse(queryParams?.customParams['merchantId']?.toString() ?? '');
+      final effectiveVendorId = vendorId ?? customMerchant ??
+          (filter?.merchants.isNotEmpty == true ? int.tryParse(filter!.merchants.first.replaceAll(RegExp(r'[^0-9]'), '')) : null);
       if (effectiveVendorId != null) {
+        query['merchantId'] = effectiveVendorId;
         query['vendorId'] = effectiveVendorId;
       }
 
-      final effectiveMinPrice = minPrice ??
-          (filter != null && filter.priceRange.$1 > 0 ? filter.priceRange.$1 : null);
-      if (effectiveMinPrice != null) {
-        query['minPrice'] = effectiveMinPrice;
-      }
+      final minP = minPrice ?? (filter != null && filter.priceRange.$1 > 0 ? filter.priceRange.$1 : null);
+      if (minP != null) query['minPrice'] = minP;
+      final maxP = maxPrice ?? (filter != null && filter.priceRange.$2 < 500000 ? filter.priceRange.$2 : null);
+      if (maxP != null) query['maxPrice'] = maxP;
+      final r = rating ?? (filter?.ratings.isNotEmpty == true ? filter!.ratings.reduce((a, b) => a < b ? a : b).toDouble() : null);
+      if (r != null) query['rating'] = r;
 
-      final effectiveMaxPrice = maxPrice ??
-          (filter != null && filter.priceRange.$2 < 500000 ? filter.priceRange.$2 : null);
-      if (effectiveMaxPrice != null) {
-        query['maxPrice'] = effectiveMaxPrice;
-      }
-
-      final effectiveRating = rating ??
-          (filter != null && filter.ratings.isNotEmpty
-              ? filter.ratings.reduce((a, b) => a < b ? a : b).toDouble()
-              : null);
-      if (effectiveRating != null) {
-        query['rating'] = effectiveRating;
-      }
-
-      if (queryParams?.customParams.isNotEmpty == true) {
-        query.addAll(queryParams!.customParams);
-      }
-
-      final res = await _dio.get(
-        ApiEndpoints.products.base,
-        queryParameters: query,
-      );
-      final list = ApiResponse.unwrapList(res.data);
-      if (list.isNotEmpty) {
-        return list
-            .whereType<Map>()
-            .map((item) => Product.fromJson(Map<String, dynamic>.from(item)))
-            .toList();
-      }
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        AppLogger.i('ShopRemoteRepository: Products endpoint requires authentication (401). Serving local catalogue.');
-      } else {
-        AppLogger.w('ShopRemoteRepository: fetchProducts failed (${e.message}), falling back to local');
-      }
+      final res = await _dio.get(ApiEndpoints.products.base, queryParameters: query);
+      final products = _parseProducts(res.data);
+      if (products.isNotEmpty) return products;
+      if (query.length > 5) return const [];
     } catch (e) {
-      AppLogger.e('ShopRemoteRepository: error in fetchProducts', error: e);
+      AppLogger.w('ShopRemoteRepository: fetchProducts failed ($e), fallback to local');
     }
 
-    final fallbackRepo = ShopMockRepository();
-    return fallbackRepo.fetchProducts(
-      filter: filter,
-      sort: sort,
-      page: page,
-      pageSize: pageSize,
-      search: search,
-      categoryId: categoryId,
-      brandId: brandId,
-      vendorId: vendorId,
-      minPrice: minPrice,
-      maxPrice: maxPrice,
-      rating: rating,
-      queryParams: queryParams,
+    return ShopMockRepository().fetchProducts(
+      filter: filter, sort: sort, page: page, pageSize: pageSize,
+      search: search, categoryId: categoryId, subcategoryId: subcategoryId,
+      brandId: brandId, vendorId: vendorId, minPrice: minPrice,
+      maxPrice: maxPrice, rating: rating, queryParams: queryParams,
     );
   }
 }

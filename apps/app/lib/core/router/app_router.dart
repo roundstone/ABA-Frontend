@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/application/auth_providers.dart';
@@ -35,13 +36,18 @@ import '../../features/wallet/presentation/wallet_screen.dart';
 import '../../features/rewards/presentation/rewards_screen.dart';
 import '../../features/customer/presentation/notifications_screen.dart';
 import '../../features/merchants/presentation/merchant_directory_screen.dart';
+import '../../features/merchants/presentation/merchant_detail_screen.dart';
 import '../../features/content/presentation/about_screen.dart';
 import '../../features/content/presentation/community_screen.dart';
 import '../../features/content/presentation/community_profile_screen.dart';
 import '../notifications/notification_navigation_handler.dart';
 
+final GlobalKey<NavigatorState> rootNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'rootNavigator');
+
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     redirect: (context, state) {
       final loc = state.matchedLocation;
@@ -144,8 +150,17 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/product/:id',
                 builder: (context, state) {
-                  final id = state.pathParameters['id']!;
-                  return ProductDetailScreen(id: id, productId: id);
+                  final extraId =
+                      state.extra is String ? state.extra as String : null;
+                  final pathId = state.pathParameters['id']!;
+                  final resolvedId =
+                      (extraId != null && int.tryParse(extraId) != null)
+                          ? extraId
+                          : pathId;
+                  return ProductDetailScreen(
+                    id: resolvedId,
+                    productId: resolvedId,
+                  );
                 },
               ),
             ],
@@ -257,6 +272,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/merchants',
         builder: (context, state) => const MerchantDirectoryScreen(),
+      ),
+      GoRoute(
+        path: '/merchants/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return MerchantDetailScreen(merchantId: id);
+        },
       ),
       GoRoute(path: '/merchants/directory', redirect: (_, __) => '/merchants'),
       GoRoute(path: '/businesses', redirect: (_, __) => '/merchants'),

@@ -57,6 +57,17 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   }
 
   @override
+  void didUpdateWidget(covariant ResetPasswordScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialToken != null && widget.initialToken != oldWidget.initialToken) {
+      _tokenController.text = widget.initialToken!;
+    }
+    if (widget.initialEmail != null && widget.initialEmail != oldWidget.initialEmail) {
+      _emailController.text = widget.initialEmail!;
+    }
+  }
+
+  @override
   void dispose() {
     _passwordController.removeListener(_onFieldChanged);
     _confirmPasswordController.removeListener(_onFieldChanged);

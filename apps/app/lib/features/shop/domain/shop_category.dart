@@ -5,6 +5,7 @@ class ShopCategory {
     required this.name,
     required this.slug,
     this.parentId,
+    this.parentCategory,
     this.imageUrl,
     this.productCount = 0,
     this.children = const [],
@@ -19,6 +20,7 @@ class ShopCategory {
   final String name;
   final String slug;
   final String? parentId;
+  final ShopCategory? parentCategory;
   final String? imageUrl;
   final int productCount;
   final List<ShopCategory> children;
@@ -28,16 +30,47 @@ class ShopCategory {
   final DateTime? updatedAt;
   final DateTime? deletedAt;
 
+  bool get hasChildren => children.isNotEmpty;
+
+  /// Returns true if this category or any of its subcategories matches [identifier].
+  bool matches(String? identifier) {
+    if (identifier == null || identifier.isEmpty) return false;
+    final lower = identifier.toLowerCase().trim();
+    if (id == identifier ||
+        slug.toLowerCase() == lower ||
+        name.toLowerCase() == lower) {
+      return true;
+    }
+    return children.any((c) => c.matches(identifier));
+  }
+
   factory ShopCategory.fromJson(Map<String, dynamic> json) {
+    final rawSubs = json['subcategories'] ?? json['children'];
+    final rawCount = json['productCount'] ?? json['product_count'];
+    final parsedCount = (rawCount is num)
+        ? rawCount.toInt()
+        : int.tryParse(rawCount?.toString() ?? '0') ?? 0;
+
+    final parentCat = json['category'] is Map
+        ? ShopCategory.fromJson(Map<String, dynamic>.from(json['category'] as Map))
+        : null;
+
+    final parsedParentId = json['category_id']?.toString() ??
+        json['categoryId']?.toString() ??
+        parentCat?.id ??
+        json['parent_id']?.toString() ??
+        json['parentId']?.toString();
+
     return ShopCategory(
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
       slug: json['slug'] as String? ?? '',
       description: json['description'] as String?,
       isActive: json['is_active'] as bool? ?? json['isActive'] as bool? ?? true,
-      parentId: json['parent_id']?.toString() ?? json['parentId']?.toString(),
+      parentId: parsedParentId,
+      parentCategory: parentCat,
       imageUrl: json['image_url'] as String? ?? json['imageUrl'] as String?,
-      productCount: (json['product_count'] ?? json['productCount'] ?? 0) as int,
+      productCount: parsedCount,
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString())
           : null,
@@ -47,9 +80,9 @@ class ShopCategory {
       deletedAt: json['deletedAt'] != null
           ? DateTime.tryParse(json['deletedAt'].toString())
           : null,
-      children: (json['children'] as List<dynamic>?)
-              ?.whereType<Map<String, dynamic>>()
-              .map(ShopCategory.fromJson)
+      children: (rawSubs as List<dynamic>?)
+              ?.whereType<Map>()
+              .map((e) => ShopCategory.fromJson(Map<String, dynamic>.from(e)))
               .toList() ??
           const [],
     );
@@ -61,7 +94,8 @@ class ShopCategory {
     'slug': slug,
     if (description != null) 'description': description,
     'is_active': isActive,
-    if (parentId != null) 'parent_id': parentId,
+    if (parentId != null) 'category_id': int.tryParse(parentId!) ?? parentId,
+    if (parentCategory != null) 'category': parentCategory!.toJson(),
     if (imageUrl != null) 'image_url': imageUrl,
     'product_count': productCount,
     if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
@@ -76,6 +110,7 @@ class ShopCategory {
     String? name,
     String? slug,
     String? parentId,
+    ShopCategory? parentCategory,
     String? imageUrl,
     int? productCount,
     List<ShopCategory>? children,
@@ -90,6 +125,7 @@ class ShopCategory {
       name: name ?? this.name,
       slug: slug ?? this.slug,
       parentId: parentId ?? this.parentId,
+      parentCategory: parentCategory ?? this.parentCategory,
       imageUrl: imageUrl ?? this.imageUrl,
       productCount: productCount ?? this.productCount,
       children: children ?? this.children,

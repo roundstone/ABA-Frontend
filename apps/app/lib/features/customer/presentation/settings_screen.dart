@@ -10,6 +10,7 @@ import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/widgets/theme_mode_dialog.dart';
 import '../../../core/notifications/notification_debug_sheet.dart';
 import '../../../core/notifications/notification_topics_service.dart';
+import '../../../core/router/widgets/deep_link_simulator_sheet.dart';
 import '../../auth/application/auth_providers.dart';
 import 'widgets/edit_profile_sheet.dart';
 import 'widgets/settings_dialogs.dart';
@@ -166,6 +167,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 'v1.0.0 (Build 2026)',
                 style: TextStyle(color: Colors.grey),
               ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.link_rounded, size: 20, color: AppColors.primary),
+              title: const Text('Deep Link Simulator'),
+              subtitle: const Text('Test reset-password tokens & app links'),
+              trailing: const Icon(Icons.chevron_right, size: 20),
+              onTap: () => showDeepLinkSimulatorSheet(context),
             ),
             const SizedBox(height: AppSpacing.xl),
 

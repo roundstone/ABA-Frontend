@@ -9,6 +9,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../../core/widgets/notification_icon_button.dart';
+import '../../merchants/application/merchant_providers.dart';
 import '../application/shop_providers.dart';
 import '../domain/shop_entities.dart';
 import 'widgets/home_category_marquee.dart';
@@ -32,28 +33,37 @@ class HomeScreen extends ConsumerWidget {
           message: 'Could not load store.\n${e.toString()}',
           onRetry: () => ref.invalidate(shopCatalogueProvider),
         ),
-        data: (catalogue) => _HomeBody(catalogue: catalogue, ref: ref),
+        data: (catalogue) => _HomeBody(catalogue: catalogue),
       ),
     );
   }
 }
 
-class _HomeBody extends StatelessWidget {
-  const _HomeBody({required this.catalogue, required this.ref});
+class _HomeBody extends ConsumerWidget {
+  const _HomeBody({required this.catalogue});
   final ShopCatalogue catalogue;
-  final WidgetRef ref;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final actionColor = isDark ? AppColors.secondary : AppColors.primary;
-    final featured = catalogue.products.where((p) => p.isFeatured).toList();
-    final trending = catalogue.products.where((p) => !p.isFeatured).toList();
+    final featuredAsync = ref.watch(featuredProductsProvider);
+    final trendingAsync = ref.watch(trendingProductsProvider);
+    final featured = featuredAsync.valueOrNull ?? catalogue.products.where((p) => p.isFeatured).toList();
+    final trending = trendingAsync.valueOrNull ?? catalogue.products.where((p) => !p.isFeatured).toList();
 
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(shopCatalogueProvider);
-        await ref.read(shopCatalogueProvider.future);
+        ref.invalidate(featuredProductsProvider);
+        ref.invalidate(trendingProductsProvider);
+        ref.invalidate(popularBrandsProvider);
+        ref.invalidate(merchantsSpotlightProvider);
+        await Future.wait([
+          ref.read(shopCatalogueProvider.future),
+          ref.read(featuredProductsProvider.future),
+          ref.read(trendingProductsProvider.future),
+        ]);
       },
       child: CustomScrollView(
         slivers: [
@@ -157,6 +167,18 @@ class _HomeBody extends StatelessWidget {
                   const SizedBox(height: AppSpacing.sm),
                   const HomeMerchantSpotlightSection(),
                   const SizedBox(height: AppSpacing.xxl),
+
+                   // 7. Featured Products
+                  if (featured.isNotEmpty) ...[
+                    HomeSectionHeader(
+                      title: 'Featured on ${AppBrand.shortName}',
+                      subtitle: 'Popular items our customers are loving right now',
+                      onSeeAll: () => context.go('/shop'),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    HomeProductHorizontalList(products: featured),
+                    const SizedBox(height: AppSpacing.xxl),
+                  ],
 
                   // 7. Rewards Program Promo ("Shop. Refer. Earn. Grow.")
                   const RewardsPromo(),

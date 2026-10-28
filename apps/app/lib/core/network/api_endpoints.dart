@@ -18,22 +18,24 @@ abstract final class ApiEndpoints {
   static const orders = _OrdersEndpoints();
   static const marketers = _MarketersEndpoints();
   static const productCategories = _ProductCategoriesEndpoints();
+  static const productSubcategories = _ProductSubcategoriesEndpoints();
   static const products = _ProductsEndpoints();
   static const productVariants = _ProductVariantsEndpoints();
   static const media = _MediaEndpoints();
+  static const merchants = _MerchantsEndpoints();
   static const vendors = _VendorsEndpoints();
   static const vendorBankAccounts = _VendorBankAccountsEndpoints();
   static const vendorLocations = _VendorLocationsEndpoints();
   static const admins = _AdminsEndpoints();
   static const superAdmins = _SuperAdminsEndpoints();
   static const dashboard = _DashboardEndpoints();
+  static const storefront = _StorefrontEndpoints();
 }
 
 /// 1. Auth Endpoints
 class _AuthEndpoints {
   const _AuthEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/auth';
-
   String get login => '$_base/login';
   String get signup => '$_base/signup';
   String get verifyEmail => '$_base/verify-email';
@@ -49,7 +51,6 @@ class _AuthEndpoints {
 class _UsersEndpoints {
   const _UsersEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/users';
-
   String get base => _base;
   String byId(String id) => '$_base/$id';
 }
@@ -58,7 +59,6 @@ class _UsersEndpoints {
 class _ReferralCodesEndpoints {
   const _ReferralCodesEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/referral-codes';
-
   String get base => _base;
   String byId(String id) => '$_base/$id';
   String status(String id) => '$_base/$id/status';
@@ -79,7 +79,6 @@ class _RolesEndpoints {
 class _PermissionsEndpoints {
   const _PermissionsEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/permissions';
-
   String get base => _base;
   String byId(String id) => '$_base/$id';
 }
@@ -88,7 +87,6 @@ class _PermissionsEndpoints {
 class _CustomersEndpoints {
   const _CustomersEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/customers';
-
   String get base => _base;
   String byId(String id) => '$_base/$id';
   String status(String id) => '$_base/$id/status';
@@ -102,7 +100,6 @@ class _CustomersEndpoints {
 class _DeliveryAddressEndpoints {
   const _DeliveryAddressEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/delivery-address';
-
   String get base => _base;
   String byId(String id) => '$_base/$id';
 }
@@ -111,7 +108,6 @@ class _DeliveryAddressEndpoints {
 class _OrdersEndpoints {
   const _OrdersEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/orders';
-
   String get base => _base;
   String byId(String id) => '$_base/$id';
 }
@@ -120,7 +116,6 @@ class _OrdersEndpoints {
 class _MarketersEndpoints {
   const _MarketersEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/marketers';
-
   String get base => _base;
   String byId(String id) => '$_base/$id';
   String referralHierarchy(String id) => '$_base/$id/referral-hierarchy';
@@ -132,6 +127,15 @@ class _MarketersEndpoints {
 class _ProductCategoriesEndpoints {
   const _ProductCategoriesEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/product-categories';
+  String get base => _base;
+  String byId(String id) => '$_base/$id';
+  String status(String id) => '$_base/$id/status';
+}
+
+/// 10b. Product Subcategories Endpoints
+class _ProductSubcategoriesEndpoints {
+  const _ProductSubcategoriesEndpoints();
+  static const String _base = '${ApiEndpoints.apiV1}/product-subcategories';
 
   String get base => _base;
   String byId(String id) => '$_base/$id';
@@ -187,11 +191,19 @@ class _VendorsEndpoints {
       '$_base/$id/marketers/$marketerId';
 }
 
+/// 14b. Merchants Endpoints
+class _MerchantsEndpoints {
+  const _MerchantsEndpoints();
+  static const String _base = '${ApiEndpoints.apiV1}/merchants';
+  String get base => _base;
+  String byId(String id) => '$_base/$id';
+  String status(String id) => '$_base/$id/status';
+}
+
 /// 15. Vendor Bank Accounts Endpoints
 class _VendorBankAccountsEndpoints {
   const _VendorBankAccountsEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/vendor-bank-accounts';
-
   String get base => _base;
   String byId(String id) => '$_base/$id';
 }
@@ -200,7 +212,6 @@ class _VendorBankAccountsEndpoints {
 class _VendorLocationsEndpoints {
   const _VendorLocationsEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/vendor-locations';
-
   String get base => _base;
   String byId(String id) => '$_base/$id';
 }
@@ -209,7 +220,6 @@ class _VendorLocationsEndpoints {
 class _AdminsEndpoints {
   const _AdminsEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/admins';
-
   String get base => _base;
   String byId(String id) => '$_base/$id';
 }
@@ -218,7 +228,6 @@ class _AdminsEndpoints {
 class _SuperAdminsEndpoints {
   const _SuperAdminsEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/super-admins';
-
   String get base => _base;
   String byId(String id) => '$_base/$id';
 }
@@ -226,7 +235,15 @@ class _SuperAdminsEndpoints {
 /// 19. Dashboard Endpoints
 class _DashboardEndpoints {
   const _DashboardEndpoints();
-  static const String _base = '${ApiEndpoints.apiV1}/dashboard';
+  String get base => '${ApiEndpoints.apiV1}/dashboard';
+}
 
-  String get base => _base;
+/// 20. Storefront Endpoints
+class _StorefrontEndpoints {
+  const _StorefrontEndpoints();
+  static const String _base = '${ApiEndpoints.apiV1}/storefront';
+  String get featuredProducts => '$_base/mobile-app/featured-products';
+  String get trendingProducts => '$_base/mobile-app/trending-products';
+  String get popularBrands => '$_base/popular-brands';
+  String get merchantsSpotlight => '$_base/merchants-spotlight';
 }

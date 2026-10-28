@@ -204,5 +204,42 @@ void main() {
       expect(capturedOptions?.path, ApiEndpoints.products.byId('5'));
       expect(capturedOptions?.queryParameters['includeVariants'], true);
     });
+
+    test('fetchProductById handles non-numeric slug safely without 400 error', () async {
+      final dio = Dio();
+      final repo = ShopRemoteRepository(dio: dio);
+
+      // Should not throw or crash on non-numeric slug
+      final product = await repo.fetchProductById('wander-pack-heaven-backpack');
+      expect(product, isNotNull);
+    });
+
+    test('fetchFeaturedProducts queries storefront endpoint', () async {
+      final dio = Dio();
+      RequestOptions? captured;
+      dio.interceptors.add(InterceptorsWrapper(onRequest: (opt, handler) {
+        captured = opt;
+        return handler.resolve(Response(requestOptions: opt, statusCode: 200, data: {
+          'success': true, 'data': [sampleProductJson],
+        }));
+      }));
+      final list = await ShopRemoteRepository(dio: dio).fetchFeaturedProducts();
+      expect(list.length, 1);
+      expect(captured?.path, ApiEndpoints.storefront.featuredProducts);
+    });
+
+    test('fetchTrendingProducts queries storefront endpoint', () async {
+      final dio = Dio();
+      RequestOptions? captured;
+      dio.interceptors.add(InterceptorsWrapper(onRequest: (opt, handler) {
+        captured = opt;
+        return handler.resolve(Response(requestOptions: opt, statusCode: 200, data: {
+          'success': true, 'data': [sampleProductJson],
+        }));
+      }));
+      final list = await ShopRemoteRepository(dio: dio).fetchTrendingProducts();
+      expect(list.length, 1);
+      expect(captured?.path, ApiEndpoints.storefront.trendingProducts);
+    });
   });
 }

@@ -36,9 +36,7 @@ class CheckoutReferralSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: AppSpacing.borderRadiusLG,
-        border: Border.all(
-          color: isDark ? Colors.white12 : AppColors.border,
-        ),
+        border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,9 +64,7 @@ class CheckoutReferralSection extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.success.withAlpha(20),
                 borderRadius: AppSpacing.borderRadiusMD,
-                border: Border.all(
-                  color: AppColors.success.withAlpha(80),
-                ),
+                border: Border.all(color: AppColors.success.withAlpha(80)),
               ),
               child: Row(
                 children: [
@@ -199,9 +195,7 @@ class CheckoutReferralSection extends StatelessWidget {
                 padding: const EdgeInsets.only(top: AppSpacing.xs),
                 child: Text(
                   'No marketers found matching "$searchQuery"',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.grey,
-                  ),
+                  style: AppTypography.caption.copyWith(color: AppColors.grey),
                 ),
               ),
             ],

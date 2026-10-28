@@ -27,21 +27,23 @@ class MerchantCard extends StatelessWidget {
         ? Colors.white.withAlpha(20)
         : AppColors.border;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: AppSpacing.borderRadiusXL,
-        border: Border.all(color: borderColor),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(isDark ? 50 : 10),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
+    return GestureDetector(
+      onTap: onTap ?? () => context.push('/merchants/${merchant.id}'),
+      child: Container(
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: AppSpacing.borderRadiusXL,
+          border: Border.all(color: borderColor),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(isDark ? 50 : 10),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -179,12 +181,7 @@ class MerchantCard extends StatelessWidget {
                   width: double.infinity,
                   height: 38,
                   child: OutlinedButton(
-                    onPressed: onTap ??
-                        () {
-                          context.go(
-                            '/shop?merchant=${Uri.encodeComponent(merchant.name)}',
-                          );
-                        },
+                    onPressed: onTap ?? () => context.push('/merchants/${merchant.id}'),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(
                         color: isDark
@@ -212,6 +209,7 @@ class MerchantCard extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

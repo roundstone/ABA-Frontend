@@ -15,19 +15,18 @@ class HomeMerchantSpotlightSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final merchantsAsync = ref.watch(merchantsDirectoryProvider);
+    final spotlightAsync = ref.watch(merchantsSpotlightProvider);
+    final directoryAsync = ref.watch(merchantsDirectoryProvider);
 
-    return merchantsAsync.when(
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
-      data: (result) {
-        if (result.merchants.isEmpty) return const SizedBox.shrink();
-        final spotlight = result.merchants.firstWhere(
+    final spotlight = spotlightAsync.valueOrNull?.firstOrNull ??
+        directoryAsync.valueOrNull?.merchants.firstWhere(
           (m) => m.isFeatured,
-          orElse: () => result.merchants.first,
+          orElse: () => directoryAsync.valueOrNull!.merchants.first,
         );
 
-        return Container(
+    if (spotlight == null) return const SizedBox.shrink();
+
+    return Container(
           margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
@@ -139,7 +138,9 @@ class HomeMerchantSpotlightSection extends ConsumerWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '${spotlight.category} • ${spotlight.city}, ${spotlight.state}',
+                            spotlight.productCount > 0
+                                ? '${spotlight.category} • ${spotlight.productCount} Products'
+                                : '${spotlight.category} • ${spotlight.city}, ${spotlight.state}',
                             style: AppTypography.caption.copyWith(
                               color: isDark
                                   ? AppColors.darkTextSecondary
@@ -192,7 +193,5 @@ class HomeMerchantSpotlightSection extends ConsumerWidget {
             ],
           ),
         );
-      },
-    );
   }
 }

@@ -1,18 +1,21 @@
+import '../../../core/network/list_query_params.dart';
 import '../domain/merchant_entities.dart';
 import '../domain/merchant_repository.dart';
 import 'merchant_mock_data.dart';
 
 class MerchantMockRepository implements MerchantRepository {
   @override
-  Future<MerchantDirectoryResult> getMerchants(
-    MerchantFilterParams params,
-  ) async {
+  Future<MerchantDirectoryResult> getMerchants([
+    MerchantFilterParams params = const MerchantFilterParams(),
+    ListQueryParams? queryParams,
+  ]) async {
     await Future.delayed(const Duration(milliseconds: 300));
 
     var filtered = List<Merchant>.from(kMockMerchants);
+    final effectiveQuery = queryParams?.search ?? params.query;
 
-    if (params.query.trim().isNotEmpty) {
-      final q = params.query.trim().toLowerCase();
+    if (effectiveQuery.trim().isNotEmpty) {
+      final q = effectiveQuery.trim().toLowerCase();
       filtered = filtered.where((m) {
         return m.name.toLowerCase().contains(q) ||
             m.city.toLowerCase().contains(q) ||
@@ -86,5 +89,12 @@ class MerchantMockRepository implements MerchantRepository {
     } catch (_) {
       return null;
     }
+  }
+
+  @override
+  Future<List<Merchant>> getMerchantsSpotlight() async {
+    await Future.delayed(const Duration(milliseconds: 150));
+    final featured = kMockMerchants.where((m) => m.isFeatured).toList();
+    return featured.isNotEmpty ? featured : kMockMerchants.take(5).toList();
   }
 }

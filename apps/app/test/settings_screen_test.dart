@@ -89,7 +89,8 @@ void main() {
       await tester.pumpAndSettle();
 
       final deleteBtn = find.text('Delete Account Permanently');
-      await tester.scrollUntilVisible(deleteBtn, 100);
+      await tester.scrollUntilVisible(deleteBtn, 300);
+      await tester.pumpAndSettle();
       await tester.tap(deleteBtn);
       await tester.pumpAndSettle();
 

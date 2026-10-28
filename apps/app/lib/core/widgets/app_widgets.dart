@@ -33,7 +33,7 @@ class LoadingState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const CircularProgressIndicator(),
+          const CircularProgressIndicator.adaptive(),
           AppSpacing.verticalSpaceMD,
           Text(message, style: AppTypography.bodyMedium),
         ],

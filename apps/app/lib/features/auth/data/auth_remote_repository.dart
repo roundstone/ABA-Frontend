@@ -22,6 +22,7 @@ class AuthRemoteRepository implements AuthRepository {
   static const _userKey = 'auth_user_data';
   static const _tokenTimestampKey = 'auth_token_timestamp';
   static const _refreshTokenTimestampKey = 'auth_refresh_token_timestamp';
+  static const _lastKnownRoleKey = 'auth_last_known_role';
 
   @override
   Future<AuthUser> loginCustomer({
@@ -274,6 +275,7 @@ class AuthRemoteRepository implements AuthRepository {
     if (prefs == null) return;
     try {
       await prefs.setString(_userKey, jsonEncode(user.toJson()));
+      await prefs.setString(_lastKnownRoleKey, user.role.name);
       if (user.token.isNotEmpty) {
         await prefs.setString(_tokenKey, user.token);
         await prefs.setInt(
@@ -358,17 +360,10 @@ class AuthRemoteRepository implements AuthRepository {
       return null;
     }
 
-    final currentToken = _prefs?.getString(_tokenKey) ?? '';
-
     try {
       final res = await _dio.post(
         ApiEndpoints.auth.refresh,
         data: {'refresh_token': refreshToken},
-        options: Options(
-          headers: {
-            if (currentToken.isNotEmpty) 'Authorization': 'Bearer $currentToken',
-          },
-        ),
       );
 
       final data = ApiResponse.unwrapMap(res.data);

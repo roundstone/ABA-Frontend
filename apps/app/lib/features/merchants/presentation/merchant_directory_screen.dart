@@ -182,7 +182,10 @@ class MerchantDirectoryScreen extends ConsumerWidget {
               final merchant = result.merchants[index];
               return Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: MerchantCard(merchant: merchant),
+                child: MerchantCard(
+                  merchant: merchant,
+                  onTap: () => context.push('/merchants/${merchant.id}'),
+                ),
               );
             }, childCount: result.merchants.length),
           ),

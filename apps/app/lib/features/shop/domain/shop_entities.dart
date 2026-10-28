@@ -1,3 +1,4 @@
+export 'brand.dart';
 export 'product.dart';
 export 'product_variant.dart';
 export 'shop_category.dart';
@@ -98,6 +99,7 @@ class Cart {
 class ShopFilter {
   const ShopFilter({
     this.categories = const [],
+    this.subcategories = const [],
     this.brands = const [],
     this.merchants = const [],
     this.colors = const [],
@@ -106,6 +108,7 @@ class ShopFilter {
   });
 
   final List<String> categories;
+  final List<String> subcategories;
   final List<String> brands;
   final List<String> merchants;
   final List<String> colors;
@@ -114,6 +117,7 @@ class ShopFilter {
 
   bool get isActive =>
       categories.isNotEmpty ||
+      subcategories.isNotEmpty ||
       brands.isNotEmpty ||
       merchants.isNotEmpty ||
       colors.isNotEmpty ||
@@ -123,6 +127,7 @@ class ShopFilter {
 
   ShopFilter copyWith({
     List<String>? categories,
+    List<String>? subcategories,
     List<String>? brands,
     List<String>? merchants,
     List<String>? colors,
@@ -131,6 +136,7 @@ class ShopFilter {
   }) =>
       ShopFilter(
         categories: categories ?? this.categories,
+        subcategories: subcategories ?? this.subcategories,
         brands: brands ?? this.brands,
         merchants: merchants ?? this.merchants,
         colors: colors ?? this.colors,

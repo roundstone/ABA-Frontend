@@ -11,7 +11,7 @@ import 'shop_providers.dart';
 class PaginatedProductsNotifier
     extends StateNotifier<PaginatedListState<Product>> {
   PaginatedProductsNotifier(this._ref)
-      : super(const PaginatedListState<Product>(isLoading: true)) {
+    : super(const PaginatedListState<Product>(isLoading: true)) {
     _init();
   }
 
@@ -34,21 +34,64 @@ class PaginatedProductsNotifier
     fetchFirstPage();
   }
 
-  int? _resolveCategoryId(ShopState shopState, List<ShopCategory> categories) {
-    if (shopState.selectedCategory == null) return null;
-    final parsed = int.tryParse(shopState.selectedCategory!);
-    if (parsed != null) return parsed;
-    if (categories.isEmpty) return null;
+  ({int? categoryId, int? subcategoryId}) _resolveCategoryIds(
+    ShopState shopState,
+    List<ShopCategory> categories,
+  ) {
+    int? resolvedCategoryId;
+    int? resolvedSubcategoryId;
 
-    final sel = shopState.selectedCategory!.toLowerCase();
-    final match = categories.firstWhere(
-      (c) =>
-          c.name.toLowerCase() == sel ||
-          c.slug.toLowerCase() == sel ||
-          c.id.toString() == shopState.selectedCategory,
-      orElse: () => const ShopCategory(id: '0', name: '', slug: ''),
+    final subTarget = shopState.filter.subcategories.isNotEmpty
+        ? shopState.filter.subcategories.first
+        : null;
+    final catTarget =
+        shopState.selectedCategory ??
+        (shopState.filter.categories.isNotEmpty
+            ? shopState.filter.categories.first
+            : null);
+
+    if (catTarget != null && catTarget.isNotEmpty) {
+      final sel = catTarget.toLowerCase().trim();
+      for (final c in categories) {
+        for (final sub in c.children) {
+          if (sub.name.toLowerCase() == sel ||
+              sub.slug.toLowerCase() == sel ||
+              sub.id.toString() == catTarget) {
+            return (
+              categoryId: int.tryParse(sub.parentId ?? c.id),
+              subcategoryId: int.tryParse(sub.id),
+            );
+          }
+        }
+        if (c.name.toLowerCase() == sel ||
+            c.slug.toLowerCase() == sel ||
+            c.id.toString() == catTarget) {
+          resolvedCategoryId = int.tryParse(c.id);
+        }
+      }
+      resolvedCategoryId ??= int.tryParse(catTarget);
+    }
+
+    if (subTarget != null && subTarget.isNotEmpty) {
+      final selSub = subTarget.toLowerCase().trim();
+      for (final c in categories) {
+        for (final sub in c.children) {
+          if (sub.name.toLowerCase() == selSub ||
+              sub.slug.toLowerCase() == selSub ||
+              sub.id.toString() == subTarget) {
+            resolvedSubcategoryId = int.tryParse(sub.id);
+            resolvedCategoryId ??= int.tryParse(sub.parentId ?? c.id);
+            break;
+          }
+        }
+      }
+      resolvedSubcategoryId ??= int.tryParse(subTarget);
+    }
+
+    return (
+      categoryId: resolvedCategoryId,
+      subcategoryId: resolvedSubcategoryId,
     );
-    return match.id != '0' ? int.tryParse(match.id) : null;
   }
 
   /// Refreshes the catalogue from page 1.
@@ -63,7 +106,7 @@ class PaginatedProductsNotifier
       final shopState = _ref.read(shopNotifierProvider);
       final categories =
           _ref.read(productCategoriesProvider).valueOrNull ?? const [];
-      final categoryId = _resolveCategoryId(shopState, categories);
+      final ids = _resolveCategoryIds(shopState, categories);
 
       final items = await repo.fetchProducts(
         page: 1,
@@ -71,7 +114,8 @@ class PaginatedProductsNotifier
         filter: shopState.filter,
         sort: shopState.sort,
         search: shopState.searchQuery,
-        categoryId: categoryId,
+        categoryId: ids.categoryId,
+        subcategoryId: ids.subcategoryId,
       );
 
       if (!mounted) return;
@@ -95,7 +139,7 @@ class PaginatedProductsNotifier
       final shopState = _ref.read(shopNotifierProvider);
       final categories =
           _ref.read(productCategoriesProvider).valueOrNull ?? const [];
-      final categoryId = _resolveCategoryId(shopState, categories);
+      final ids = _resolveCategoryIds(shopState, categories);
 
       final nextPage = state.currentPage + 1;
       final newItems = await repo.fetchProducts(
@@ -104,7 +148,8 @@ class PaginatedProductsNotifier
         filter: shopState.filter,
         sort: shopState.sort,
         search: shopState.searchQuery,
-        categoryId: categoryId,
+        categoryId: ids.categoryId,
+        subcategoryId: ids.subcategoryId,
       );
 
       if (!mounted) return;
@@ -121,7 +166,10 @@ class PaginatedProductsNotifier
   }
 }
 
-final paginatedProductsNotifierProvider = StateNotifierProvider.autoDispose<
-    PaginatedProductsNotifier, PaginatedListState<Product>>((ref) {
-  return PaginatedProductsNotifier(ref);
-});
+final paginatedProductsNotifierProvider =
+    StateNotifierProvider.autoDispose<
+      PaginatedProductsNotifier,
+      PaginatedListState<Product>
+    >((ref) {
+      return PaginatedProductsNotifier(ref);
+    });

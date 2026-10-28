@@ -171,6 +171,9 @@ class AuthMockRepository implements AuthRepository {
     }
   }
 
+  /// Valid pre-configured development and staging reset tokens.
+  static const Set<String> validResetTokens = {'0001', '0002', '0003', '0004'};
+
   @override
   Future<void> resetPassword({
     required String token,
@@ -179,8 +182,12 @@ class AuthMockRepository implements AuthRepository {
     String? email,
   }) async {
     await Future.delayed(const Duration(milliseconds: 300));
-    if (token.trim().isEmpty) {
+    final cleanToken = token.trim();
+    if (cleanToken.isEmpty) {
       throw Exception('Reset token or code is required.');
+    }
+    if (cleanToken == 'invalid' || cleanToken == 'expired') {
+      throw Exception('Invalid or expired reset token ($cleanToken). Use 0001, 0002, 0003, or 0004.');
     }
     if (password.length < 6) {
       throw Exception('Password must be at least 6 characters.');

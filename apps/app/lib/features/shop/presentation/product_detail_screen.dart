@@ -446,7 +446,7 @@ class _ProductDetailBody extends ConsumerWidget {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedFire, size: 18, color: AppColors.error),
+                            const HugeIcon(icon: HugeIcons.strokeRoundedFire, size: 18, color: AppColors.error),
                             const SizedBox(width: AppSpacing.sm),
                             Expanded(
                               child: RichText(
@@ -616,7 +616,7 @@ class _ProductDetailBody extends ConsumerWidget {
                               padding: EdgeInsets.zero,
                               visualDensity: VisualDensity.compact,
                               backgroundColor: cs.surfaceContainerHighest.withAlpha(100),
-                              side: BorderSide(color: AppColors.border),
+                              side: const BorderSide(color: AppColors.border),
                             ),
                           )
                           .toList(),
@@ -980,7 +980,7 @@ class _DetailBottomBar extends StatelessWidget {
                   Border.all(color: cs.outline.withAlpha(80), width: 1.5),
               borderRadius: AppSpacing.borderRadiusMD,
             ),
-            child: Center(
+            child: const Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedFavourite,
                 size: AppSpacing.iconSizeSM,
@@ -1055,7 +1055,7 @@ class _RelatedProductsRail extends ConsumerWidget {
                 child: GestureDetector(
                   onTap: () {
                     // Navigate to product detail
-                    context.push('/product/${p.slug}', extra: p.id);
+                    context.push('/product/${p.id}');
                   },
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1272,13 +1272,13 @@ class _AboutSellerTab extends StatelessWidget {
               label: const Text('Consumer Electronics'),
               labelStyle: AppTypography.label,
               backgroundColor: cs.surfaceContainerHighest.withAlpha(100),
-              side: BorderSide(color: AppColors.border),
+              side: const BorderSide(color: AppColors.border),
             ),
             Chip(
               label: const Text('Fashion & Apparel'),
               labelStyle: AppTypography.label,
               backgroundColor: cs.surfaceContainerHighest.withAlpha(100),
-              side: BorderSide(color: AppColors.border),
+              side: const BorderSide(color: AppColors.border),
             ),
           ],
         ),

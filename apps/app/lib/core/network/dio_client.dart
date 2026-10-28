@@ -4,6 +4,7 @@ import '../logging/dio_log_interceptor.dart';
 import '../providers/shared_preferences_provider.dart';
 import 'api_endpoints.dart';
 
+import '../../features/auth/application/session_expiration_coordinator.dart';
 import 'token_refresh_interceptor.dart';
 
 export 'api_endpoints.dart';
@@ -28,7 +29,15 @@ final dioProvider = Provider<Dio>((ref) {
   );
 
   dio.interceptors.addAll([
-    TokenRefreshInterceptor(dio: dio, prefs: prefs),
+    TokenRefreshInterceptor(
+      dio: dio,
+      prefs: prefs,
+      onSessionExpired: (role) {
+        ref
+            .read(sessionExpirationCoordinatorProvider)
+            .handleSessionExpired(role);
+      },
+    ),
     DioLogInterceptor(),
   ]);
 

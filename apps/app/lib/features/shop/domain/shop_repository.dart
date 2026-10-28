@@ -21,6 +21,7 @@ abstract class ShopRepository {
     int pageSize = 20,
     String? search,
     int? categoryId,
+    int? subcategoryId,
     int? brandId,
     int? vendorId,
     double? minPrice,
@@ -31,4 +32,22 @@ abstract class ShopRepository {
 
   /// Fetch product categories from /api/v1/product-categories.
   Future<List<ShopCategory>> fetchCategories({ListQueryParams? params});
+
+  /// Fetch product subcategories from /api/v1/product-subcategories.
+  Future<List<ShopCategory>> fetchSubcategories({ListQueryParams? params});
+
+  /// Fetch a single product subcategory by ID from /api/v1/product-subcategories/:id.
+  Future<ShopCategory?> fetchSubcategoryById(String id);
+
+  /// Fetch a single product variant by ID from /api/v1/product-variants/:id.
+  Future<ProductVariant?> fetchProductVariantById(String id);
+
+  /// Fetch featured products from /api/v1/storefront/mobile-app/featured-products.
+  Future<List<Product>> fetchFeaturedProducts();
+
+  /// Fetch trending products from /api/v1/storefront/mobile-app/trending-products.
+  Future<List<Product>> fetchTrendingProducts();
+
+  /// Fetch popular brands from /api/v1/storefront/popular-brands.
+  Future<List<Brand>> fetchPopularBrands();
 }

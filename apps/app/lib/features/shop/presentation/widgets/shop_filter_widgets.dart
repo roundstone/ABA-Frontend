@@ -1,9 +1,8 @@
+export 'category_tree_widget.dart';
 export 'shop_filter_header.dart';
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../domain/shop_entities.dart';
 
 class FilterSection extends StatelessWidget {
   const FilterSection({super.key, required this.title, required this.child});
@@ -17,9 +16,12 @@ class FilterSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: AppTypography.bodyMedium
-                  .copyWith(fontWeight: FontWeight.w700)),
+          Text(
+            title,
+            style: AppTypography.bodyMedium.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: AppSpacing.sm),
           child,
           const Divider(height: AppSpacing.xl),
@@ -69,105 +71,6 @@ class FilterChipWidget extends StatelessWidget {
     );
   }
 }
-
-class CategoryTreeWidget extends StatefulWidget {
-  const CategoryTreeWidget({
-    super.key,
-    required this.categories,
-    required this.selectedSlugs,
-    required this.onToggle,
-    required this.isDark,
-  });
-
-  final List<ShopCategory> categories;
-  final List<String> selectedSlugs;
-  final ValueChanged<String> onToggle;
-  final bool isDark;
-
-  @override
-  State<CategoryTreeWidget> createState() => _CategoryTreeWidgetState();
-}
-
-class _CategoryTreeWidgetState extends State<CategoryTreeWidget> {
-  final Set<String> _expanded = {};
-
-  Widget _buildNode(ShopCategory node) {
-    final fullPath = node.slug;
-    final isSelected = widget.selectedSlugs.contains(fullPath);
-    final hasChildren = node.children.isNotEmpty;
-    final isExpanded = _expanded.contains(node.id.toString());
-
-    final color = widget.isDark ? AppColors.secondary : AppColors.primary;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InkWell(
-          onTap: () => widget.onToggle(fullPath),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Row(
-              children: [
-                if (hasChildren)
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        if (isExpanded) {
-                          _expanded.remove(node.id.toString());
-                        } else {
-                          _expanded.add(node.id.toString());
-                        }
-                      });
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: Icon(
-                        isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
-                        size: 20,
-                        color: AppColors.grey,
-                      ),
-                    ),
-                  )
-                else
-                  const SizedBox(width: 28),
-                Expanded(
-                  child: Text(
-                    node.name,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: isSelected ? color : null,
-                      fontWeight: isSelected ? FontWeight.w700 : null,
-                    ),
-                  ),
-                ),
-                Text(
-                  '(${node.productCount})',
-                  style: AppTypography.label.copyWith(color: AppColors.grey),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (hasChildren && isExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 28.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: node.children.map((child) => _buildNode(child)).toList(),
-            ),
-          ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: widget.categories.map((c) => _buildNode(c)).toList(),
-    );
-  }
-}
-
 
 class PriceRangeSlider extends StatelessWidget {
   const PriceRangeSlider({

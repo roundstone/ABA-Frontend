@@ -1,11 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/merchant_mock_repository.dart';
+import '../../../core/network/dio_client.dart';
+import '../../shop/application/shop_providers.dart';
+import '../../shop/domain/shop_entities.dart';
+import '../data/merchant_remote_repository.dart';
 import '../domain/merchant_entities.dart';
 import '../domain/merchant_repository.dart';
 import 'merchant_filter_notifier.dart';
 
 final merchantRepositoryProvider = Provider<MerchantRepository>((ref) {
-  return MerchantMockRepository();
+  return MerchantRemoteRepository(ref.watch(dioProvider));
 });
 
 final merchantFilterProvider =
@@ -25,3 +28,23 @@ final merchantDetailProvider =
   final repo = ref.watch(merchantRepositoryProvider);
   return repo.getMerchantById(id);
 });
+
+final merchantProductsProvider =
+    FutureProvider.autoDispose.family<List<Product>, String>((ref, merchantId) async {
+  final shopRepo = ref.watch(shopRepositoryProvider);
+  final idNum = int.tryParse(merchantId);
+  return shopRepo.fetchProducts(
+    vendorId: idNum,
+    queryParams: ListQueryParams(
+      limit: 50,
+      customParams: {'merchantId': merchantId},
+    ),
+  );
+});
+
+final merchantsSpotlightProvider =
+    FutureProvider.autoDispose<List<Merchant>>((ref) async {
+  final repo = ref.watch(merchantRepositoryProvider);
+  return repo.getMerchantsSpotlight();
+});
+

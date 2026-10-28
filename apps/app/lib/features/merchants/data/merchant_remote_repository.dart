@@ -1,82 +1,162 @@
 import 'package:dio/dio.dart';
+import '../../../core/logging/app_logger.dart';
+import '../../../core/network/api_endpoints.dart';
+import '../../../core/network/api_response.dart';
+import '../../../core/network/list_query_params.dart';
 import '../domain/merchant_entities.dart';
 import '../domain/merchant_repository.dart';
+import 'merchant_mock_repository.dart';
 
 class MerchantRemoteRepository implements MerchantRepository {
   MerchantRemoteRepository(this._dio);
   final Dio _dio;
 
   @override
-  Future<MerchantDirectoryResult> getMerchants(
-    MerchantFilterParams params,
-  ) async {
-    final queryParams = <String, dynamic>{
-      if (params.query.isNotEmpty) 'q': params.query,
-      if (params.category.isNotEmpty) 'category': params.category,
-      if (params.state.isNotEmpty) 'state': params.state,
-      if (params.minRating != null) 'rating': params.minRating,
-      if (params.verifiedOnly) 'verified': '1',
-      'sort': params.sort.name,
-    };
+  Future<MerchantDirectoryResult> getMerchants([
+    MerchantFilterParams params = const MerchantFilterParams(),
+    ListQueryParams? queryParams,
+  ]) async {
+    try {
+      final query = <String, dynamic>{
+        'page': queryParams?.page ?? 1,
+        'limit': queryParams?.limit ?? 20,
+        'orderBy': queryParams?.orderBy ?? 'createdAt:DESC',
+      };
 
-    final response = await _dio.get(
-      '/merchants/directory',
-      queryParameters: queryParams,
-    );
+      final effectiveSearch = queryParams?.search ?? params.query;
+      if (effectiveSearch.trim().isNotEmpty) {
+        query['search'] = effectiveSearch.trim();
+      }
+      if (queryParams?.startDate != null) {
+        query['startDate'] = queryParams!.startDateString;
+      }
+      if (queryParams?.endDate != null) {
+        query['endDate'] = queryParams!.endDateString;
+      }
 
-    final data = response.data['data'] as List<dynamic>;
-    final facets = response.data['facets'] as Map<String, dynamic>? ?? {};
+      final response = await _dio.get(
+        ApiEndpoints.merchants.base,
+        queryParameters: query,
+      );
 
-    final merchants = data.map((json) => _mapJsonToMerchant(json)).toList();
-    final states = (facets['states'] as List<dynamic>?)
-            ?.map((e) => e.toString())
-            .toList() ??
-        [];
-    final categories = (facets['categories'] as List<dynamic>?)
-            ?.map((e) => e.toString())
-            .toList() ??
-        [];
+      final list = ApiResponse.unwrapList(response.data);
+      var merchants = list
+          .whereType<Map>()
+          .map((json) => Merchant.fromJson(Map<String, dynamic>.from(json)))
+          .toList();
 
-    return MerchantDirectoryResult(
-      merchants: merchants,
-      totalCount: merchants.length,
-      availableStates: states,
-      availableCategories: categories,
-    );
+      if (merchants.isNotEmpty) {
+        if (params.category.trim().isNotEmpty) {
+          merchants = merchants
+              .where((m) =>
+                  m.category.toLowerCase() ==
+                  params.category.trim().toLowerCase())
+              .toList();
+        }
+        if (params.state.trim().isNotEmpty) {
+          merchants = merchants
+              .where((m) =>
+                  m.state.toLowerCase() == params.state.trim().toLowerCase())
+              .toList();
+        }
+        if (params.minRating != null) {
+          merchants =
+              merchants.where((m) => m.rating >= params.minRating!).toList();
+        }
+        if (params.verifiedOnly) {
+          merchants = merchants.where((m) => m.isVerified).toList();
+        }
+
+        int total = merchants.length;
+        if (response.data is Map &&
+            response.data['data'] is Map &&
+            response.data['data']['meta'] is Map) {
+          total = (response.data['data']['meta']['totalItems'] as num?)
+                  ?.toInt() ??
+              merchants.length;
+        }
+
+        final states = merchants
+            .map((m) => m.state)
+            .where((s) => s.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
+        final categories = merchants
+            .map((m) => m.category)
+            .where((c) => c.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
+
+        return MerchantDirectoryResult(
+          merchants: merchants,
+          totalCount: total,
+          availableStates: states.isNotEmpty
+              ? states
+              : const ['Lagos', 'Abia', 'Abuja', 'Kano', 'Rivers'],
+          availableCategories: categories.isNotEmpty
+              ? categories
+              : const ['Clothing', 'Bags', 'Shoes', 'Electronics'],
+        );
+      }
+    } on DioException catch (e) {
+      AppLogger.w('MerchantRemoteRepository.getMerchants failed: ${e.message}');
+    } catch (e) {
+      AppLogger.e('MerchantRemoteRepository: error in getMerchants', error: e);
+    }
+
+    return MerchantMockRepository().getMerchants(params, queryParams);
   }
 
   @override
   Future<Merchant?> getMerchantById(String id) async {
-    final response = await _dio.get('/merchants/$id');
-    final data = response.data['data'];
-    if (data == null) return null;
-    return _mapJsonToMerchant(data as Map<String, dynamic>);
+    final isNumeric = int.tryParse(id) != null;
+    if (isNumeric) {
+      try {
+        final response = await _dio.get(ApiEndpoints.merchants.byId(id));
+        final map = ApiResponse.unwrapMap(response.data);
+        if (map.isNotEmpty) {
+          return Merchant.fromJson(map);
+        }
+      } catch (e) {
+        AppLogger.w('MerchantRemoteRepository.getMerchantById($id) failed: $e');
+      }
+    } else {
+      try {
+        final list = await getMerchants(
+          const MerchantFilterParams(),
+          ListQueryParams(search: id, limit: 5),
+        );
+        final match = list.merchants
+            .where((m) =>
+                m.id == id || m.name.toLowerCase() == id.toLowerCase())
+            .firstOrNull;
+        if (match != null &&
+            match.id.isNotEmpty &&
+            int.tryParse(match.id) != null) {
+          return getMerchantById(match.id);
+        }
+      } catch (_) {}
+    }
+    return MerchantMockRepository().getMerchantById(id);
   }
 
-  Merchant _mapJsonToMerchant(Map<String, dynamic> json) {
-    return Merchant(
-      id: json['id'] as String,
-      merchantNo: json['merchantNo'] as String? ?? '',
-      name: json['name'] as String,
-      legalName: json['legalName'] as String? ?? json['name'] as String,
-      logoUrl: json['logoUrl'] as String? ?? '',
-      bannerImage: json['bannerImage'] as String? ?? '',
-      description: json['description'] as String? ?? '',
-      ownerName: json['ownerName'] as String? ?? '',
-      phone: json['phone'] as String? ?? '',
-      email: json['email'] as String? ?? '',
-      address: json['address'] as String? ?? '',
-      city: json['city'] as String? ?? '',
-      state: json['state'] as String? ?? '',
-      category: json['category'] as String? ?? 'General',
-      rating: (json['rating'] as num?)?.toDouble() ?? 4.5,
-      reviewCount: (json['reviewCount'] as num?)?.toInt() ?? 0,
-      ordersCount: (json['ordersCount'] as num?)?.toInt() ?? 0,
-      isVerified: json['isVerified'] as bool? ?? false,
-      isFeatured: json['isFeatured'] as bool? ?? false,
-      onboardedAt: json['onboardedAt'] != null
-          ? DateTime.parse(json['onboardedAt'] as String)
-          : DateTime.now(),
-    );
+  @override
+  Future<List<Merchant>> getMerchantsSpotlight() async {
+    try {
+      final response = await _dio.get(ApiEndpoints.storefront.merchantsSpotlight);
+      final list = ApiResponse.unwrapList(response.data);
+      final merchants = list
+          .whereType<Map>()
+          .map((json) => Merchant.fromJson(Map<String, dynamic>.from(json)))
+          .toList();
+      if (merchants.isNotEmpty) return merchants;
+    } on DioException catch (e) {
+      AppLogger.w('MerchantRemoteRepository.getMerchantsSpotlight failed: ${e.message}');
+    } catch (e) {
+      AppLogger.e('MerchantRemoteRepository.getMerchantsSpotlight error', error: e);
+    }
+    return MerchantMockRepository().getMerchantsSpotlight();
   }
 }

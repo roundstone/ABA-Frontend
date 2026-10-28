@@ -50,5 +50,21 @@
 		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.abaerp.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>abaerp</string>
+				<string>buynaija</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

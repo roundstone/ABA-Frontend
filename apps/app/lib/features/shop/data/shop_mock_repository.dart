@@ -328,7 +328,7 @@ class ShopMockRepository implements ShopRepository {
   Future<Product?> fetchProductById(String id) async {
     await Future.delayed(const Duration(milliseconds: 400));
     try {
-      return _products.firstWhere((p) => p.id == id);
+      return _products.firstWhere((p) => p.id == id || p.slug == id);
     } catch (_) {
       return null;
     }
@@ -342,6 +342,7 @@ class ShopMockRepository implements ShopRepository {
     int pageSize = 20,
     String? search,
     int? categoryId,
+    int? subcategoryId,
     int? brandId,
     int? vendorId,
     double? minPrice,
@@ -398,6 +399,22 @@ class ShopMockRepository implements ShopRepository {
           .toList();
     }
 
+    if (subcategoryId != null) {
+      result = result
+          .where((p) => p.subcategoryId == subcategoryId || p.category.toLowerCase().contains(subcategoryId.toString()))
+          .toList();
+    }
+
+    final effectiveVendor = vendorId ??
+        (queryParams?.customParams['merchantId'] != null
+            ? int.tryParse(queryParams!.customParams['merchantId'].toString())
+            : null);
+    if (effectiveVendor != null) {
+      result = result
+          .where((p) => p.vendorId == effectiveVendor || p.merchantId == effectiveVendor)
+          .toList();
+    }
+
     switch (sort) {
       case SortOrder.nameAsc:
         result.sort((a, b) => a.name.compareTo(b.name));
@@ -428,5 +445,76 @@ class ShopMockRepository implements ShopRepository {
   Future<List<ShopCategory>> fetchCategories({ListQueryParams? params}) async {
     await Future.delayed(const Duration(milliseconds: 300));
     return List.unmodifiable(_categories);
+  }
+
+  @override
+  Future<List<ShopCategory>> fetchSubcategories({ListQueryParams? params}) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    var list = _categories.expand((c) => c.children).toList();
+    if (params?.categoryId != null) {
+      list = list.where((s) => s.parentId == params!.categoryId.toString()).toList();
+    }
+    if (params?.search != null && params!.search!.trim().isNotEmpty) {
+      final q = params.search!.trim().toLowerCase();
+      list = list.where((s) => s.name.toLowerCase().contains(q) || s.slug.toLowerCase().contains(q)).toList();
+    }
+    if (params?.isActive != null) {
+      list = list.where((s) => s.isActive == params!.isActive).toList();
+    }
+    return list;
+  }
+
+  @override
+  Future<ShopCategory?> fetchSubcategoryById(String id) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    final all = _categories.expand((c) => c.children);
+    return all.where((s) => s.id == id || s.slug == id).firstOrNull;
+  }
+
+  @override
+  Future<ProductVariant?> fetchProductVariantById(String id) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    for (final p in _products) {
+      for (final v in p.variants) {
+        if (v.id.toString() == id || v.sku == id) {
+          return v.product != null ? v : v.copyWith(product: p);
+        }
+      }
+    }
+    final numericId = int.tryParse(id);
+    if (numericId != null && _products.isNotEmpty) {
+      final p = _products.first;
+      return ProductVariant(
+        id: numericId,
+        productId: int.tryParse(p.id) ?? 7,
+        name: '${p.name} - Default',
+        sku: 'SKU-$id',
+        price: p.price,
+        product: p,
+      );
+    }
+    return null;
+  }
+
+  @override
+  Future<List<Product>> fetchFeaturedProducts() async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    return _products.where((p) => p.isFeatured).toList();
+  }
+
+  @override
+  Future<List<Product>> fetchTrendingProducts() async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    return _products.where((p) => !p.isFeatured).toList();
+  }
+
+  @override
+  Future<List<Brand>> fetchPopularBrands() async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    return const [
+      Brand(id: 1, name: 'ABA Demo', slug: 'aba-demo', isVerified: true, productCount: 121, orderedQuantity: 301),
+      Brand(id: 2, name: 'Aba Artisans', slug: 'aba-artisans', isVerified: true, productCount: 54, orderedQuantity: 180),
+      Brand(id: 3, name: 'Ariaria Craft', slug: 'ariaria-craft', isVerified: true, productCount: 32, orderedQuantity: 95),
+    ];
   }
 }
