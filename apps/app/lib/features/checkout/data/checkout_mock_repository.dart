@@ -109,6 +109,12 @@ class CheckoutMockRepository implements CheckoutRepository {
   }
 
   @override
+  Future<bool> verifyPaystackPayment(String reference) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return reference.trim().isNotEmpty;
+  }
+
+  @override
   Future<CheckoutOrderResult> placeOrder({
     required Cart cart,
     required CheckoutCustomerInfo customerInfo,
@@ -116,6 +122,7 @@ class CheckoutMockRepository implements CheckoutRepository {
     required DeliveryMethod deliveryMethod,
     required CheckoutPaymentType paymentType,
     ReferralCandidate? referral,
+    String? paymentReference,
   }) async {
     await Future.delayed(const Duration(milliseconds: 1000));
 

@@ -8,6 +8,10 @@ abstract class CheckoutRepository {
 
   Future<List<ReferralCandidate>> searchReferrals(String query);
 
+  /// Verifies Paystack transaction via GET /api/v1/payments/mobile-app/paystack/{reference}/verify
+  Future<bool> verifyPaystackPayment(String reference);
+
+  /// Creates mobile order via POST /api/v1/orders/mobile-app
   Future<CheckoutOrderResult> placeOrder({
     required Cart cart,
     required CheckoutCustomerInfo customerInfo,
@@ -15,5 +19,6 @@ abstract class CheckoutRepository {
     required DeliveryMethod deliveryMethod,
     required CheckoutPaymentType paymentType,
     ReferralCandidate? referral,
+    String? paymentReference,
   });
 }

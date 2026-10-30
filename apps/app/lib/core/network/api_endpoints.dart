@@ -1,7 +1,10 @@
+import 'api_sub_endpoints.dart';
+export 'api_sub_endpoints.dart';
+
 /// Centralized API Endpoints for the ABA ERP Mobile App.
-/// Base URL: https://aba-erp-backend.onrender.com
+/// Base URL: https://aba-erp-backend-6o3a.onrender.com
 abstract final class ApiEndpoints {
-  static const String baseUrl = 'https://aba-erp-backend.onrender.com';
+  static const String baseUrl = 'https://aba-erp-backend-6o3a.onrender.com';
   static const String apiV1 = '/api/v1';
 
   /// Returns full URL for a given relative endpoint path.
@@ -24,12 +27,16 @@ abstract final class ApiEndpoints {
   static const media = _MediaEndpoints();
   static const merchants = _MerchantsEndpoints();
   static const vendors = _VendorsEndpoints();
-  static const vendorBankAccounts = _VendorBankAccountsEndpoints();
-  static const vendorLocations = _VendorLocationsEndpoints();
-  static const admins = _AdminsEndpoints();
-  static const superAdmins = _SuperAdminsEndpoints();
-  static const dashboard = _DashboardEndpoints();
-  static const storefront = _StorefrontEndpoints();
+  static const vendorBankAccounts = VendorBankAccountsEndpoints();
+  static const vendorLocations = VendorLocationsEndpoints();
+  static const admins = AdminsEndpoints();
+  static const superAdmins = SuperAdminsEndpoints();
+  static const dashboard = DashboardEndpoints();
+  static const storefront = StorefrontEndpoints();
+  static const reviews = ReviewsEndpoints();
+  static const brands = BrandsEndpoints();
+  static const cart = CartEndpoints();
+  static const payments = PaymentsEndpoints();
 }
 
 /// 1. Auth Endpoints
@@ -72,7 +79,8 @@ class _RolesEndpoints {
   String get base => _base;
   String byId(String id) => '$_base/$id';
   String userRoles(String userId) => '$_base/users/$userId';
-  String userRole(String userId, String roleId) => '$_base/users/$userId/$roleId';
+  String userRole(String userId, String roleId) =>
+      '$_base/users/$userId/$roleId';
 }
 
 /// 5. Permissions Endpoints
@@ -110,6 +118,7 @@ class _OrdersEndpoints {
   static const String _base = '${ApiEndpoints.apiV1}/orders';
   String get base => _base;
   String byId(String id) => '$_base/$id';
+  String get mobileApp => '$_base/mobile-app';
 }
 
 /// 9. Marketers Endpoints
@@ -136,7 +145,6 @@ class _ProductCategoriesEndpoints {
 class _ProductSubcategoriesEndpoints {
   const _ProductSubcategoriesEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/product-subcategories';
-
   String get base => _base;
   String byId(String id) => '$_base/$id';
   String status(String id) => '$_base/$id/status';
@@ -146,7 +154,6 @@ class _ProductSubcategoriesEndpoints {
 class _ProductsEndpoints {
   const _ProductsEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/products';
-
   String get base => _base;
   String get overview => '$_base/overview';
   String byId(String id) => '$_base/$id';
@@ -158,7 +165,6 @@ class _ProductsEndpoints {
 class _ProductVariantsEndpoints {
   const _ProductVariantsEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/product-variants';
-
   String get base => _base;
   String byId(String id) => '$_base/$id';
   String status(String id) => '$_base/$id/status';
@@ -168,7 +174,6 @@ class _ProductVariantsEndpoints {
 class _MediaEndpoints {
   const _MediaEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/media';
-
   String get base => _base;
   String get upload => '$_base/upload';
   String byId(String id) => '$_base/$id';
@@ -179,7 +184,6 @@ class _MediaEndpoints {
 class _VendorsEndpoints {
   const _VendorsEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/vendors';
-
   String get base => _base;
   String byId(String id) => '$_base/$id';
   String verify(String id) => '$_base/$id/verify';
@@ -198,52 +202,4 @@ class _MerchantsEndpoints {
   String get base => _base;
   String byId(String id) => '$_base/$id';
   String status(String id) => '$_base/$id/status';
-}
-
-/// 15. Vendor Bank Accounts Endpoints
-class _VendorBankAccountsEndpoints {
-  const _VendorBankAccountsEndpoints();
-  static const String _base = '${ApiEndpoints.apiV1}/vendor-bank-accounts';
-  String get base => _base;
-  String byId(String id) => '$_base/$id';
-}
-
-/// 16. Vendor Locations Endpoints
-class _VendorLocationsEndpoints {
-  const _VendorLocationsEndpoints();
-  static const String _base = '${ApiEndpoints.apiV1}/vendor-locations';
-  String get base => _base;
-  String byId(String id) => '$_base/$id';
-}
-
-/// 17. Admins Endpoints
-class _AdminsEndpoints {
-  const _AdminsEndpoints();
-  static const String _base = '${ApiEndpoints.apiV1}/admins';
-  String get base => _base;
-  String byId(String id) => '$_base/$id';
-}
-
-/// 18. Super Admins Endpoints
-class _SuperAdminsEndpoints {
-  const _SuperAdminsEndpoints();
-  static const String _base = '${ApiEndpoints.apiV1}/super-admins';
-  String get base => _base;
-  String byId(String id) => '$_base/$id';
-}
-
-/// 19. Dashboard Endpoints
-class _DashboardEndpoints {
-  const _DashboardEndpoints();
-  String get base => '${ApiEndpoints.apiV1}/dashboard';
-}
-
-/// 20. Storefront Endpoints
-class _StorefrontEndpoints {
-  const _StorefrontEndpoints();
-  static const String _base = '${ApiEndpoints.apiV1}/storefront';
-  String get featuredProducts => '$_base/mobile-app/featured-products';
-  String get trendingProducts => '$_base/mobile-app/trending-products';
-  String get popularBrands => '$_base/popular-brands';
-  String get merchantsSpotlight => '$_base/merchants-spotlight';
 }

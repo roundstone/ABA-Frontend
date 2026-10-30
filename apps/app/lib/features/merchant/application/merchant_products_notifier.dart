@@ -120,6 +120,22 @@ class MerchantProductsNotifier extends StateNotifier<MerchantProductsState> {
     }
   }
 
+  Future<bool> deleteProduct(String productId) async {
+    state = state.copyWith(isSaving: true, errorMessage: null);
+    try {
+      await repository.deleteProduct(merchantId, productId);
+      final list = state.products.where((p) => p.id != productId).toList();
+      state = state.copyWith(products: list, isSaving: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isSaving: false,
+        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+      );
+      return false;
+    }
+  }
+
   Future<bool> adjustStock(String productId, int adjustment, String reason) async {
     state = state.copyWith(isSaving: true, errorMessage: null);
     try {

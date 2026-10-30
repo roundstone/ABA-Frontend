@@ -95,6 +95,20 @@ class Product {
   bool get hasDiscount => discount != null && discount! > 0;
   bool get inStock => stock > 0;
 
+  /// Web storefront canonical URL for sharing this product.
+  String get shareUrl {
+    final slugOrId = slug.trim().isNotEmpty
+        ? slug.trim()
+        : (name.trim().isNotEmpty
+            ? name
+                .trim()
+                .toLowerCase()
+                .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+                .replaceAll(RegExp(r'^-+|-+$'), '')
+            : id);
+    return 'https://abaonline.vercel.app/products/$slugOrId';
+  }
+
   factory Product.fromJson(Map<String, dynamic> json) {
     final rawSelling = json['base_selling_price'] ?? json['price'];
     final parsedSelling = rawSelling != null

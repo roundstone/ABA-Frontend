@@ -17,7 +17,10 @@ void main() {
       expect(params.customParams, isEmpty);
 
       final map = params.toMap();
-      expect(map, equals({'page': 1, 'limit': 10, 'orderBy': 'createdAt:DESC'}));
+      expect(
+        map,
+        equals({'page': 1, 'limit': 10, 'orderBy': 'createdAt:DESC'}),
+      );
     });
 
     test('serializes free-text search term correctly', () {
@@ -42,81 +45,90 @@ void main() {
       expect(map['endDate'], equals('2026-01-31'));
     });
 
-    test('handles orderBy expressions and parses sortField and sortDirection', () {
-      const descParams = ListQueryParams(orderBy: 'createdAt:DESC');
-      expect(descParams.sortField, equals('createdAt'));
-      expect(descParams.sortDirection, equals(SortDirection.desc));
-      expect(descParams.toMap()['orderBy'], equals('createdAt:DESC'));
+    test(
+      'handles orderBy expressions and parses sortField and sortDirection',
+      () {
+        const descParams = ListQueryParams(orderBy: 'createdAt:DESC');
+        expect(descParams.sortField, equals('createdAt'));
+        expect(descParams.sortDirection, equals(SortDirection.desc));
+        expect(descParams.toMap()['orderBy'], equals('createdAt:DESC'));
 
-      const ascParams = ListQueryParams(orderBy: 'amount:ASC');
-      expect(ascParams.sortField, equals('amount'));
-      expect(ascParams.sortDirection, equals(SortDirection.asc));
+        const ascParams = ListQueryParams(orderBy: 'amount:ASC');
+        expect(ascParams.sortField, equals('amount'));
+        expect(ascParams.sortDirection, equals(SortDirection.asc));
 
-      final orderedFactory = ListQueryParams.ordered(
-        field: 'createdAt',
-        direction: SortDirection.desc,
-      );
-      expect(orderedFactory.orderBy, equals('createdAt:DESC'));
-    });
+        final orderedFactory = ListQueryParams.ordered(
+          field: 'createdAt',
+          direction: SortDirection.desc,
+        );
+        expect(orderedFactory.orderBy, equals('createdAt:DESC'));
+      },
+    );
 
-    test('serializes isActive, categoryId, and includeVariants query parameters', () {
-      const params = ListQueryParams(
-        isActive: true,
-        categoryId: 3,
-        includeVariants: true,
-      );
+    test(
+      'serializes isActive, categoryId, and includeVariants query parameters',
+      () {
+        const params = ListQueryParams(
+          isActive: true,
+          categoryId: 3,
+          includeVariants: true,
+        );
 
-      final map = params.toMap();
-      expect(map['isActive'], isTrue);
-      expect(map['categoryId'], equals(3));
-      expect(map['includeVariants'], isTrue);
+        final map = params.toMap();
+        expect(map['isActive'], isTrue);
+        expect(map['categoryId'], equals(3));
+        expect(map['includeVariants'], isTrue);
 
-      final queryStr = params.toQueryString();
-      expect(queryStr, contains('isActive=true'));
-      expect(queryStr, contains('categoryId=3'));
-      expect(queryStr, contains('includeVariants=true'));
-    });
+        final queryStr = params.toQueryString();
+        expect(queryStr, contains('isActive=true'));
+        expect(queryStr, contains('categoryId=3'));
+        expect(queryStr, contains('includeVariants=true'));
+      },
+    );
 
-    test('serializes complete sample dataset matching backend specification', () {
-      final params = ListQueryParams(
-        page: 1,
-        limit: 10,
-        search: 'Adeyemi',
-        startDate: DateTime(2026, 1, 1),
-        endDate: DateTime(2026, 1, 31),
-        orderBy: 'createdAt:DESC',
-        isActive: true,
-        categoryId: 3,
-        includeVariants: true,
-      );
+    test(
+      'serializes complete sample dataset matching backend specification',
+      () {
+        final params = ListQueryParams(
+          page: 1,
+          limit: 10,
+          search: 'Adeyemi',
+          startDate: DateTime(2026, 1, 1),
+          endDate: DateTime(2026, 1, 31),
+          orderBy: 'createdAt:DESC',
+          isActive: true,
+          categoryId: 3,
+          includeVariants: true,
+        );
 
-      final map = params.toMap();
-      expect(
-        map,
-        equals({
-          'page': 1,
-          'limit': 10,
-          'search': 'Adeyemi',
-          'startDate': '2026-01-01',
-          'endDate': '2026-01-31',
-          'orderBy': 'createdAt:DESC',
-          'isActive': true,
-          'categoryId': 3,
-          'includeVariants': true,
-        }),
-      );
+        final map = params.toMap();
+        expect(
+          map,
+          equals({
+            'page': 1,
+            'limit': 10,
+            'search': 'Adeyemi',
+            'startDate': '2026-01-01',
+            'endDate': '2026-01-31',
+            'orderBy': 'createdAt:DESC',
+            'isActive': true,
+            'categoryId': 3,
+            'includeVariants': true,
+          }),
+        );
 
-      final queryString = params.toQueryString();
-      expect(queryString, contains('page=1'));
-      expect(queryString, contains('limit=10'));
-      expect(queryString, contains('search=Adeyemi'));
-      expect(queryString, contains('startDate=2026-01-01'));
-      expect(queryString, contains('endDate=2026-01-31'));
-      expect(queryString, contains('orderBy=createdAt%3ADESC'));
-      expect(queryString, contains('isActive=true'));
-      expect(queryString, contains('categoryId=3'));
-      expect(queryString, contains('includeVariants=true'));
-    });
+        final queryString = params.toQueryString();
+        expect(queryString, contains('page=1'));
+        expect(queryString, contains('limit=10'));
+        expect(queryString, contains('search=Adeyemi'));
+        expect(queryString, contains('startDate=2026-01-01'));
+        expect(queryString, contains('endDate=2026-01-31'));
+        expect(queryString, contains('orderBy=createdAt%3ADESC'));
+        expect(queryString, contains('isActive=true'));
+        expect(queryString, contains('categoryId=3'));
+        expect(queryString, contains('includeVariants=true'));
+      },
+    );
 
     test('supports custom query parameters and endpoint-specific filters', () {
       final params = const ListQueryParams()
@@ -165,7 +177,7 @@ void main() {
 
     test('fromUri parses URI query parameters', () {
       final uri = Uri.parse(
-        'https://aba-erp-backend.onrender.com/api/v1/products?page=3&limit=15&search=Adeyemi&categoryId=3&isActive=true&includeVariants=true&orderBy=createdAt:DESC',
+        'https://aba-erp-backend-6o3a.onrender.com/api/v1/products?page=3&limit=15&search=Adeyemi&categoryId=3&isActive=true&includeVariants=true&orderBy=createdAt:DESC',
       );
       final params = ListQueryParams.fromUri(uri);
       expect(params.page, equals(3));
@@ -177,20 +189,23 @@ void main() {
       expect(params.orderBy, equals('createdAt:DESC'));
     });
 
-    test('fluent helpers withActive, withCategory, and withVariants work correctly', () {
-      const initial = ListQueryParams(page: 3);
-      final active = initial.withActive(true);
-      expect(active.isActive, isTrue);
-      expect(active.page, equals(1)); // resets to page 1
+    test(
+      'fluent helpers withActive, withCategory, and withVariants work correctly',
+      () {
+        const initial = ListQueryParams(page: 3);
+        final active = initial.withActive(true);
+        expect(active.isActive, isTrue);
+        expect(active.page, equals(1)); // resets to page 1
 
-      final category = initial.withCategory(5);
-      expect(category.categoryId, equals(5));
-      expect(category.page, equals(1)); // resets to page 1
+        final category = initial.withCategory(5);
+        expect(category.categoryId, equals(5));
+        expect(category.page, equals(1)); // resets to page 1
 
-      final variants = initial.withVariants(true);
-      expect(variants.includeVariants, isTrue);
-      expect(variants.page, equals(3)); // preserves page
-    });
+        final variants = initial.withVariants(true);
+        expect(variants.includeVariants, isTrue);
+        expect(variants.page, equals(3)); // preserves page
+      },
+    );
 
     test('pagination helpers work correctly', () {
       const initial = ListQueryParams(page: 1, limit: 10);

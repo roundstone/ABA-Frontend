@@ -4,10 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../core/router/safe_navigation.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../shop/domain/shop_entities.dart';
 import '../application/merchant_providers.dart';
 import '../domain/merchant_order_entities.dart';
+import '../domain/merchant_product_entities.dart';
+import 'widgets/pos_category_filter_bar.dart';
 import 'widgets/pos_checkout_drawer.dart';
-import 'widgets/pos_product_tile.dart';
+import 'widgets/pos_products_grid.dart';
 
 class POSScreen extends ConsumerStatefulWidget {
   const POSScreen({super.key});
@@ -18,34 +21,56 @@ class POSScreen extends ConsumerStatefulWidget {
 
 class _POSScreenState extends ConsumerState<POSScreen> {
   final Map<String, int> _cart = {}; // productId -> quantity
-  String _selectedCategory = 'All';
+  ShopCategory? _selectedCategory;
+  ShopCategory? _selectedSubcategory;
   String _searchQuery = '';
   String _paymentMethod = 'Cash';
+
+  bool _matchesFilter(MerchantProduct p) {
+    if (_selectedCategory != null) {
+      final catId = int.tryParse(_selectedCategory!.id);
+      final matchId = catId != null && p.categoryId == catId;
+      final matchName =
+          p.category.toLowerCase() == _selectedCategory!.name.toLowerCase();
+      if (!matchId && !matchName) return false;
+    }
+    if (_selectedSubcategory != null) {
+      final subId = int.tryParse(_selectedSubcategory!.id);
+      final matchId = subId != null && p.subcategoryId == subId;
+      final matchName =
+          p.category.toLowerCase() ==
+              _selectedSubcategory!.name.toLowerCase() ||
+          p.name.toLowerCase().contains(
+            _selectedSubcategory!.name.toLowerCase(),
+          );
+      if (!matchId && !matchName) return false;
+    }
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      if (!p.name.toLowerCase().contains(q) && !p.sku.toLowerCase().contains(q)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final productsState = ref.watch(merchantProductsProvider);
     final products = productsState.products;
-
-    final filtered = products.where((p) {
-      final matchCat =
-          _selectedCategory == 'All' || p.category == _selectedCategory;
-      final matchSearch =
-          _searchQuery.isEmpty ||
-          p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          p.sku.toLowerCase().contains(_searchQuery.toLowerCase());
-      return matchCat && matchSearch;
-    }).toList();
-
-    final categories = ['All', ...products.map((p) => p.category).toSet()];
+    final categoriesAsync = ref.watch(merchantCategoriesProvider);
+    final categories = categoriesAsync.valueOrNull ?? const <ShopCategory>[];
+    final filtered = products.where(_matchesFilter).toList();
 
     double subtotal = 0;
     int totalItems = 0;
     _cart.forEach((id, qty) {
-      final p = products.firstWhere((item) => item.id == id);
-      subtotal += p.price * qty;
-      totalItems += qty;
+      final p = products.where((item) => item.id == id).firstOrNull;
+      if (p != null) {
+        subtotal += p.price * qty;
+        totalItems += qty;
+      }
     });
 
     return Scaffold(
@@ -76,6 +101,12 @@ class _POSScreenState extends ConsumerState<POSScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'Refresh Products',
+            icon: const Icon(Icons.refresh, size: 20),
+            onPressed: () =>
+                ref.read(merchantProductsProvider.notifier).loadProducts(),
+          ),
           if (_cart.isNotEmpty)
             IconButton(
               tooltip: 'Clear Cart',
@@ -113,51 +144,38 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                     onChanged: (val) => setState(() => _searchQuery = val),
                   ),
                   const SizedBox(height: 8),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: categories.map((cat) {
-                        final isSelected = _selectedCategory == cat;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 6),
-                          child: ChoiceChip(
-                            label: Text(
-                              cat,
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                            selected: isSelected,
-                            onSelected: (_) =>
-                                setState(() => _selectedCategory = cat),
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                  PosCategoryFilterBar(
+                    categories: categories,
+                    selectedCategory: _selectedCategory,
+                    selectedSubcategory: _selectedSubcategory,
+                    isLoading: categoriesAsync.isLoading && categories.isEmpty,
+                    onSelectCategory: (cat) => setState(() {
+                      _selectedCategory = cat;
+                      _selectedSubcategory = null;
+                    }),
+                    onSelectSubcategory: (sub) =>
+                        setState(() => _selectedSubcategory = sub),
                   ),
                 ],
               ),
             ),
             Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.all(AppSpacing.sm),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.25,
-                  crossAxisSpacing: AppSpacing.sm,
-                  mainAxisSpacing: AppSpacing.sm,
+              child: RefreshIndicator(
+                onRefresh: () =>
+                    ref.read(merchantProductsProvider.notifier).loadProducts(),
+                child: PosProductsGrid(
+                  products: filtered,
+                  cart: _cart,
+                  isLoading: productsState.isLoading,
+                  errorMessage: productsState.errorMessage,
+                  onAddToCart: (p) {
+                    if (p.isOutOfStock) return;
+                    setState(() => _cart[p.id] = (_cart[p.id] ?? 0) + 1);
+                  },
+                  onRetry: () => ref
+                      .read(merchantProductsProvider.notifier)
+                      .loadProducts(),
                 ),
-                itemCount: filtered.length,
-                itemBuilder: (context, i) {
-                  final p = filtered[i];
-                  final inCartQty = _cart[p.id] ?? 0;
-                  return PosProductTile(
-                    product: p,
-                    inCartQty: inCartQty,
-                    onTap: () {
-                      if (p.isOutOfStock) return;
-                      setState(() => _cart[p.id] = inCartQty + 1);
-                    },
-                  );
-                },
               ),
             ),
             if (_cart.isNotEmpty)
@@ -181,6 +199,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     double subtotal,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final products = ref.read(merchantProductsProvider).products;
     final order = MerchantOrder(
       id: 'ORD-${DateTime.now().millisecondsSinceEpoch % 100000}',
       customerName: 'Walk-in Customer',
@@ -191,10 +210,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
       paymentStatus: MerchantPaymentStatus.paid,
       paymentMethod: _paymentMethod,
       items: _cart.entries.map((e) {
-        final p = ref
-            .read(merchantProductsProvider)
-            .products
-            .firstWhere((item) => item.id == e.key);
+        final p = products.firstWhere((item) => item.id == e.key);
         return MerchantOrderItem(
           id: 'item-${e.key}',
           productId: p.id,
@@ -223,9 +239,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     setState(() => _cart.clear());
     messenger.showSnackBar(
       SnackBar(
-        content: Text(
-          'Sale completed! ${order.id} recorded with $_paymentMethod.',
-        ),
+        content: Text('Sale completed! ${order.id} recorded with $_paymentMethod.'),
         backgroundColor: const Color(0xFF10B981),
       ),
     );

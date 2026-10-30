@@ -9,10 +9,12 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../shop/application/shop_providers.dart';
 import '../application/checkout_providers.dart';
+import '../domain/checkout_entities.dart';
 import 'checkout_success_screen.dart';
 import 'widgets/checkout_progress_bar.dart';
 import 'widgets/checkout_referral_section.dart';
 import 'widgets/checkout_summary_card.dart';
+import 'widgets/paystack_payment_sheet.dart';
 import 'widgets/step_customer_info.dart';
 import 'widgets/step_delivery_address.dart';
 import 'widgets/step_delivery_method.dart';
@@ -216,7 +218,19 @@ class CheckoutScreen extends ConsumerWidget {
           onEditPayment: () => notifier.goToStep(4),
           onBack: notifier.prevStep,
           onPlaceOrder: () async {
-            final res = await notifier.submitOrder(cart);
+            String? paymentRef;
+            if (checkoutState.paymentType == CheckoutPaymentType.paystack ||
+                checkoutState.paymentType == CheckoutPaymentType.card) {
+              final deliveryCost = checkoutState.selectedDeliveryMethod?.cost ?? 2500.0;
+              final total = cart.subtotal + deliveryCost + cart.tax;
+              final email = checkoutState.customerInfo.email.isNotEmpty
+                  ? checkoutState.customerInfo.email
+                  : 'customer@aba.ng';
+              paymentRef = await PaystackPaymentSheet.show(context, amount: total, email: email);
+              if (paymentRef == null || paymentRef.isEmpty) return;
+            }
+
+            final res = await notifier.submitOrder(cart, paymentReference: paymentRef);
             if (res != null && context.mounted) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(

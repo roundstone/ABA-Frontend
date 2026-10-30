@@ -136,7 +136,10 @@ class StepReviewOrder extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: AppButton.primary(
-                  label: 'Place Order (${formatNaira(grandTotal)})',
+                  label: (state.paymentType == CheckoutPaymentType.paystack ||
+                          state.paymentType == CheckoutPaymentType.card)
+                      ? 'Pay with Paystack (${formatNaira(grandTotal)})'
+                      : 'Place Order (${formatNaira(grandTotal)})',
                   isLoading: state.isSubmitting,
                   onPressed: state.isSubmitting ? null : onPlaceOrder,
                 ),
@@ -182,8 +185,10 @@ class StepReviewOrder extends StatelessWidget {
 
   String _paymentMethodLabel(CheckoutPaymentType type) {
     switch (type) {
+      case CheckoutPaymentType.paystack:
+        return 'Paystack Gateway';
       case CheckoutPaymentType.card:
-        return 'Card Payment (Gateway)';
+        return 'Paystack (Card)';
       case CheckoutPaymentType.wallet:
         return 'ABA Wallet';
       case CheckoutPaymentType.bankTransfer:

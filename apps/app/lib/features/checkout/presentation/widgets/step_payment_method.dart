@@ -34,9 +34,7 @@ class StepPaymentMethod extends ConsumerWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: AppSpacing.borderRadiusLG,
-        border: Border.all(
-          color: isDark ? Colors.white12 : AppColors.border,
-        ),
+        border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,21 +47,25 @@ class StepPaymentMethod extends ConsumerWidget {
                 size: 20,
               ),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Payment Method',
-                style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
-              ),
+              Text('Payment Method', style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700)),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-
-          // 1. Credit / Debit Card
+          // 1. Paystack Gateway (Card, Transfer, USSD)
           _PaymentOptionTile(
-            isSelected: selectedType == CheckoutPaymentType.card,
-            onTap: () => onSelectType(CheckoutPaymentType.card),
+            isSelected: selectedType == CheckoutPaymentType.paystack || selectedType == CheckoutPaymentType.card,
+            onTap: () => onSelectType(CheckoutPaymentType.paystack),
             icon: HugeIcons.strokeRoundedCreditCard,
-            title: 'Credit / Debit Card',
-            subtitle: 'Secure payment via Visa, Mastercard, or Verve',
+            title: 'Paystack Gateway',
+            subtitle: 'Debit card, Bank Transfer, USSD (Secured by Paystack)',
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0BA4DB).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text('paystack', style: TextStyle(color: Color(0xFF0BA4DB), fontSize: 10, fontWeight: FontWeight.bold)),
+            ),
           ),
 
           // 2. ABA Wallet
@@ -158,6 +160,7 @@ class _PaymentOptionTile extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.trailing,
   });
 
   final bool isSelected;
@@ -165,6 +168,7 @@ class _PaymentOptionTile extends StatelessWidget {
   final List<List<dynamic>> icon;
   final String title;
   final String subtitle;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -219,6 +223,10 @@ class _PaymentOptionTile extends StatelessWidget {
                 ],
               ),
             ),
+            if (trailing != null) ...[
+              trailing!,
+              const SizedBox(width: AppSpacing.xs),
+            ],
             if (isSelected)
               HugeIcon(
                 icon: HugeIcons.strokeRoundedCheckmarkCircle02,

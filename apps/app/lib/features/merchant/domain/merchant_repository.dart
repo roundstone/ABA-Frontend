@@ -1,3 +1,4 @@
+import '../../shop/domain/shop_entities.dart';
 import 'merchant_dashboard_entities.dart';
 import 'merchant_product_entities.dart';
 import 'merchant_order_entities.dart';
@@ -9,6 +10,8 @@ abstract class MerchantRepository {
     String merchantId, {
     String? query,
     String? category,
+    int? categoryId,
+    int? subcategoryId,
     String? stockFilter,
   });
 
@@ -22,12 +25,23 @@ abstract class MerchantRepository {
     MerchantProduct product,
   );
 
+  Future<void> deleteProduct(
+    String merchantId,
+    String productId,
+  );
+
   Future<void> adjustStock(
     String merchantId,
     String productId,
     int adjustment,
     String reason,
   );
+
+  Future<List<ShopCategory>> getCategories();
+
+  Future<List<ShopCategory>> getSubcategories({int? categoryId});
+
+  Future<List<Brand>> getBrands();
 
   Future<List<MerchantOrder>> getOrders(
     String merchantId, {

@@ -7,6 +7,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../application/merchant_providers.dart';
+import '../domain/merchant_product_entities.dart';
 import 'widgets/merchant_product_card.dart';
 import 'widgets/merchant_product_form_sheet.dart';
 import 'widgets/merchant_stock_adjust_sheet.dart';
@@ -15,28 +16,13 @@ class MerchantProductsScreen extends ConsumerStatefulWidget {
   const MerchantProductsScreen({super.key});
 
   @override
-  ConsumerState<MerchantProductsScreen> createState() =>
-      _MerchantProductsScreenState();
+  ConsumerState<MerchantProductsScreen> createState() => _MerchantProductsScreenState();
 }
 
-class _MerchantProductsScreenState
-    extends ConsumerState<MerchantProductsScreen> {
+class _MerchantProductsScreenState extends ConsumerState<MerchantProductsScreen> {
   final _searchCtrl = TextEditingController();
 
-  final List<String> _categories = [
-    'All',
-    'Shoes & Footwear',
-    'Bags & Luggage',
-    'Fashion & Textiles',
-    'Accessories',
-  ];
-
-  final List<String> _stockFilters = [
-    'All',
-    'In Stock',
-    'Low Stock',
-    'Out of Stock',
-  ];
+  static const List<String> _stockFilters = ['All', 'In Stock', 'Low Stock', 'Out of Stock'];
 
   @override
   void dispose() {
@@ -49,18 +35,14 @@ class _MerchantProductsScreenState
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = ref.watch(merchantProductsProvider);
     final notifier = ref.read(merchantProductsProvider.notifier);
+    final loadedCats = ref.watch(merchantCategoriesProvider).valueOrNull?.map((c) => c.name).toList() ?? [];
+    final categories = <String>{'All', ...loadedCats, ...state.products.map((p) => p.category)}.toList();
 
     return Scaffold(
-      backgroundColor: isDark
-          ? const Color(0xFF121212)
-          : const Color(0xFFF8F9FA),
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF8F9FA),
       appBar: AppBar(
         leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: isDark ? Colors.white : AppColors.onBackground,
-            size: 20,
-          ),
+          icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: isDark ? Colors.white : AppColors.onBackground, size: 20),
           tooltip: 'Back',
           onPressed: () => context.popOrGo('/merchant'),
         ),
@@ -80,19 +62,13 @@ class _MerchantProductsScreenState
       ),
       body: PopScope(
         canPop: context.canPopSafely,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return;
-          context.popOrGo('/merchant');
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) context.popOrGo('/merchant');
         },
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.sm,
-                AppSpacing.md,
-                AppSpacing.sm,
-              ),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.sm),
               color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
               child: Column(
                 children: [
@@ -104,11 +80,10 @@ class _MerchantProductsScreenState
                     onChanged: (val) => notifier.setSearchQuery(val),
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  // Category filter chips
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: _categories.map((cat) {
+                      children: categories.map((cat) {
                         final isSelected = state.selectedCategory == cat;
                         return Padding(
                           padding: const EdgeInsets.only(right: 6),
@@ -116,22 +91,14 @@ class _MerchantProductsScreenState
                             label: Text(cat),
                             selected: isSelected,
                             onSelected: (_) => notifier.setCategory(cat),
-                            selectedColor: isDark
-                                ? AppColors.secondary.withAlpha(60)
-                                : AppColors.primary.withAlpha(40),
-                            labelStyle: TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
+                            selectedColor: isDark ? AppColors.secondary.withAlpha(60) : AppColors.primary.withAlpha(40),
+                            labelStyle: TextStyle(fontSize: 11.5, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
                           ),
                         );
                       }).toList(),
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // Stock filter chips
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -143,12 +110,7 @@ class _MerchantProductsScreenState
                             label: Text(st),
                             selected: isSelected,
                             onSelected: (_) => notifier.setStockFilter(st),
-                            labelStyle: TextStyle(
-                              fontSize: 11,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
+                            labelStyle: TextStyle(fontSize: 11, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
                           ),
                         );
                       }).toList(),
@@ -170,16 +132,9 @@ class _MerchantProductsScreenState
                                   child: Center(
                                     child: Column(
                                       children: [
-                                        Icon(
-                                          Icons.inventory_2_outlined,
-                                          size: 48,
-                                          color: Colors.grey,
-                                        ),
+                                        Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey),
                                         SizedBox(height: AppSpacing.md),
-                                        Text(
-                                          'No matching products found.',
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
+                                        Text('No matching products found.', style: TextStyle(color: Colors.grey)),
                                       ],
                                     ),
                                   ),
@@ -194,12 +149,12 @@ class _MerchantProductsScreenState
                                 return MerchantProductCard(
                                   product: p,
                                   onEdit: () => _openProductForm(context, p),
+                                  onDelete: () => _confirmDeleteProduct(context, p),
                                   onAdjustStock: () {
                                     MerchantStockAdjustSheet.show(
                                       context,
                                       product: p,
-                                      onConfirm: (delta, reason) => notifier
-                                          .adjustStock(p.id, delta, reason),
+                                      onConfirm: (delta, reason) => notifier.adjustStock(p.id, delta, reason),
                                     );
                                   },
                                 );
@@ -213,19 +168,55 @@ class _MerchantProductsScreenState
     );
   }
 
-  void _openProductForm(BuildContext context, dynamic product) {
+  void _openProductForm(BuildContext context, MerchantProduct? product) {
     MerchantProductFormSheet.show(
       context,
       existingProduct: product,
-      onSave: (saved) {
-        if (product == null) {
-          return ref.read(merchantProductsProvider.notifier).addProduct(saved);
-        } else {
-          return ref
-              .read(merchantProductsProvider.notifier)
-              .updateProduct(saved);
+      onSave: (saved) async {
+        final notifier = ref.read(merchantProductsProvider.notifier);
+        final ok = product == null ? await notifier.addProduct(saved) : await notifier.updateProduct(saved);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(ok
+                  ? (product == null ? 'Product published successfully' : 'Product updated successfully')
+                  : 'Failed to save product'),
+              backgroundColor: ok ? AppColors.success : AppColors.error,
+            ),
+          );
         }
+        return ok;
       },
     );
+  }
+
+  void _confirmDeleteProduct(BuildContext context, MerchantProduct product) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Product'),
+        content: Text('Are you sure you want to delete "${product.name}"? This action cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final success = await ref.read(merchantProductsProvider.notifier).deleteProduct(product.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success ? 'Product deleted successfully' : 'Failed to delete product'),
+            backgroundColor: success ? AppColors.success : AppColors.error,
+          ),
+        );
+      }
+    }
   }
 }

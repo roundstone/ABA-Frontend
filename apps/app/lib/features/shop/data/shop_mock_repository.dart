@@ -1,3 +1,4 @@
+import '../../../core/network/api_response.dart';
 import '../../../core/network/list_query_params.dart';
 import '../domain/shop_entities.dart';
 import '../domain/shop_repository.dart';
@@ -516,5 +517,113 @@ class ShopMockRepository implements ShopRepository {
       Brand(id: 2, name: 'Aba Artisans', slug: 'aba-artisans', isVerified: true, productCount: 54, orderedQuantity: 180),
       Brand(id: 3, name: 'Ariaria Craft', slug: 'ariaria-craft', isVerified: true, productCount: 32, orderedQuantity: 95),
     ];
+  }
+
+  static final List<ProductReview> _reviews = [
+    ProductReview(
+      id: 9,
+      customerId: 42,
+      userId: 46,
+      rating: 4.5,
+      reviewableType: 'product',
+      reviewableId: 93,
+      comment: 'Fast delivery and craftsmanship is top-notch. Highly recommended!',
+      authorName: 'Chinedu Okafor',
+      authorUsername: 'chinedu.o',
+      createdAt: DateTime.utc(2026, 10, 27, 9, 18, 41),
+      updatedAt: DateTime.utc(2026, 10, 27, 9, 18, 41),
+    ),
+    ProductReview(
+      id: 10,
+      customerId: 43,
+      userId: 47,
+      rating: 5.0,
+      reviewableType: 'product',
+      reviewableId: 114,
+      comment: 'Authentic Nigerian quality — stitching and finish exceeded expectations.',
+      authorName: 'Amina Bello',
+      authorUsername: 'amina.b',
+      createdAt: DateTime.utc(2026, 10, 26, 14, 10, 0),
+      updatedAt: DateTime.utc(2026, 10, 26, 14, 10, 0),
+    ),
+  ];
+
+  @override
+  Future<PaginatedData<ProductReview>> fetchReviews({
+    ListQueryParams? params,
+    int? reviewableId,
+    String reviewableType = 'product',
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    var items = _reviews
+        .where((r) => r.reviewableType.toLowerCase() == reviewableType.toLowerCase())
+        .toList();
+    if (reviewableId != null) {
+      final exact = items.where((r) => r.reviewableId == reviewableId).toList();
+      if (exact.isNotEmpty) items = exact;
+    }
+    if (params?.search != null && params!.search!.trim().isNotEmpty) {
+      final q = params.search!.trim().toLowerCase();
+      items = items
+          .where((r) => r.comment.toLowerCase().contains(q) || r.authorName.toLowerCase().contains(q))
+          .toList();
+    }
+    final page = params?.page ?? 1;
+    final limit = params?.limit ?? 10;
+    final start = ((page - 1) * limit).clamp(0, items.length);
+    final end = (start + limit).clamp(0, items.length);
+    final sliced = items.sublist(start, end);
+    return PaginatedData<ProductReview>(
+      items: sliced,
+      meta: PaginationMeta(
+        totalItems: items.length,
+        itemCount: sliced.length,
+        itemsPerPage: limit,
+        totalPages: items.isEmpty ? 0 : ((items.length + limit - 1) ~/ limit),
+        currentPage: page,
+      ),
+    );
+  }
+
+  @override
+  Future<ProductReview> createReview(CreateReviewInput input) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    final now = DateTime.now().toUtc();
+    final created = ProductReview(
+      id: DateTime.now().millisecondsSinceEpoch % 100000,
+      reviewableType: input.reviewableType,
+      reviewableId: input.reviewableId,
+      rating: input.rating,
+      comment: input.comment.trim(),
+      authorName: 'You',
+      createdAt: now,
+      updatedAt: now,
+    );
+    _reviews.insert(0, created);
+    return created;
+  }
+
+  @override
+  Future<ProductReview> updateReview(String id, UpdateReviewInput input) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    final numericId = int.tryParse(id);
+    final idx = _reviews.indexWhere((r) => r.id == numericId || r.id.toString() == id);
+    if (idx < 0) throw StateError('Review not found');
+    final updated = _reviews[idx].copyWith(
+      rating: input.rating,
+      comment: input.comment?.trim(),
+      reviewableType: input.reviewableType,
+      reviewableId: input.reviewableId,
+      updatedAt: DateTime.now().toUtc(),
+    );
+    _reviews[idx] = updated;
+    return updated;
+  }
+
+  @override
+  Future<void> deleteReview(String id) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    final numericId = int.tryParse(id);
+    _reviews.removeWhere((r) => r.id == numericId || r.id.toString() == id);
   }
 }

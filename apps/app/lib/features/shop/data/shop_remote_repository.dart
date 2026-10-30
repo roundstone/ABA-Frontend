@@ -162,44 +162,82 @@ class ShopRemoteRepository implements ShopRepository {
   }
 
   @override
+  Future<PaginatedData<ProductReview>> fetchReviews({
+    ListQueryParams? params,
+    int? reviewableId,
+    String reviewableType = 'product',
+  }) async {
+    try {
+      final q = params ?? const ListQueryParams(page: 1, limit: 10, orderBy: 'createdAt:DESC');
+      final query = <String, dynamic>{
+        'page': q.page,
+        'limit': q.limit,
+        if (q.search != null && q.search!.trim().isNotEmpty) 'search': q.search!.trim(),
+        if (q.startDateString != null) 'startDate': q.startDateString,
+        if (q.endDateString != null) 'endDate': q.endDateString,
+        if (q.orderBy != null && q.orderBy!.trim().isNotEmpty) 'orderBy': q.orderBy!.trim(),
+      };
+      final res = await _dio.get(ApiEndpoints.reviews.base, queryParameters: query);
+      final rawMap = res.data is Map ? Map<String, dynamic>.from(res.data as Map) : <String, dynamic>{'data': res.data};
+      final parsed = ApiResponse.fromPaginatedJson<ProductReview>(
+        rawMap,
+        (item) => ProductReview.fromJson(Map<String, dynamic>.from(item as Map)),
+      ).data;
+      var items = parsed.items
+          .where((r) => r.reviewableType.toLowerCase() == reviewableType.toLowerCase())
+          .toList();
+      if (reviewableId != null) {
+        final exact = items.where((r) => r.reviewableId == reviewableId).toList();
+        if (exact.isNotEmpty) items = exact;
+      }
+      return PaginatedData<ProductReview>(items: items, meta: parsed.meta);
+    } catch (e) {
+      AppLogger.w('ShopRemoteRepository: fetchReviews fallback: $e');
+      return ShopMockRepository().fetchReviews(params: params, reviewableId: reviewableId, reviewableType: reviewableType);
+    }
+  }
+
+  @override
+  Future<ProductReview> createReview(CreateReviewInput input) async {
+    final res = await _dio.post(ApiEndpoints.reviews.base, data: input.toJson());
+    final map = ApiResponse.unwrapMap(res.data);
+    return map.isNotEmpty
+        ? ProductReview.fromJson(map)
+        : ProductReview(id: 0, reviewableType: input.reviewableType, reviewableId: input.reviewableId, rating: input.rating, comment: input.comment.trim(), createdAt: DateTime.now().toUtc());
+  }
+
+  @override
+  Future<ProductReview> updateReview(String id, UpdateReviewInput input) async {
+    final res = await _dio.patch(ApiEndpoints.reviews.byId(id), data: input.toJson());
+    final map = ApiResponse.unwrapMap(res.data);
+    return ProductReview.fromJson(map);
+  }
+
+  @override
+  Future<void> deleteReview(String id) async {
+    await _dio.delete(ApiEndpoints.reviews.byId(id));
+  }
+
+  @override
   Future<List<Product>> fetchProducts({
-    ShopFilter? filter,
-    SortOrder sort = SortOrder.featured,
-    int page = 1,
-    int pageSize = 20,
-    String? search,
-    int? categoryId,
-    int? subcategoryId,
-    int? brandId,
-    int? vendorId,
-    double? minPrice,
-    double? maxPrice,
-    double? rating,
-    ListQueryParams? queryParams,
+    ShopFilter? filter, SortOrder sort = SortOrder.featured, int page = 1, int pageSize = 20,
+    String? search, int? categoryId, int? subcategoryId, int? brandId, int? vendorId,
+    double? minPrice, double? maxPrice, double? rating, ListQueryParams? queryParams,
   }) async {
     try {
       final query = <String, dynamic>{
-        'page': queryParams?.page ?? page,
-        'limit': queryParams?.limit ?? pageSize,
+        'page': queryParams?.page ?? page, 'limit': queryParams?.limit ?? pageSize,
         'orderBy': queryParams?.orderBy ?? _mapSortOrder(sort),
-        'isActive': queryParams?.isActive ?? true,
-        'includeVariants': true,
+        'isActive': queryParams?.isActive ?? true, 'includeVariants': true,
       };
-
       final effectiveSearch = queryParams?.search ?? search;
-      if (effectiveSearch != null && effectiveSearch.isNotEmpty) {
-        query['search'] = effectiveSearch;
-      }
-
+      if (effectiveSearch != null && effectiveSearch.isNotEmpty) query['search'] = effectiveSearch;
       final effectiveCatId = categoryId ?? int.tryParse(queryParams?.customParams['categoryId']?.toString() ?? '');
       if (effectiveCatId != null) query['categoryId'] = effectiveCatId;
-
       final effectiveSubcatId = subcategoryId ?? int.tryParse(queryParams?.customParams['subcategoryId']?.toString() ?? '');
       if (effectiveSubcatId != null) query['subcategoryId'] = effectiveSubcatId;
-
       final effectiveBrandId = brandId ?? int.tryParse(queryParams?.customParams['brandId']?.toString() ?? '');
       if (effectiveBrandId != null) query['brandId'] = effectiveBrandId;
-
       final customMerchant = int.tryParse(queryParams?.customParams['merchantId']?.toString() ?? '');
       final effectiveVendorId = vendorId ?? customMerchant ??
           (filter?.merchants.isNotEmpty == true ? int.tryParse(filter!.merchants.first.replaceAll(RegExp(r'[^0-9]'), '')) : null);
@@ -207,7 +245,6 @@ class ShopRemoteRepository implements ShopRepository {
         query['merchantId'] = effectiveVendorId;
         query['vendorId'] = effectiveVendorId;
       }
-
       final minP = minPrice ?? (filter != null && filter.priceRange.$1 > 0 ? filter.priceRange.$1 : null);
       if (minP != null) query['minPrice'] = minP;
       final maxP = maxPrice ?? (filter != null && filter.priceRange.$2 < 500000 ? filter.priceRange.$2 : null);
@@ -222,12 +259,9 @@ class ShopRemoteRepository implements ShopRepository {
     } catch (e) {
       AppLogger.w('ShopRemoteRepository: fetchProducts failed ($e), fallback to local');
     }
-
     return ShopMockRepository().fetchProducts(
-      filter: filter, sort: sort, page: page, pageSize: pageSize,
-      search: search, categoryId: categoryId, subcategoryId: subcategoryId,
-      brandId: brandId, vendorId: vendorId, minPrice: minPrice,
-      maxPrice: maxPrice, rating: rating, queryParams: queryParams,
+      filter: filter, sort: sort, page: page, pageSize: pageSize, search: search, categoryId: categoryId,
+      subcategoryId: subcategoryId, brandId: brandId, vendorId: vendorId, minPrice: minPrice, maxPrice: maxPrice, rating: rating, queryParams: queryParams,
     );
   }
 }

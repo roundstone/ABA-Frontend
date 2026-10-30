@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/router/safe_navigation.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -9,9 +10,14 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../application/shop_providers.dart';
 import '../domain/shop_entities.dart';
+import 'widgets/product_reviews_section.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
-  const ProductDetailScreen({super.key, required this.productId, required String id});
+  const ProductDetailScreen({
+    super.key,
+    required this.productId,
+    required String id,
+  });
   final String productId;
 
   @override
@@ -19,8 +25,7 @@ class ProductDetailScreen extends ConsumerStatefulWidget {
       _ProductDetailScreenState();
 }
 
-class _ProductDetailScreenState
-    extends ConsumerState<ProductDetailScreen> {
+class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   int _selectedImageIndex = 0;
   String? _selectedColor;
   String? _selectedSize;
@@ -28,6 +33,7 @@ class _ProductDetailScreenState
 
   final GlobalKey<_ProductInfoTabsState> _infoTabsKey = GlobalKey();
   final GlobalKey _aboutSellerKey = GlobalKey();
+  final GlobalKey _reviewsKey = GlobalKey();
 
   void _scrollToInfoTab(_InfoTab tab) {
     _infoTabsKey.currentState?.setTab(tab);
@@ -50,14 +56,24 @@ class _ProductDetailScreenState
     }
   }
 
+  void _scrollToReviews() {
+    final ctx = _reviewsKey.currentContext ?? _aboutSellerKey.currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final productAsync = ref.watch(productDetailProvider(widget.productId));
 
     return productAsync.when(
-      loading: () => const Scaffold(
-        body: LoadingState(message: 'Loading product…'),
-      ),
+      loading: () =>
+          const Scaffold(body: LoadingState(message: 'Loading product…')),
       error: (e, _) => Scaffold(
         appBar: AppBar(),
         body: ErrorState(message: e.toString()),
@@ -81,10 +97,43 @@ class _ProductDetailScreenState
           onQuantityChange: (q) => setState(() => _quantity = q),
           infoTabsKey: _infoTabsKey,
           aboutSellerKey: _aboutSellerKey,
+          reviewsKey: _reviewsKey,
           onScrollToDelivery: () => _scrollToInfoTab(_InfoTab.delivery),
           onScrollToAboutSeller: _scrollToAboutSeller,
+          onScrollToReviews: _scrollToReviews,
         );
       },
+    );
+  }
+}
+
+/// Summons the platform's share sheet to share the product's storefront link.
+void _shareProduct(BuildContext context, Product product) {
+  final url = product.shareUrl;
+
+  Rect? originRect;
+  final renderBox = context.findRenderObject();
+  if (renderBox is RenderBox && renderBox.hasSize) {
+    originRect = renderBox.localToGlobal(Offset.zero) & renderBox.size;
+  }
+
+  try {
+    SharePlus.instance.share(
+      ShareParams(
+        uri: Uri.parse(url),
+        subject: product.name,
+        title: product.name,
+        sharePositionOrigin: originRect,
+      ),
+    );
+  } catch (_) {
+    SharePlus.instance.share(
+      ShareParams(
+        text: url,
+        subject: product.name,
+        title: product.name,
+        sharePositionOrigin: originRect,
+      ),
     );
   }
 }
@@ -104,8 +153,10 @@ class _ProductDetailBody extends ConsumerWidget {
     required this.onQuantityChange,
     required this.infoTabsKey,
     required this.aboutSellerKey,
+    required this.reviewsKey,
     required this.onScrollToDelivery,
     required this.onScrollToAboutSeller,
+    required this.onScrollToReviews,
   });
 
   final Product product;
@@ -119,17 +170,18 @@ class _ProductDetailBody extends ConsumerWidget {
   final ValueChanged<int> onQuantityChange;
   final GlobalKey<_ProductInfoTabsState> infoTabsKey;
   final GlobalKey aboutSellerKey;
+  final GlobalKey reviewsKey;
   final VoidCallback onScrollToDelivery;
   final VoidCallback onScrollToAboutSeller;
+  final VoidCallback onScrollToReviews;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cartNotifier = ref.read(cartProvider.notifier);
-    final inCart = (ref.watch(cartProvider).valueOrNull ?? const Cart()).items.any(
-          (i) => i.product.id == product.id,
-        );
+    final inCart = (ref.watch(cartProvider).valueOrNull ?? const Cart()).items
+        .any((i) => i.product.id == product.id);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -169,7 +221,8 @@ class _ProductDetailBody extends ConsumerWidget {
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       IconButton(
-                        onPressed: () {},
+                        tooltip: 'Share',
+                        onPressed: () => _shareProduct(context, product),
                         icon: HugeIcon(
                           icon: HugeIcons.strokeRoundedShare01,
                           size: 24,
@@ -181,29 +234,45 @@ class _ProductDetailBody extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.xs),
 
                   // 2. Reviews & Rating Summary
-                  Row(
-                    children: [
-                      const HugeIcon(
-                        icon: HugeIcons.strokeRoundedStar,
-                        size: 16,
-                        color: Colors.amber,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        product.rating.toString(),
-                        style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text('•', style: AppTypography.bodySmall.copyWith(color: cs.onSurfaceVariant)),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text(
-                        '${product.reviewCount} Reviews',
-                        style: AppTypography.bodySmall.copyWith(
-                          color: isDark ? AppColors.secondary : cs.primary,
-                          decoration: TextDecoration.underline,
+                  GestureDetector(
+                    onTap: onScrollToReviews,
+                    behavior: HitTestBehavior.opaque,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          product.rating > 0
+                              ? Icons.star_rounded
+                              : Icons.star_border_rounded,
+                          size: 18,
+                          color: product.rating > 0
+                              ? Colors.amber
+                              : cs.onSurfaceVariant.withAlpha(100),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        Text(
+                          product.rating.toString(),
+                          style: AppTypography.bodySmall.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          '•',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          '${product.reviewCount} Reviews',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: isDark ? AppColors.secondary : cs.primary,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   const Divider(),
@@ -228,7 +297,9 @@ class _ProductDetailBody extends ConsumerWidget {
                           children: [
                             Text(
                               product.brand,
-                              style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w700),
+                              style: AppTypography.bodyMedium.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -236,17 +307,26 @@ class _ProductDetailBody extends ConsumerWidget {
                               children: [
                                 Text(
                                   '99.9% positive',
-                                  style: AppTypography.label.copyWith(color: cs.onSurfaceVariant),
+                                  style: AppTypography.label.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                  ),
                                 ),
                                 const SizedBox(width: 4),
-                                Text('•', style: AppTypography.label.copyWith(color: cs.onSurfaceVariant)),
+                                Text(
+                                  '•',
+                                  style: AppTypography.label.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                  ),
+                                ),
                                 const SizedBox(width: 4),
                                 GestureDetector(
                                   onTap: onScrollToAboutSeller,
                                   child: Text(
                                     'Seller details',
                                     style: AppTypography.label.copyWith(
-                                      color: isDark ? AppColors.secondary : cs.primary,
+                                      color: isDark
+                                          ? AppColors.secondary
+                                          : cs.primary,
                                       decoration: TextDecoration.underline,
                                     ),
                                   ),
@@ -262,7 +342,10 @@ class _ProductDetailBody extends ConsumerWidget {
                           minimumSize: const Size(0, 32),
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                         ),
-                        child: const Text('Message', style: TextStyle(fontSize: 12)),
+                        child: const Text(
+                          'Message',
+                          style: TextStyle(fontSize: 12),
+                        ),
                       ),
                     ],
                   ),
@@ -315,7 +398,9 @@ class _ProductDetailBody extends ConsumerWidget {
                   const SizedBox(height: 2),
                   Text(
                     'Prices include VAT.',
-                    style: AppTypography.label.copyWith(color: cs.onSurfaceVariant),
+                    style: AppTypography.label.copyWith(
+                      color: cs.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.md),
 
@@ -324,10 +409,26 @@ class _ProductDetailBody extends ConsumerWidget {
                     children: [
                       SizedBox(
                         width: 80,
-                        child: Text('Condition:', style: AppTypography.bodySmall.copyWith(color: cs.onSurfaceVariant)),
+                        child: Text(
+                          'Condition:',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
                       ),
-                      Text('New ', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
-                      Text('"Brand new, sealed"', style: AppTypography.bodySmall.copyWith(color: cs.onSurfaceVariant, fontStyle: FontStyle.italic)),
+                      Text(
+                        'New ',
+                        style: AppTypography.bodySmall.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '"Brand new, sealed"',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: cs.onSurfaceVariant,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.md),
@@ -361,7 +462,12 @@ class _ProductDetailBody extends ConsumerWidget {
                     children: [
                       SizedBox(
                         width: 80,
-                        child: Text('Quantity:', style: AppTypography.bodySmall.copyWith(color: cs.onSurfaceVariant)),
+                        child: Text(
+                          'Quantity:',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
                       ),
                       _QuantitySelector(
                         quantity: quantity,
@@ -370,9 +476,13 @@ class _ProductDetailBody extends ConsumerWidget {
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Text(
-                          product.inStock ? '${product.stock} available' : 'Out of Stock',
+                          product.inStock
+                              ? '${product.stock} available'
+                              : 'Out of Stock',
                           style: AppTypography.bodySmall.copyWith(
-                            color: product.inStock ? const Color(0xFF10B981) : AppColors.error,
+                            color: product.inStock
+                                ? const Color(0xFF10B981)
+                                : AppColors.error,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -388,10 +498,18 @@ class _ProductDetailBody extends ConsumerWidget {
                     child: FilledButton(
                       onPressed: () {},
                       style: FilledButton.styleFrom(
-                        backgroundColor: isDark ? AppColors.secondary : cs.primary,
+                        backgroundColor: isDark
+                            ? AppColors.secondary
+                            : cs.primary,
                         foregroundColor: isDark ? cs.onPrimary : Colors.white,
                       ),
-                      child: const Text('Buy It Now', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                      child: const Text(
+                        'Buy It Now',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
@@ -401,14 +519,25 @@ class _ProductDetailBody extends ConsumerWidget {
                     child: OutlinedButton.icon(
                       onPressed: () {},
                       icon: HugeIcon(
-                        icon: HugeIcons.strokeRoundedFavourite, 
-                        size: 20, 
+                        icon: HugeIcons.strokeRoundedFavourite,
+                        size: 20,
                         color: isDark ? AppColors.secondary : cs.primary,
                       ),
-                      label: Text('Add to Watchlist', style: TextStyle(color: isDark ? AppColors.secondary : cs.primary, fontWeight: FontWeight.w600)),
+                      label: Text(
+                        'Add to Watchlist',
+                        style: TextStyle(
+                          color: isDark ? AppColors.secondary : cs.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: (isDark ? AppColors.secondary : cs.primary).withAlpha(50)),
-                        backgroundColor: (isDark ? AppColors.secondary : cs.primary).withAlpha(10),
+                        side: BorderSide(
+                          color: (isDark ? AppColors.secondary : cs.primary)
+                              .withAlpha(50),
+                        ),
+                        backgroundColor:
+                            (isDark ? AppColors.secondary : cs.primary)
+                                .withAlpha(10),
                       ),
                     ),
                   ),
@@ -427,14 +556,25 @@ class _ProductDetailBody extends ConsumerWidget {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedTruckReturn, size: 18, color: cs.onSurface),
+                            HugeIcon(
+                              icon: HugeIcons.strokeRoundedTruckReturn,
+                              size: 18,
+                              color: cs.onSurface,
+                            ),
                             const SizedBox(width: AppSpacing.sm),
                             Expanded(
                               child: RichText(
                                 text: TextSpan(
-                                  style: AppTypography.bodySmall.copyWith(color: cs.onSurface),
+                                  style: AppTypography.bodySmall.copyWith(
+                                    color: cs.onSurface,
+                                  ),
                                   children: const [
-                                    TextSpan(text: 'Breathe easy. ', style: TextStyle(fontWeight: FontWeight.w700)),
+                                    TextSpan(
+                                      text: 'Breathe easy. ',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                     TextSpan(text: 'Returns accepted.'),
                                   ],
                                 ),
@@ -446,15 +586,29 @@ class _ProductDetailBody extends ConsumerWidget {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const HugeIcon(icon: HugeIcons.strokeRoundedFire, size: 18, color: AppColors.error),
+                            const HugeIcon(
+                              icon: HugeIcons.strokeRoundedFire,
+                              size: 18,
+                              color: AppColors.error,
+                            ),
                             const SizedBox(width: AppSpacing.sm),
                             Expanded(
                               child: RichText(
                                 text: TextSpan(
-                                  style: AppTypography.bodySmall.copyWith(color: cs.onSurface),
+                                  style: AppTypography.bodySmall.copyWith(
+                                    color: cs.onSurface,
+                                  ),
                                   children: const [
-                                    TextSpan(text: 'People want this. ', style: TextStyle(fontWeight: FontWeight.w700)),
-                                    TextSpan(text: 'Over 20 people have this in their cart.'),
+                                    TextSpan(
+                                      text: 'People want this. ',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text:
+                                          'Over 20 people have this in their cart.',
+                                    ),
                                   ],
                                 ),
                               ),
@@ -469,52 +623,58 @@ class _ProductDetailBody extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.lg),
 
                   // Shipping & Returns
-                  Text('Shipping, returns, and payments', style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700)),
+                  Text(
+                    'Shipping, returns, and payments',
+                    style: AppTypography.h6.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.md),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(width: 80, child: Text('Shipping:', style: AppTypography.bodySmall.copyWith(color: cs.onSurfaceVariant))),
+                      SizedBox(
+                        width: 80,
+                        child: Text(
+                          'Shipping:',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Wrap(
                               children: [
-                                Text('Delivery calculated at checkout. ', style: AppTypography.bodySmall.copyWith(color: cs.onSurface)),
+                                Text(
+                                  'Delivery calculated at checkout. ',
+                                  style: AppTypography.bodySmall.copyWith(
+                                    color: cs.onSurface,
+                                  ),
+                                ),
                                 GestureDetector(
                                   onTap: onScrollToDelivery,
-                                  child: Text('See details', style: TextStyle(color: isDark ? AppColors.secondary : cs.primary, decoration: TextDecoration.underline, fontSize: 12)),
+                                  child: Text(
+                                    'See details',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? AppColors.secondary
+                                          : cs.primary,
+                                      decoration: TextDecoration.underline,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 2),
-                            Text('Located in: Lagos, Nigeria', style: AppTypography.label.copyWith(color: cs.onSurfaceVariant)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(width: 80, child: Text('Delivery:', style: AppTypography.bodySmall.copyWith(color: cs.onSurfaceVariant))),
-                      Expanded(child: Text('Estimated between 2-5 working days.', style: AppTypography.bodySmall)),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(width: 80, child: Text('Returns:', style: AppTypography.bodySmall.copyWith(color: cs.onSurfaceVariant))),
-                      Expanded(
-                        child: Wrap(
-                          children: [
-                            Text('14 days returns. Buyer pays for return shipping. ', style: AppTypography.bodySmall.copyWith(color: cs.onSurface)),
-                            GestureDetector(
-                              onTap: onScrollToDelivery,
-                              child: Text('See details', style: TextStyle(color: isDark ? AppColors.secondary : cs.primary, decoration: TextDecoration.underline, fontSize: 12)),
+                            Text(
+                              'Located in: Lagos, Nigeria',
+                              style: AppTypography.label.copyWith(
+                                color: cs.onSurfaceVariant,
+                              ),
                             ),
                           ],
                         ),
@@ -525,20 +685,119 @@ class _ProductDetailBody extends ConsumerWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(width: 80, child: Text('Payments:', style: AppTypography.bodySmall.copyWith(color: cs.onSurfaceVariant))),
+                      SizedBox(
+                        width: 80,
+                        child: Text(
+                          'Delivery:',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          'Estimated between 2-5 working days.',
+                          style: AppTypography.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 80,
+                        child: Text(
+                          'Returns:',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Wrap(
+                          children: [
+                            Text(
+                              '14 days returns. Buyer pays for return shipping. ',
+                              style: AppTypography.bodySmall.copyWith(
+                                color: cs.onSurface,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: onScrollToDelivery,
+                              child: Text(
+                                'See details',
+                                style: TextStyle(
+                                  color: isDark
+                                      ? AppColors.secondary
+                                      : cs.primary,
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 80,
+                        child: Text(
+                          'Payments:',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
                       Expanded(
                         child: Wrap(
                           spacing: AppSpacing.xs,
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(border: Border.all(color: AppColors.border), borderRadius: BorderRadius.circular(4), color: Colors.white),
-                              child: const Text('Paystack', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: AppColors.border),
+                                borderRadius: BorderRadius.circular(4),
+                                color: Colors.white,
+                              ),
+                              child: const Text(
+                                'Paystack',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(border: Border.all(color: AppColors.border), borderRadius: BorderRadius.circular(4), color: Colors.white),
-                              child: Text('Cards', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isDark ? AppColors.secondary : cs.primary)),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: AppColors.border),
+                                borderRadius: BorderRadius.circular(4),
+                                color: Colors.white,
+                              ),
+                              child: Text(
+                                'Cards',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? AppColors.secondary
+                                      : cs.primary,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -551,25 +810,52 @@ class _ProductDetailBody extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.lg),
 
                   // Guarantees
-                  Text('Shop with confidence', style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700)),
+                  Text(
+                    'Shop with confidence',
+                    style: AppTypography.h6.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.md),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      HugeIcon(icon: HugeIcons.strokeRoundedShield02, size: 24, color: isDark ? AppColors.secondary : cs.primary),
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedShield02,
+                        size: 24,
+                        color: isDark ? AppColors.secondary : cs.primary,
+                      ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Aba Buyer Protection', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700)),
+                            Text(
+                              'Aba Buyer Protection',
+                              style: AppTypography.bodySmall.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                             const SizedBox(height: 2),
                             RichText(
                               text: TextSpan(
-                                style: AppTypography.label.copyWith(color: cs.onSurfaceVariant),
+                                style: AppTypography.label.copyWith(
+                                  color: cs.onSurfaceVariant,
+                                ),
                                 children: [
-                                  const TextSpan(text: 'Get the item you ordered or get your money back. '),
-                                  TextSpan(text: 'Learn more', style: TextStyle(color: isDark ? AppColors.secondary : cs.primary, decoration: TextDecoration.underline)),
+                                  const TextSpan(
+                                    text:
+                                        'Get the item you ordered or get your money back. ',
+                                  ),
+                                  TextSpan(
+                                    text: 'Learn more',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? AppColors.secondary
+                                          : cs.primary,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -582,15 +868,29 @@ class _ProductDetailBody extends ConsumerWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      HugeIcon(icon: HugeIcons.strokeRoundedTruckDelivery, size: 24, color: cs.onSurface),
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedTruckDelivery,
+                        size: 24,
+                        color: cs.onSurface,
+                      ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Trusted Logistics', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700)),
+                            Text(
+                              'Trusted Logistics',
+                              style: AppTypography.bodySmall.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                             const SizedBox(height: 2),
-                            Text('Fast shipping and tracking provided for all orders.', style: AppTypography.label.copyWith(color: cs.onSurfaceVariant)),
+                            Text(
+                              'Fast shipping and tracking provided for all orders.',
+                              style: AppTypography.label.copyWith(
+                                color: cs.onSurfaceVariant,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -615,7 +915,8 @@ class _ProductDetailBody extends ConsumerWidget {
                               label: Text('#$t', style: AppTypography.label),
                               padding: EdgeInsets.zero,
                               visualDensity: VisualDensity.compact,
-                              backgroundColor: cs.surfaceContainerHighest.withAlpha(100),
+                              backgroundColor: cs.surfaceContainerHighest
+                                  .withAlpha(100),
                               side: const BorderSide(color: AppColors.border),
                             ),
                           )
@@ -630,7 +931,9 @@ class _ProductDetailBody extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.xl),
                   Text(
                     'Related items',
-                    style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+                    style: AppTypography.h6.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   _RelatedProductsRail(
@@ -644,10 +947,17 @@ class _ProductDetailBody extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.xl),
                   Text(
                     'About the Seller',
-                    style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+                    style: AppTypography.h6.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  _AboutSellerTab(key: aboutSellerKey, merchantName: product.brand),
+                  _AboutSellerTab(
+                    key: aboutSellerKey,
+                    reviewsKey: reviewsKey,
+                    merchantName: product.brand,
+                    productId: product.id,
+                  ),
                 ],
               ),
             ),
@@ -724,19 +1034,22 @@ class _ImageSliverAppBar extends StatelessWidget {
         ),
       ),
       actions: [
-        Container(
-          margin: const EdgeInsets.all(AppSpacing.sm),
-          decoration: BoxDecoration(
-            color: Colors.white.withAlpha(220),
-            shape: BoxShape.circle,
-          ),
-          child: const Center(
-            child: Padding(
-              padding: EdgeInsets.all(6),
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedShare01,
-                size: AppSpacing.iconSizeSM,
-                color: AppColors.onBackground,
+        GestureDetector(
+          onTap: () => _shareProduct(context, product),
+          child: Container(
+            margin: const EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(220),
+              shape: BoxShape.circle,
+            ),
+            child: const Center(
+              child: Padding(
+                padding: EdgeInsets.all(6),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedShare01,
+                  size: AppSpacing.iconSizeSM,
+                  color: AppColors.onBackground,
+                ),
               ),
             ),
           ),
@@ -766,7 +1079,8 @@ class _ImageSliverAppBar extends StatelessWidget {
                       child: AnimatedContainer(
                         duration: AppSpacing.animationFast,
                         margin: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.xs / 2),
+                          horizontal: AppSpacing.xs / 2,
+                        ),
                         width: selectedIndex == i ? 24 : 8,
                         height: 8,
                         decoration: BoxDecoration(
@@ -810,14 +1124,21 @@ class _SelectorRow extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(title,
-                style: AppTypography.bodyMedium
-                    .copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              title,
+              style: AppTypography.bodyMedium.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             if (selected != null) ...[
               const SizedBox(width: AppSpacing.xs),
-              Text(': $selected',
-                  style: AppTypography.bodySmall
-                      .copyWith(color: isDark ? AppColors.secondary : cs.primary, fontWeight: FontWeight.w600)),
+              Text(
+                ': $selected',
+                style: AppTypography.bodySmall.copyWith(
+                  color: isDark ? AppColors.secondary : cs.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ],
         ),
@@ -836,17 +1157,23 @@ class _SelectorRow extends StatelessWidget {
                   vertical: AppSpacing.xs + 2,
                 ),
                 decoration: BoxDecoration(
-                  color: isSel ? (isDark ? AppColors.secondary : cs.primary) : Colors.transparent,
+                  color: isSel
+                      ? (isDark ? AppColors.secondary : cs.primary)
+                      : Colors.transparent,
                   borderRadius: AppSpacing.borderRadiusSM,
                   border: Border.all(
-                    color: isSel ? (isDark ? AppColors.secondary : cs.primary) : cs.outline.withAlpha(100),
+                    color: isSel
+                        ? (isDark ? AppColors.secondary : cs.primary)
+                        : cs.outline.withAlpha(100),
                     width: 1.5,
                   ),
                 ),
                 child: Text(
                   opt,
                   style: AppTypography.bodySmall.copyWith(
-                    color: isSel ? (isDark ? cs.surface : Colors.white) : cs.onSurface,
+                    color: isSel
+                        ? (isDark ? cs.surface : Colors.white)
+                        : cs.onSurface,
                     fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
@@ -862,10 +1189,7 @@ class _SelectorRow extends StatelessWidget {
 // ─── Quantity selector ────────────────────────────────────────────────────
 
 class _QuantitySelector extends StatelessWidget {
-  const _QuantitySelector({
-    required this.quantity,
-    required this.onChanged,
-  });
+  const _QuantitySelector({required this.quantity, required this.onChanged});
   final int quantity;
   final ValueChanged<int> onChanged;
 
@@ -875,9 +1199,7 @@ class _QuantitySelector extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF2A2A2A)
-            : cs.surfaceContainerHighest,
+        color: isDark ? const Color(0xFF2A2A2A) : cs.surfaceContainerHighest,
         borderRadius: AppSpacing.borderRadiusSM,
       ),
       child: Row(
@@ -891,8 +1213,9 @@ class _QuantitySelector extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             child: Text(
               '$quantity',
-              style: AppTypography.bodyMedium
-                  .copyWith(fontWeight: FontWeight.w700),
+              style: AppTypography.bodyMedium.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           _QtyButton(
@@ -921,7 +1244,9 @@ class _QtyButton extends StatelessWidget {
         child: HugeIcon(
           icon: icon,
           size: AppSpacing.iconSizeSM,
-          color: onTap != null ? (isDark ? AppColors.secondary : cs.primary) : AppColors.grey,
+          color: onTap != null
+              ? (isDark ? AppColors.secondary : cs.primary)
+              : AppColors.grey,
         ),
       ),
     );
@@ -976,8 +1301,7 @@ class _DetailBottomBar extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              border:
-                  Border.all(color: cs.outline.withAlpha(80), width: 1.5),
+              border: Border.all(color: cs.outline.withAlpha(80), width: 1.5),
               borderRadius: AppSpacing.borderRadiusMD,
             ),
             child: const Center(
@@ -1023,25 +1347,25 @@ class _RelatedProductsRail extends ConsumerWidget {
     required this.currentProductId,
     required this.category,
   });
-  
+
   final String currentProductId;
   final String category;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final catAsync = ref.watch(shopCatalogueProvider);
-    
+
     return catAsync.maybeWhen(
       data: (catalogue) {
         final related = catalogue.products
             .where((p) => p.category == category && p.id != currentProductId)
             .take(6)
             .toList();
-            
+
         if (related.isEmpty) {
           return const Text('No related products found.');
         }
-        
+
         return SizedBox(
           height: 240,
           child: ListView.separated(
@@ -1073,7 +1397,9 @@ class _RelatedProductsRail extends ConsumerWidget {
                         p.name,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTypography.label.copyWith(fontWeight: FontWeight.w600),
+                        style: AppTypography.label.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -1099,16 +1425,23 @@ class _RelatedProductsRail extends ConsumerWidget {
 // ─── About Seller Tab ───────────────────────────────────────────────────────
 
 class _AboutSellerTab extends StatelessWidget {
-  const _AboutSellerTab({super.key, required this.merchantName});
-  
+  const _AboutSellerTab({
+    super.key,
+    required this.merchantName,
+    required this.productId,
+    this.reviewsKey,
+  });
+
   final String merchantName;
+  final String productId;
+  final Key? reviewsKey;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isDark ? AppColors.secondary : cs.primary;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1138,21 +1471,25 @@ class _AboutSellerTab extends StatelessWidget {
                 children: [
                   Text(
                     merchantName,
-                    style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+                    style: AppTypography.h6.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '99.9% positive feedback • 5.7K items sold',
-                    style: AppTypography.bodySmall.copyWith(color: cs.onSurfaceVariant),
+                    style: AppTypography.bodySmall.copyWith(
+                      color: cs.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
             ),
           ],
         ),
-        
+
         const SizedBox(height: AppSpacing.md),
-        
+
         // Joined Date
         Row(
           children: [
@@ -1164,7 +1501,9 @@ class _AboutSellerTab extends StatelessWidget {
             const SizedBox(width: AppSpacing.xs),
             Text(
               'Joined Oct 2025',
-              style: AppTypography.bodySmall.copyWith(color: cs.onSurfaceVariant),
+              style: AppTypography.bodySmall.copyWith(
+                color: cs.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -1226,14 +1565,30 @@ class _AboutSellerTab extends StatelessWidget {
           style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: AppSpacing.md),
-        const _SellerRatingBar(label: 'Accurate description', score: 4.6, percentage: 92),
+        const _SellerRatingBar(
+          label: 'Accurate description',
+          score: 4.6,
+          percentage: 92,
+        ),
         const SizedBox(height: AppSpacing.sm),
-        const _SellerRatingBar(label: 'Reasonable shipping cost', score: 4.4, percentage: 88),
+        const _SellerRatingBar(
+          label: 'Reasonable shipping cost',
+          score: 4.4,
+          percentage: 88,
+        ),
         const SizedBox(height: AppSpacing.sm),
-        const _SellerRatingBar(label: 'Shipping speed', score: 4.9, percentage: 98),
+        const _SellerRatingBar(
+          label: 'Shipping speed',
+          score: 4.9,
+          percentage: 98,
+        ),
         const SizedBox(height: AppSpacing.sm),
-        const _SellerRatingBar(label: 'Communication', score: 4.9, percentage: 98),
-        
+        const _SellerRatingBar(
+          label: 'Communication',
+          score: 4.9,
+          percentage: 98,
+        ),
+
         const SizedBox(height: AppSpacing.xs),
         Text(
           'Average for the last 12 months',
@@ -1251,7 +1606,9 @@ class _AboutSellerTab extends StatelessWidget {
           children: [
             Text(
               'Popular categories',
-              style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w700),
+              style: AppTypography.bodyMedium.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
             Text(
               'See all',
@@ -1323,34 +1680,11 @@ class _AboutSellerTab extends StatelessWidget {
             ],
           ),
         ),
-        
+
         const SizedBox(height: AppSpacing.xl),
         const Divider(),
         const SizedBox(height: AppSpacing.xl),
-        
-        // Seller feedback (placeholder for reviews)
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Text(
-              'Seller feedback',
-              style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              '(2,855)',
-              style: AppTypography.bodyMedium.copyWith(color: cs.onSurfaceVariant),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        const Center(
-          child: Padding(
-            padding: EdgeInsets.all(AppSpacing.xl),
-            child: Text('Reviews will be displayed here.'),
-          ),
-        ),
+        ProductReviewsSection(key: reviewsKey, productId: productId),
       ],
     );
   }
@@ -1370,7 +1704,7 @@ class _SellerRatingBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -1499,7 +1833,10 @@ class _ProductInfoTabsState extends State<_ProductInfoTabs> {
     return InkWell(
       onTap: () => setState(() => _activeTab = tab),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
@@ -1546,13 +1883,21 @@ class _ProductInfoTabsState extends State<_ProductInfoTabs> {
       key: const ValueKey('desc'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('About this product', style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700)),
+        Text(
+          'About this product',
+          style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+        ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          widget.product.description ?? 'No detailed description provided by the seller.',
+          widget.product.description ??
+              'No detailed description provided by the seller.',
           style: AppTypography.bodyMedium.copyWith(
-            color: widget.product.description != null ? cs.onSurface : cs.onSurfaceVariant,
-            fontStyle: widget.product.description != null ? FontStyle.normal : FontStyle.italic,
+            color: widget.product.description != null
+                ? cs.onSurface
+                : cs.onSurfaceVariant,
+            fontStyle: widget.product.description != null
+                ? FontStyle.normal
+                : FontStyle.italic,
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
@@ -1571,15 +1916,30 @@ class _ProductInfoTabsState extends State<_ProductInfoTabs> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    HugeIcon(icon: HugeIcons.strokeRoundedShieldCheck, size: 20, color: color),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedShieldCheck,
+                      size: 20,
+                      color: color,
+                    ),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Quality Assured', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: color)),
+                          Text(
+                            'Quality Assured',
+                            style: AppTypography.bodySmall.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: color,
+                            ),
+                          ),
                           const SizedBox(height: 2),
-                          Text('This product meets our strict quality standards.', style: AppTypography.label.copyWith(color: color.withAlpha(200))),
+                          Text(
+                            'This product meets our strict quality standards.',
+                            style: AppTypography.label.copyWith(
+                              color: color.withAlpha(200),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -1599,15 +1959,29 @@ class _ProductInfoTabsState extends State<_ProductInfoTabs> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    HugeIcon(icon: HugeIcons.strokeRoundedTruckDelivery, size: 20, color: cs.onSurface),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedTruckDelivery,
+                      size: 20,
+                      color: cs.onSurface,
+                    ),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Fast Dispatch', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700)),
+                          Text(
+                            'Fast Dispatch',
+                            style: AppTypography.bodySmall.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                           const SizedBox(height: 2),
-                          Text('Usually ships within 24 hours of payment.', style: AppTypography.label.copyWith(color: cs.onSurfaceVariant)),
+                          Text(
+                            'Usually ships within 24 hours of payment.',
+                            style: AppTypography.label.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -1627,7 +2001,10 @@ class _ProductInfoTabsState extends State<_ProductInfoTabs> {
       key: const ValueKey('spec'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Technical Specifications', style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700)),
+        Text(
+          'Technical Specifications',
+          style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+        ),
         const SizedBox(height: AppSpacing.md),
         Container(
           width: double.infinity,
@@ -1635,15 +2012,24 @@ class _ProductInfoTabsState extends State<_ProductInfoTabs> {
           decoration: BoxDecoration(
             color: cs.surfaceContainerHighest.withAlpha(100),
             borderRadius: AppSpacing.borderRadiusSM,
-            border: Border.all(color: AppColors.border, style: BorderStyle.solid),
+            border: Border.all(
+              color: AppColors.border,
+              style: BorderStyle.solid,
+            ),
           ),
           child: Column(
             children: [
-              HugeIcon(icon: HugeIcons.strokeRoundedListView, size: 32, color: cs.onSurfaceVariant.withAlpha(100)),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedListView,
+                size: 32,
+                color: cs.onSurfaceVariant.withAlpha(100),
+              ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 'No technical specifications available for this item.',
-                style: AppTypography.bodyMedium.copyWith(color: cs.onSurfaceVariant),
+                style: AppTypography.bodyMedium.copyWith(
+                  color: cs.onSurfaceVariant,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -1659,14 +2045,26 @@ class _ProductInfoTabsState extends State<_ProductInfoTabs> {
       key: const ValueKey('deliv'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Shipping & Returns Information', style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700)),
+        Text(
+          'Shipping & Returns Information',
+          style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+        ),
         const SizedBox(height: AppSpacing.xl),
-        
+
         Row(
           children: [
-            HugeIcon(icon: HugeIcons.strokeRoundedTruckDelivery, size: 20, color: color),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedTruckDelivery,
+              size: 20,
+              color: color,
+            ),
             const SizedBox(width: AppSpacing.sm),
-            Text('Delivery Options', style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              'Delivery Options',
+              style: AppTypography.bodyMedium.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -1686,15 +2084,33 @@ class _ProductInfoTabsState extends State<_ProductInfoTabs> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Standard Delivery', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
-                        Text('Estimated 2-5 working days', style: AppTypography.label.copyWith(color: cs.onSurfaceVariant)),
+                        Text(
+                          'Standard Delivery',
+                          style: AppTypography.bodySmall.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          'Estimated 2-5 working days',
+                          style: AppTypography.label.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  Text('Calculated at checkout', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
+                  Text(
+                    'Calculated at checkout',
+                    style: AppTypography.bodySmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
-              const Padding(padding: EdgeInsets.symmetric(vertical: AppSpacing.sm), child: Divider(height: 1)),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                child: Divider(height: 1),
+              ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1702,12 +2118,27 @@ class _ProductInfoTabsState extends State<_ProductInfoTabs> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Express Delivery', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
-                        Text('Estimated 1-2 working days', style: AppTypography.label.copyWith(color: cs.onSurfaceVariant)),
+                        Text(
+                          'Express Delivery',
+                          style: AppTypography.bodySmall.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          'Estimated 1-2 working days',
+                          style: AppTypography.label.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  Text('Calculated at checkout', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
+                  Text(
+                    'Calculated at checkout',
+                    style: AppTypography.bodySmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -1715,12 +2146,21 @@ class _ProductInfoTabsState extends State<_ProductInfoTabs> {
         ),
 
         const SizedBox(height: AppSpacing.xl),
-        
+
         Row(
           children: [
-            HugeIcon(icon: HugeIcons.strokeRoundedShieldCheck, size: 20, color: color),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedShieldCheck,
+              size: 20,
+              color: color,
+            ),
             const SizedBox(width: AppSpacing.sm),
-            Text('Return Policy', style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              'Return Policy',
+              style: AppTypography.bodyMedium.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -1736,27 +2176,60 @@ class _ProductInfoTabsState extends State<_ProductInfoTabs> {
             children: [
               RichText(
                 text: TextSpan(
-                  style: AppTypography.bodySmall.copyWith(color: cs.onSurfaceVariant),
+                  style: AppTypography.bodySmall.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
                   children: [
-                    const TextSpan(text: 'We want you to be completely satisfied with your purchase. If you change your mind, you can return the item within '),
-                    TextSpan(text: '14 days', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: cs.onSurface)),
+                    const TextSpan(
+                      text:
+                          'We want you to be completely satisfied with your purchase. If you change your mind, you can return the item within ',
+                    ),
+                    TextSpan(
+                      text: '14 days',
+                      style: AppTypography.bodySmall.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: cs.onSurface,
+                      ),
+                    ),
                     const TextSpan(text: ' of receiving it.'),
                   ],
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
-              _buildBullet('Item must be in its original condition and packaging.', color, cs.onSurfaceVariant),
-              _buildBullet('Buyer is responsible for return shipping costs unless the item is defective.', color, cs.onSurfaceVariant),
-              _buildBullet('Refunds are processed within 3-5 business days of receiving the return.', color, cs.onSurfaceVariant),
+              _buildBullet(
+                'Item must be in its original condition and packaging.',
+                color,
+                cs.onSurfaceVariant,
+              ),
+              _buildBullet(
+                'Buyer is responsible for return shipping costs unless the item is defective.',
+                color,
+                cs.onSurfaceVariant,
+              ),
+              _buildBullet(
+                'Refunds are processed within 3-5 business days of receiving the return.',
+                color,
+                cs.onSurfaceVariant,
+              ),
               const SizedBox(height: AppSpacing.md),
               InkWell(
                 onTap: () {},
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Read full return policy', style: AppTypography.bodySmall.copyWith(color: color, fontWeight: FontWeight.w600)),
+                    Text(
+                      'Read full return policy',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(width: 4),
-                    HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, size: 14, color: color),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowRight01,
+                      size: 14,
+                      color: color,
+                    ),
                   ],
                 ),
               ),
@@ -1775,10 +2248,19 @@ class _ProductInfoTabsState extends State<_ProductInfoTabs> {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 2),
-            child: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, size: 14, color: color),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              size: 14,
+              color: color,
+            ),
           ),
           const SizedBox(width: AppSpacing.xs),
-          Expanded(child: Text(text, style: AppTypography.bodySmall.copyWith(color: onSurfaceVariant))),
+          Expanded(
+            child: Text(
+              text,
+              style: AppTypography.bodySmall.copyWith(color: onSurfaceVariant),
+            ),
+          ),
         ],
       ),
     );

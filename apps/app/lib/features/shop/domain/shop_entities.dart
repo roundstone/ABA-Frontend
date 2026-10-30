@@ -1,7 +1,9 @@
 export 'brand.dart';
 export 'product.dart';
+export 'product_review.dart';
 export 'product_variant.dart';
 export 'shop_category.dart';
+export '../../cart/domain/entities/cart_entities.dart';
 import 'product.dart';
 import 'shop_category.dart';
 
@@ -10,89 +12,6 @@ import 'shop_category.dart';
 enum SortOrder { featured, nameAsc, nameDesc, priceLow, priceHigh, newest }
 
 enum ViewMode { grid, list }
-
-// ─── Cart ─────────────────────────────────────────────────────────────────
-
-class CartItem {
-  const CartItem({
-    required this.product,
-    required this.quantity,
-    this.selectedColor,
-    this.selectedSize,
-  });
-
-  final Product product;
-  final int quantity;
-  final String? selectedColor;
-  final String? selectedSize;
-
-  double get itemTotal => product.discountedPrice * quantity;
-
-  CartItem copyWith({
-    int? quantity,
-    String? selectedColor,
-    String? selectedSize,
-  }) =>
-      CartItem(
-        product: product,
-        quantity: quantity ?? this.quantity,
-        selectedColor: selectedColor ?? this.selectedColor,
-        selectedSize: selectedSize ?? this.selectedSize,
-      );
-}
-
-class Cart {
-  const Cart({this.items = const []});
-
-  final List<CartItem> items;
-
-  double get subtotal =>
-      items.fold(0, (sum, item) => sum + item.itemTotal);
-
-  double get shipping => subtotal > 50000 ? 0 : 2500;
-
-  double get tax => subtotal * 0.075; // 7.5% VAT
-
-  double get total => subtotal + shipping + tax;
-
-  int get itemCount => items.fold(0, (sum, i) => sum + i.quantity);
-
-  bool get isEmpty => items.isEmpty;
-
-  Cart addItem(CartItem newItem) {
-    final existingIndex = items.indexWhere(
-      (i) =>
-          i.product.id == newItem.product.id &&
-          i.selectedColor == newItem.selectedColor &&
-          i.selectedSize == newItem.selectedSize,
-    );
-    final updated = List<CartItem>.from(items);
-    if (existingIndex >= 0) {
-      updated[existingIndex] = updated[existingIndex].copyWith(
-        quantity: updated[existingIndex].quantity + newItem.quantity,
-      );
-    } else {
-      updated.add(newItem);
-    }
-    return Cart(items: updated);
-  }
-
-  Cart removeItem(String productId) => Cart(
-        items: items.where((i) => i.product.id != productId).toList(),
-      );
-
-  Cart updateQuantity(String productId, int quantity) {
-    if (quantity <= 0) return removeItem(productId);
-    return Cart(
-      items: items.map((i) {
-        if (i.product.id == productId) return i.copyWith(quantity: quantity);
-        return i;
-      }).toList(),
-    );
-  }
-
-  Cart clear() => const Cart();
-}
 
 // ─── Filter state ─────────────────────────────────────────────────────────
 

@@ -1,3 +1,4 @@
+import '../../../core/network/api_response.dart';
 import '../../../core/network/list_query_params.dart';
 import 'shop_entities.dart';
 
@@ -50,4 +51,20 @@ abstract class ShopRepository {
 
   /// Fetch popular brands from /api/v1/storefront/popular-brands.
   Future<List<Brand>> fetchPopularBrands();
+
+  /// Fetch paginated reviews from GET /api/v1/reviews.
+  Future<PaginatedData<ProductReview>> fetchReviews({
+    ListQueryParams? params,
+    int? reviewableId,
+    String reviewableType = 'product',
+  });
+
+  /// Submit a new review via POST /api/v1/reviews.
+  Future<ProductReview> createReview(CreateReviewInput input);
+
+  /// Update an existing review via PATCH /api/v1/reviews/:id.
+  Future<ProductReview> updateReview(String id, UpdateReviewInput input);
+
+  /// Delete an existing review via DELETE /api/v1/reviews/:id.
+  Future<void> deleteReview(String id);
 }

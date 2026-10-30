@@ -150,7 +150,10 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
     );
   }
 
-  Future<CheckoutOrderResult?> submitOrder(Cart cart) async {
+  Future<CheckoutOrderResult?> submitOrder(
+    Cart cart, {
+    String? paymentReference,
+  }) async {
     if (state.selectedAddress == null || state.selectedDeliveryMethod == null) {
       state = state.copyWith(
         errorMessage: 'Please complete all address and delivery details.',
@@ -159,6 +162,33 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
     }
 
     state = state.copyWith(isSubmitting: true, clearError: true);
+
+    // 1. Check availability via GET /api/v1/cart/mobile-app/availability
+    try {
+      final avail = await ref.read(cartProvider.notifier).checkAvailability();
+      if (!avail.isAvailable) {
+        state = state.copyWith(
+          isSubmitting: false,
+          errorMessage: avail.message ??
+              'Some items in your cart are no longer available in the requested quantity.',
+        );
+        return null;
+      }
+    } catch (_) {}
+
+    // 2. Verify payment reference via GET /api/v1/payments/mobile-app/paystack/{reference}/verify
+    if (paymentReference != null && paymentReference.isNotEmpty) {
+      final verified = await repository.verifyPaystackPayment(paymentReference);
+      if (!verified) {
+        state = state.copyWith(
+          isSubmitting: false,
+          errorMessage: 'Paystack payment verification failed. Please try again.',
+        );
+        return null;
+      }
+    }
+
+    // 3. Create order via POST /api/v1/orders/mobile-app
     try {
       final result = await repository.placeOrder(
         cart: cart,
@@ -167,10 +197,11 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         deliveryMethod: state.selectedDeliveryMethod!,
         paymentType: state.paymentType,
         referral: state.appliedReferral,
+        paymentReference: paymentReference,
       );
 
-      // Clear the user's cart
-      ref.read(cartProvider.notifier).clearCart();
+      // Clear the user's cart (DELETE /api/v1/cart/mobile-app)
+      await ref.read(cartProvider.notifier).clearCart();
 
       // Add notification
       final notifNotifier = ref.read(notificationsProvider.notifier);

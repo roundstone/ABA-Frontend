@@ -8,6 +8,7 @@ import 'paginated_products_notifier.dart';
 
 export '../../cart/application/cart_notifier.dart';
 export 'paginated_products_notifier.dart';
+export 'paginated_reviews_notifier.dart';
 
 // ─── Repository ───────────────────────────────────────────────────────────
 final shopRepositoryProvider = Provider<ShopRepository>(
@@ -177,6 +178,26 @@ final popularBrandsProvider =
   final repo = ref.watch(shopRepositoryProvider);
   return repo.fetchPopularBrands();
 });
+
+// ─── Product Reviews Providers ────────────────────────────────────────────
+final productReviewsProvider = FutureProvider.autoDispose
+    .family<PaginatedData<ProductReview>, int?>((ref, productId) async {
+  ref.watch(authStateProvider);
+  final repo = ref.watch(shopRepositoryProvider);
+  return repo.fetchReviews(
+    params: const ListQueryParams(page: 1, limit: 20, orderBy: 'createdAt:DESC'),
+    reviewableId: productId,
+    reviewableType: 'product',
+  );
+});
+
+final reviewsQueryProvider = FutureProvider.autoDispose
+    .family<PaginatedData<ProductReview>, ListQueryParams>((ref, params) async {
+  ref.watch(authStateProvider);
+  final repo = ref.watch(shopRepositoryProvider);
+  return repo.fetchReviews(params: params);
+});
+
 
 
 

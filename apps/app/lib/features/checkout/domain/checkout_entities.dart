@@ -92,7 +92,7 @@ class DeliveryMethod {
   final double cost;
 }
 
-enum CheckoutPaymentType { card, wallet, bankTransfer }
+enum CheckoutPaymentType { paystack, card, wallet, bankTransfer }
 
 class ReferralCandidate {
   const ReferralCandidate({

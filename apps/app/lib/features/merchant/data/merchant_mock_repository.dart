@@ -1,3 +1,5 @@
+import '../../shop/data/shop_mock_repository.dart';
+import '../../shop/domain/shop_entities.dart';
 import '../domain/merchant_dashboard_entities.dart';
 import '../domain/merchant_order_entities.dart';
 import '../domain/merchant_product_entities.dart';
@@ -52,6 +54,8 @@ class MerchantMockRepository implements MerchantRepository {
     String merchantId, {
     String? query,
     String? category,
+    int? categoryId,
+    int? subcategoryId,
     String? stockFilter,
   }) async {
     await Future.delayed(const Duration(milliseconds: 250));
@@ -68,7 +72,15 @@ class MerchantMockRepository implements MerchantRepository {
     }
 
     if (category != null && category != 'All') {
-      results = results.where((p) => p.category == category).toList();
+      results = results.where((p) => p.category.toLowerCase() == category.toLowerCase()).toList();
+    }
+
+    if (categoryId != null) {
+      results = results.where((p) => p.categoryId == categoryId).toList();
+    }
+
+    if (subcategoryId != null) {
+      results = results.where((p) => p.subcategoryId == subcategoryId).toList();
     }
 
     if (stockFilter != null && stockFilter != 'All') {
@@ -106,6 +118,43 @@ class MerchantMockRepository implements MerchantRepository {
       return product;
     }
     throw Exception('Product with id ${product.id} not found.');
+  }
+
+  @override
+  Future<void> deleteProduct(
+    String merchantId,
+    String productId,
+  ) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    _products.removeWhere((p) => p.id == productId);
+  }
+
+  @override
+  Future<List<ShopCategory>> getCategories() async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    return ShopMockRepository.defaultCategories;
+  }
+
+  @override
+  Future<List<ShopCategory>> getSubcategories({int? categoryId}) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    final all = ShopMockRepository().fetchSubcategories();
+    final list = await all;
+    if (categoryId != null) {
+      return list.where((s) => s.parentId == '$categoryId').toList();
+    }
+    return list;
+  }
+
+  @override
+  Future<List<Brand>> getBrands() async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    return const [
+      Brand(id: 1, name: 'Aba Craft', slug: 'aba-craft', isVerified: true),
+      Brand(id: 2, name: 'Ariaria Master', slug: 'ariaria-master', isVerified: true),
+      Brand(id: 3, name: 'BuyNaija Prime', slug: 'buynaija-prime', isVerified: true),
+      Brand(id: 4, name: 'Enyimba Stitch', slug: 'enyimba-stitch', isVerified: false),
+    ];
   }
 
   @override

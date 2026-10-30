@@ -13,11 +13,13 @@ class MerchantProductCard extends StatelessWidget {
     required this.product,
     required this.onEdit,
     required this.onAdjustStock,
+    required this.onDelete,
   });
 
   final MerchantProduct product;
   final VoidCallback onEdit;
   final VoidCallback onAdjustStock;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -171,6 +173,29 @@ class MerchantProductCard extends StatelessWidget {
                     color: isDark
                         ? const Color(0xFF3B4252)
                         : const Color(0xFFCBD5E1),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              OutlinedButton.icon(
+                onPressed: onDelete,
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedDelete02,
+                  size: 14,
+                  color: AppColors.error,
+                ),
+                label: const Text(
+                  'Delete',
+                  style: TextStyle(fontSize: 12, color: AppColors.error),
+                ),
+                style: OutlinedButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  side: BorderSide(
+                    color: AppColors.error.withAlpha(isDark ? 100 : 70),
                   ),
                 ),
               ),

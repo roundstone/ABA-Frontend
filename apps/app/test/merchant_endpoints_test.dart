@@ -90,6 +90,7 @@ void main() {
       );
 
       await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('David Enabs Demo Store'), findsAtLeast(1));
       expect(find.text('Owner: David Enabs'), findsOneWidget);

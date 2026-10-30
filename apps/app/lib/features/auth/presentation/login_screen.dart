@@ -36,8 +36,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void initState() {
     super.initState();
     if (_isMerchant) {
-      _identifierController.text = 'emeka@abaleather.com';
-      _passwordController.text = 'password123';
+      _identifierController.text = 'v-davidenabs@gmail.com';
+      _passwordController.text = 'password';
     } else if (kDebugMode) {
       _identifierController.text = 'davidenabs@gmail.com';
       _passwordController.text = 'password';
