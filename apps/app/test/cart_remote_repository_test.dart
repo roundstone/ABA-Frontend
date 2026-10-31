@@ -24,12 +24,29 @@ void main() {
                   statusCode: 200,
                   data: {
                     'success': true,
+                    'statusCode': 200,
+                    'message': 'Request completed successfully',
                     'data': {
-                      'isAvailable': true,
+                      'cart_id': 1,
+                      'is_available': true,
                       'items': [
-                        {'itemId': 'item-1', 'isAvailable': true, 'stock': 10, 'requestedQuantity': 2}
+                        {
+                          'cart_item_id': 7,
+                          'product_variant_id': 2,
+                          'requested_quantity': 1,
+                          'available_quantity': 22,
+                          'is_available': true,
+                        },
+                        {
+                          'cart_item_id': 8,
+                          'product_variant_id': 4,
+                          'requested_quantity': 1,
+                          'available_quantity': 24,
+                          'is_available': true,
+                        },
                       ],
                     },
+                    'timestamp': '2026-10-31T07:31:32.881Z',
                   },
                 ),
               );
@@ -114,13 +131,27 @@ void main() {
       expect(lastRequest?.method, equals('GET'));
       expect(lastRequest?.path, equals('/api/v1/cart/mobile-app/availability'));
       expect(res.isAvailable, isTrue);
+      expect(res.cartId, equals(1));
+      expect(res.items.length, equals(2));
+      expect(res.items[0].cartItemId, equals(7));
+      expect(res.items[0].productVariantId, equals(2));
+      expect(res.items[0].requestedQuantity, equals(1));
+      expect(res.items[0].availableQuantity, equals(22));
+      expect(res.items[0].isAvailable, isTrue);
+      expect(res.items[1].cartItemId, equals(8));
+      expect(res.items[1].productVariantId, equals(4));
+      expect(res.items[1].availableQuantity, equals(24));
+      expect(res.items[1].isAvailable, isTrue);
+      expect(res.unavailableVariantIds, isEmpty);
     });
 
     test('addItem calls POST /api/v1/cart/mobile-app/items with productVariantId', () async {
-      await repository.addItem(productVariantId: 42, quantity: 2);
+      final item = await repository.addItem(productVariantId: 42, quantity: 2);
       expect(lastRequest?.method, equals('POST'));
       expect(lastRequest?.path, equals('/api/v1/cart/mobile-app/items'));
       expect(lastRequest?.data, equals({'productVariantId': 42, 'quantity': 2}));
+      expect(item.id, equals('10'));
+      expect(item.productVariantId, equals(42));
     });
 
     test('updateItemQuantity calls PATCH /api/v1/cart/mobile-app/items/{itemId}', () async {

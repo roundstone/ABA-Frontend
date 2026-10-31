@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../application/referral_activation_provider.dart';
 import 'referral_activation_payment_views.dart';
 import 'referral_activation_steps.dart';
@@ -40,9 +41,7 @@ class _ReferralActivationSheetState
 
   Future<void> _submitKyc() async {
     if (_ninController.text.trim().length < 11) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid 11-digit NIN.')),
-      );
+      AppSnackbar.warning(context, 'Please enter a valid 11-digit NIN.');
       return;
     }
     await ref.read(referralActivationProvider.notifier).submitKyc(

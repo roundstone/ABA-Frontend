@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../application/address_providers.dart';
 import '../../domain/address_entities.dart';
 
@@ -69,18 +70,14 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
         updatedAt: now,
       );
 
-      await ref.read(addressesProvider.notifier).createAddress(address);
+      final created =
+          await ref.read(addressesProvider.notifier).createAddress(address);
 
       if (!mounted) return;
 
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(created);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Address saved successfully.'),
-          backgroundColor: AppColors.success,
-        ),
-      );
+      AppSnackbar.success(context, 'Address saved successfully.');
     } catch (e, stackTrace) {
       debugPrint('Failed to save address: $e');
       debugPrintStack(stackTrace: stackTrace);
@@ -89,12 +86,7 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
 
       setState(() => _isSaving = false);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to save address: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppSnackbar.error(context, 'Failed to save address: $e');
     }
   }
 

@@ -80,3 +80,10 @@ class PaymentsEndpoints {
   String get base => _base;
   String paystackVerify(String reference) => '$_base/paystack/$reference/verify';
 }
+
+/// 25. Mobile App Profile Endpoints
+class ProfileEndpoints {
+  const ProfileEndpoints();
+  static const String _base = '${ApiEndpoints.apiV1}/profile/mobile-app';
+  String get base => _base;
+}

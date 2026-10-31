@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app/features/cart/domain/entities/cart_entities.dart';
-import 'package:app/features/shop/domain/shop_entities.dart' show Product;
+import 'package:app/features/shop/domain/shop_entities.dart' show Product, ProductVariant;
 
 void main() {
   group('Cart Entity Tests', () {
@@ -81,6 +81,208 @@ void main() {
         CartItem(product: testProduct, quantity: 3),
       ]);
       expect(cart.itemCount, equals(5));
+    });
+
+    test('CartItem.fromJson parses nested productVariant.product accurately without ID collisions', () {
+      final backendJson = {
+        'id': 3, // CartItem ID in database
+        'cart_id': 1,
+        'product_variant_id': 6,
+        'quantity': 1,
+        'productVariant': {
+          'id': 6,
+          'product_id': 4,
+          'name': 'Demo Product 3 - Black',
+          'price': '12800.00',
+          'product': {
+            'id': 4,
+            'name': 'Demo Product 3',
+            'slug': 'demo-product-3',
+            'base_selling_price': '12800.00',
+          },
+        },
+      };
+
+      final item = CartItem.fromJson(backendJson);
+      expect(item.id, equals('3'));
+      expect(item.product.id, equals('4')); // Must be Product ID 4, not CartItem ID 3 or Variant ID 6
+      expect(item.product.name, equals('Demo Product 3'));
+      expect(item.effectiveVariantId, equals(6));
+
+      const demoProduct1 = Product(
+        id: '2',
+        name: 'Demo Product 1',
+        slug: 'demo-product-1',
+        price: 12600,
+        category: 'Clothing',
+        brand: 'Brand 1',
+        rating: 4.5,
+        reviewCount: 10,
+        stock: 20,
+        images: [],
+      );
+
+      const demoProduct3 = Product(
+        id: '4',
+        name: 'Demo Product 3',
+        slug: 'demo-product-3',
+        price: 12800,
+        category: 'Electronics',
+        brand: 'Brand 1',
+        rating: 4.5,
+        reviewCount: 10,
+        stock: 20,
+        images: [],
+      );
+
+      final cart = Cart(items: [item]);
+      expect(cart.containsProduct(demoProduct3), isTrue);
+      expect(cart.containsProduct(demoProduct1), isFalse);
+    });
+
+    test('Cart.addItem does not overwrite or confuse items for different products', () {
+      const prod1 = Product(
+        id: '2',
+        name: 'Demo Product 1',
+        slug: 'demo-product-1',
+        price: 12600,
+        category: 'Clothing',
+        brand: 'Brand 1',
+        rating: 4.5,
+        reviewCount: 10,
+        stock: 20,
+        images: [],
+      );
+
+      const prod3 = Product(
+        id: '4',
+        name: 'Demo Product 3',
+        slug: 'demo-product-3',
+        price: 12800,
+        category: 'Electronics',
+        brand: 'Brand 1',
+        rating: 4.5,
+        reviewCount: 10,
+        stock: 20,
+        images: [],
+      );
+
+      var cart = const Cart();
+      cart = cart.addItem(const CartItem(
+        id: '1',
+        product: prod3,
+        productVariantId: 6,
+        quantity: 1,
+      ));
+
+      expect(cart.containsProduct(prod3), isTrue);
+      expect(cart.containsProduct(prod1), isFalse);
+
+      // Now add product 1
+      cart = cart.addItem(const CartItem(
+        id: '2',
+        product: prod1,
+        productVariantId: 2,
+        quantity: 1,
+      ));
+
+      expect(cart.items.length, equals(2));
+      expect(cart.containsProduct(prod3), isTrue);
+      expect(cart.containsProduct(prod1), isTrue);
+    });
+
+    test('Cart.addItem does not confuse items even if both share a placeholder or cart ID', () {
+      const prod1 = Product(
+        id: '2',
+        name: 'Demo Product 1',
+        slug: 'demo-product-1',
+        price: 12600,
+        category: 'Clothing',
+        brand: 'Brand 1',
+        rating: 4.5,
+        reviewCount: 10,
+        stock: 20,
+        images: [],
+      );
+
+      const prod3 = Product(
+        id: '4',
+        name: 'Demo Product 3',
+        slug: 'demo-product-3',
+        price: 12800,
+        category: 'Electronics',
+        brand: 'Brand 1',
+        rating: 4.5,
+        reviewCount: 10,
+        stock: 20,
+        images: [],
+      );
+
+      var cart = const Cart();
+      // Suppose both items got cart ID '1' temporarily
+      cart = cart.addItem(const CartItem(
+        id: '1',
+        product: prod1,
+        productVariantId: 2,
+        quantity: 1,
+      ));
+
+      cart = cart.addItem(const CartItem(
+        id: '1',
+        product: prod3,
+        productVariantId: 6,
+        quantity: 1,
+      ));
+
+      expect(cart.items.length, equals(2));
+      expect(cart.containsProduct(prod1), isTrue);
+      expect(cart.containsProduct(prod3), isTrue);
+    });
+
+    test('effectiveVariantId does not confuse product ID with variant ID', () {
+      const prod2 = Product(
+        id: '3',
+        name: 'Demo Product 2',
+        slug: 'demo-product-2',
+        price: 12700,
+        category: 'Electronics',
+        brand: 'Brand 1',
+        rating: 4.5,
+        reviewCount: 10,
+        stock: 20,
+        images: [],
+      );
+
+      const demoProduct1 = Product(
+        id: '2',
+        name: 'Demo Product 1',
+        slug: 'demo-product-1',
+        price: 12600,
+        category: 'Clothing',
+        brand: 'Brand 1',
+        rating: 4.5,
+        reviewCount: 10,
+        stock: 20,
+        images: [],
+        variants: [
+          ProductVariant(id: 2, productId: 2, name: 'Black', sku: 'B', price: 12600),
+          ProductVariant(id: 3, productId: 2, name: 'Blue', sku: 'L', price: 13100),
+        ],
+      );
+
+      // Cart contains Demo Product 2 with no variant set
+      const item = CartItem(
+        id: 'item-2',
+        product: prod2,
+        quantity: 1,
+      );
+
+      expect(item.effectiveVariantId, isNull);
+
+      const cart = Cart(items: [item]);
+      // Demo Product 1 has variant ID 3, but should NOT be indicated as inCart
+      expect(cart.containsProduct(demoProduct1), isFalse);
+      expect(cart.containsProduct(prod2), isTrue);
     });
   });
 }

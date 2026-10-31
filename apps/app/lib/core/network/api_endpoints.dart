@@ -37,12 +37,13 @@ abstract final class ApiEndpoints {
   static const brands = BrandsEndpoints();
   static const cart = CartEndpoints();
   static const payments = PaymentsEndpoints();
+  static const profile = ProfileEndpoints();
 }
 
 /// 1. Auth Endpoints
 class _AuthEndpoints {
   const _AuthEndpoints();
-  static const String _base = '${ApiEndpoints.apiV1}/auth';
+  static const String _base = '${ApiEndpoints.apiV1}/auth/mobile-app';
   String get login => '$_base/login';
   String get signup => '$_base/signup';
   String get verifyEmail => '$_base/verify-email';
@@ -67,6 +68,8 @@ class _ReferralCodesEndpoints {
   const _ReferralCodesEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/referral-codes';
   String get base => _base;
+  String get myUpline => '$_base/me/upline';
+  String get myDownline => '$_base/me/downline';
   String byId(String id) => '$_base/$id';
   String status(String id) => '$_base/$id/status';
 }
@@ -107,7 +110,7 @@ class _CustomersEndpoints {
 /// 7. Delivery Addresses Endpoints
 class _DeliveryAddressEndpoints {
   const _DeliveryAddressEndpoints();
-  static const String _base = '${ApiEndpoints.apiV1}/delivery-address';
+  static const String _base = '${ApiEndpoints.apiV1}/delivery-addresses/mobile-app';
   String get base => _base;
   String byId(String id) => '$_base/$id';
 }
@@ -115,10 +118,9 @@ class _DeliveryAddressEndpoints {
 /// 8. Orders Endpoints
 class _OrdersEndpoints {
   const _OrdersEndpoints();
-  static const String _base = '${ApiEndpoints.apiV1}/orders';
+  static const String _base = '${ApiEndpoints.apiV1}/orders/mobile-app';
   String get base => _base;
   String byId(String id) => '$_base/$id';
-  String get mobileApp => '$_base/mobile-app';
 }
 
 /// 9. Marketers Endpoints

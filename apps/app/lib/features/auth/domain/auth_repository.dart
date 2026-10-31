@@ -33,4 +33,13 @@ abstract class AuthRepository {
   });
 
   Future<String?> refreshToken();
+
+  Future<AuthUser> getProfile();
+
+  Future<AuthUser> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? phone,
+    String? businessName,
+  });
 }

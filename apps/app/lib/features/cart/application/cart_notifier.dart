@@ -19,10 +19,8 @@ class CartNotifier extends AsyncNotifier<Cart> {
     // 1. Try fetching live cart from API
     try {
       final remoteCart = await repo.getCart();
-      if (remoteCart.items.isNotEmpty) {
-        _persist(remoteCart);
-        return remoteCart;
-      }
+      _persist(remoteCart);
+      return remoteCart;
     } catch (e) {
       AppLogger.w('CartNotifier.build: remote cart fetch failed ($e), checking local cache');
     }
@@ -80,17 +78,10 @@ class CartNotifier extends AsyncNotifier<Cart> {
   Future<void> _persist(Cart cart) async {
     final prefs = ref.read(sharedPreferencesProvider);
     if (prefs == null) return;
-    final encoded = cart.items.map((i) {
-      final parts = [
-        i.product.id,
-        '${i.quantity}',
-        i.selectedColor ?? '',
-        i.selectedSize ?? '',
-        i.id ?? '',
-        '${i.effectiveVariantId ?? ''}',
-      ];
-      return parts.join(_sep);
-    }).toList();
+    final encoded = cart.items.map((i) => [
+      i.product.id, '${i.quantity}', i.selectedColor ?? '',
+      i.selectedSize ?? '', i.id ?? '', '${i.effectiveVariantId ?? ''}',
+    ].join(_sep)).toList();
     await prefs.setStringList(_kCartKey, encoded);
   }
 
@@ -98,13 +89,11 @@ class CartNotifier extends AsyncNotifier<Cart> {
     if (variantId != null && variantId > 0) return variantId;
     if (product.variants.isNotEmpty) {
       if (color != null || size != null) {
-        final matched = product.variants.firstWhere(
-          (v) =>
-              (color == null || v.color?.toLowerCase() == color.toLowerCase()) &&
+        return product.variants.firstWhere(
+          (v) => (color == null || v.color?.toLowerCase() == color.toLowerCase()) &&
               (size == null || v.size?.toLowerCase() == size.toLowerCase()),
           orElse: () => product.variants.first,
-        );
-        return matched.id;
+        ).id;
       }
       return product.variants.first.id;
     }
@@ -119,39 +108,61 @@ class CartNotifier extends AsyncNotifier<Cart> {
     int? variantId,
   }) async {
     final current = state.valueOrNull ?? const Cart();
+
+    var effectiveProduct = product;
+    if (effectiveProduct.variants.isEmpty && variantId == null) {
+      try {
+        final repo = ref.read(shopRepositoryProvider);
+        final full = await repo.fetchProductById(product.id);
+        if (full != null && full.variants.isNotEmpty) {
+          effectiveProduct = full;
+        }
+      } catch (_) {}
+    }
+
     final vId = _resolveVariantId(
-      product,
+      effectiveProduct,
       color: color,
       size: size,
       variantId: variantId,
     );
 
+    // Optimistically update cart state immediately
+    final optItem = CartItem(
+      product: effectiveProduct,
+      quantity: quantity,
+      productVariantId: vId,
+      selectedColor: color,
+      selectedSize: size,
+    );
+    final optimisticCart = current.addItem(optItem);
+    state = AsyncValue.data(optimisticCart);
+
     // Call POST /api/v1/cart/mobile-app/items
-    String? serverItemId;
     try {
       final repo = ref.read(cartRepositoryProvider);
       final created = await repo.addItem(
         productVariantId: vId,
         quantity: quantity,
-        product: product,
+        product: effectiveProduct,
       );
-      serverItemId = created.id;
+      if (created.id != null) {
+        final synced = optimisticCart.items.map((i) {
+          if (i.product.id == effectiveProduct.id &&
+              (i.effectiveVariantId == vId || i.effectiveVariantId == null)) {
+            return i.copyWith(id: created.id, productVariantId: vId);
+          }
+          return i;
+        }).toList();
+        final finalCart = Cart(id: optimisticCart.id, items: synced);
+        state = AsyncValue.data(finalCart);
+        await _persist(finalCart);
+        return;
+      }
     } catch (e) {
       AppLogger.w('CartNotifier.addToCart remote failed: $e');
     }
-
-    final next = current.addItem(
-      CartItem(
-        id: serverItemId,
-        product: product,
-        quantity: quantity,
-        productVariantId: vId,
-        selectedColor: color,
-        selectedSize: size,
-      ),
-    );
-    state = AsyncValue.data(next);
-    await _persist(next);
+    await _persist(optimisticCart);
   }
 
   Future<void> removeFromCart(String productIdOrItemId) async {

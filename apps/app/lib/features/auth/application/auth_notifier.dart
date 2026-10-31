@@ -149,19 +149,49 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = const AuthState();
   }
 
-  Future<void> updateProfile({
+  Future<AuthUser?> fetchProfile() async {
+    try {
+      final user = await _repository.getProfile();
+      state = state.copyWith(user: user);
+      return user;
+    } catch (e) {
+      AppLogger.w('AuthNotifier.fetchProfile error: $e');
+      return state.user;
+    }
+  }
+
+  Future<bool> updateProfile({
     String? name,
     String? phone,
     String? businessName,
   }) async {
-    if (state.user != null) {
-      final updated = state.user!.copyWith(
-        name: name,
-        phone: phone,
+    state = state.copyWith(isLoading: true);
+    try {
+      String? firstName;
+      String? lastName;
+      if (name != null && name.trim().isNotEmpty) {
+        final parts = name.trim().split(RegExp(r'\s+'));
+        firstName = parts.first;
+        lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+      }
+      final phoneToSend = (phone != null &&
+              phone.trim().isNotEmpty &&
+              phone.trim() != state.user?.phone)
+          ? phone.trim()
+          : null;
+
+      final updated = await _repository.updateProfile(
+        firstName: firstName,
+        lastName: lastName,
+        phone: phoneToSend,
         businessName: businessName,
       );
-      state = state.copyWith(user: updated);
-      await _repository.persistUser(updated);
+      state = state.copyWith(user: updated, isLoading: false);
+      return true;
+    } catch (e) {
+      AppLogger.w('AuthNotifier.updateProfile error: $e');
+      state = state.copyWith(isLoading: false);
+      rethrow;
     }
   }
 

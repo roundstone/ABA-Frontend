@@ -30,16 +30,35 @@ class Cart {
 
   bool get isEmpty => items.isEmpty;
 
+  bool containsProduct(Product product) {
+    return items.any((i) {
+      if (i.product.id == product.id) return true;
+      if (product.slug.isNotEmpty && i.product.slug == product.slug) return true;
+      if (i.effectiveVariantId != null &&
+          i.effectiveVariantId! > 0 &&
+          product.variants.any((v) => v.id == i.effectiveVariantId)) {
+        return true;
+      }
+      return false;
+    });
+  }
+
   Cart addItem(CartItem newItem) {
-    final existingIndex = items.indexWhere(
-      (i) =>
-          (newItem.id != null && i.id == newItem.id) ||
-          (newItem.effectiveVariantId != null &&
-              i.effectiveVariantId == newItem.effectiveVariantId) ||
-          (i.product.id == newItem.product.id &&
-              i.selectedColor == newItem.selectedColor &&
-              i.selectedSize == newItem.selectedSize),
-    );
+    final existingIndex = items.indexWhere((i) {
+      final sameProduct = i.product.id == newItem.product.id ||
+          (i.product.slug.isNotEmpty && i.product.slug == newItem.product.slug);
+      if (newItem.id != null && i.id != null && i.id == newItem.id) {
+        return sameProduct;
+      }
+      if (!sameProduct) return false;
+
+      final sameVariant = newItem.effectiveVariantId == null ||
+          i.effectiveVariantId == null ||
+          i.effectiveVariantId == newItem.effectiveVariantId;
+      final sameColor = i.selectedColor == newItem.selectedColor;
+      final sameSize = i.selectedSize == newItem.selectedSize;
+      return sameVariant && sameColor && sameSize;
+    });
     final updated = List<CartItem>.from(items);
     if (existingIndex >= 0) {
       updated[existingIndex] = updated[existingIndex].copyWith(

@@ -180,8 +180,8 @@ class _ProductDetailBody extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cartNotifier = ref.read(cartProvider.notifier);
-    final inCart = (ref.watch(cartProvider).valueOrNull ?? const Cart()).items
-        .any((i) => i.product.id == product.id);
+    final cart = ref.watch(cartProvider).valueOrNull ?? const Cart();
+    final inCart = cart.containsProduct(product);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -979,15 +979,11 @@ class _ProductDetailBody extends ConsumerWidget {
             color: selectedColor,
             size: selectedSize,
           );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Added to cart!'),
-              action: SnackBarAction(
-                label: 'View Cart',
-                onPressed: () => context.push('/cart'),
-              ),
-              behavior: SnackBarBehavior.floating,
-            ),
+          AppSnackbar.success(
+            context,
+            'Added to cart!',
+            actionLabel: 'View Cart',
+            onAction: () => context.push('/cart'),
           );
         },
       ),

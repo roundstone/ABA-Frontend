@@ -15,7 +15,6 @@ import 'widgets/checkout_progress_bar.dart';
 import 'widgets/checkout_referral_section.dart';
 import 'widgets/checkout_summary_card.dart';
 import 'widgets/paystack_payment_sheet.dart';
-import 'widgets/step_customer_info.dart';
 import 'widgets/step_delivery_address.dart';
 import 'widgets/step_delivery_method.dart';
 import 'widgets/step_payment_method.dart';
@@ -176,14 +175,6 @@ class CheckoutScreen extends ConsumerWidget {
   ) {
     switch (checkoutState.step) {
       case 1:
-        return StepCustomerInfo(
-          initialInfo: checkoutState.customerInfo,
-          onContinue: (info) {
-            notifier.updateCustomerInfo(info);
-            notifier.nextStep();
-          },
-        );
-      case 2:
         return StepDeliveryAddress(
           savedAddresses: checkoutState.savedAddresses,
           selectedAddress: checkoutState.selectedAddress,
@@ -194,7 +185,7 @@ class CheckoutScreen extends ConsumerWidget {
           onBack: notifier.prevStep,
           onContinue: notifier.nextStep,
         );
-      case 3:
+      case 2:
         return StepDeliveryMethod(
           methods: checkoutState.deliveryMethods,
           selectedMethod: checkoutState.selectedDeliveryMethod,
@@ -202,14 +193,14 @@ class CheckoutScreen extends ConsumerWidget {
           onBack: notifier.prevStep,
           onContinue: notifier.nextStep,
         );
-      case 4:
+      case 3:
         return StepPaymentMethod(
           selectedType: checkoutState.paymentType,
           onSelectType: notifier.selectPaymentType,
           onBack: notifier.prevStep,
           onContinue: notifier.nextStep,
         );
-      case 5:
+      case 4:
       default:
         return StepReviewOrder(
           state: checkoutState,

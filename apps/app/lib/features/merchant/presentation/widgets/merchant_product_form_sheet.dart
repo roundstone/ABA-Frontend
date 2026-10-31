@@ -4,6 +4,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../application/merchant_providers.dart';
 import '../../domain/merchant_product_entities.dart';
 import 'merchant_product_image_picker.dart';
@@ -255,10 +256,9 @@ class _MerchantProductFormSheetState
   void _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_images.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('At least one product image is required.'),
-        ),
+      AppSnackbar.warning(
+        context,
+        'At least one product image is required.',
       );
       return;
     }

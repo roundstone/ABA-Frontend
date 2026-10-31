@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app/core/theme/theme_provider.dart';
+import 'package:app/core/widgets/app_text_field.dart';
 import 'package:app/features/auth/application/auth_providers.dart';
+import 'package:app/features/auth/data/auth_mock_repository.dart';
 import 'package:app/features/auth/domain/auth_entities.dart';
 import 'package:app/features/customer/presentation/settings_screen.dart';
 
@@ -33,7 +35,12 @@ void main() {
 
     testWidgets('tapping Edit Profile opens edit modal and updates profile',
         (tester) async {
-      final container = ProviderContainer();
+      final mockRepo = AuthMockRepository();
+      final container = ProviderContainer(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(mockRepo),
+        ],
+      );
       // Seed a user in auth state
       container.read(authStateProvider.notifier).state = AuthState(
         user: AuthUser(
@@ -64,7 +71,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Edit Profile'), findsOneWidget);
-      final nameField = find.widgetWithText(TextFormField, 'Full Name');
+      final nameField = find.widgetWithText(AppTextField, 'Full Name');
       expect(nameField, findsOneWidget);
 
       await tester.enterText(nameField, 'Jane Updated Doe');

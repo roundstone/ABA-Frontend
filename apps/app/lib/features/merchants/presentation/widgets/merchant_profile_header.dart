@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../domain/merchant_entities.dart';
 import 'merchant_card_visuals.dart';
 
@@ -192,12 +193,7 @@ class MerchantProfileHeader extends StatelessWidget {
             GestureDetector(
               onTap: () {
                 Clipboard.setData(ClipboardData(text: text));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Copied $text'),
-                    duration: const Duration(milliseconds: 900),
-                  ),
-                );
+                AppSnackbar.success(context, 'Copied $text');
               },
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 4),

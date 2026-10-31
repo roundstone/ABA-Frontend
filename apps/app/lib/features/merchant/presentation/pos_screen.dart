@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../core/router/safe_navigation.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../../shop/domain/shop_entities.dart';
 import '../application/merchant_providers.dart';
 import '../domain/merchant_order_entities.dart';
@@ -185,7 +186,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                 paymentMethod: _paymentMethod,
                 onPaymentMethodChanged: (m) =>
                     setState(() => _paymentMethod = m),
-                onCheckout: () => _handleCompleteSale(context, ref, subtotal),
+                onCheckout: () => _handleCompleteSale(subtotal),
               ),
           ],
         ),
@@ -193,12 +194,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     );
   }
 
-  void _handleCompleteSale(
-    BuildContext context,
-    WidgetRef ref,
-    double subtotal,
-  ) async {
-    final messenger = ScaffoldMessenger.of(context);
+  void _handleCompleteSale(double subtotal) async {
     final products = ref.read(merchantProductsProvider).products;
     final order = MerchantOrder(
       id: 'ORD-${DateTime.now().millisecondsSinceEpoch % 100000}',
@@ -237,11 +233,9 @@ class _POSScreenState extends ConsumerState<POSScreen> {
 
     if (!mounted) return;
     setState(() => _cart.clear());
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text('Sale completed! ${order.id} recorded with $_paymentMethod.'),
-        backgroundColor: const Color(0xFF10B981),
-      ),
+    AppSnackbar.success(
+      context,
+      'Sale completed! ${order.id} recorded with $_paymentMethod.',
     );
   }
 }

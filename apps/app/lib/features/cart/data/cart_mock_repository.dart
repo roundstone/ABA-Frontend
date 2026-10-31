@@ -41,8 +41,11 @@ class CartMockRepository implements CartRepository {
 
     final existingIndex = _cartItems.indexWhere(
       (item) =>
-          item.productVariantId == productVariantId ||
-          (product != null && item.product.id == product.id),
+          (product != null &&
+              item.product.id == product.id &&
+              (item.effectiveVariantId == null ||
+                  item.effectiveVariantId == productVariantId)) ||
+          (product == null && item.productVariantId == productVariantId),
     );
 
     if (existingIndex >= 0) {

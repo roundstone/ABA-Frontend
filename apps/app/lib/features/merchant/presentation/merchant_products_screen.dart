@@ -176,14 +176,14 @@ class _MerchantProductsScreenState extends ConsumerState<MerchantProductsScreen>
         final notifier = ref.read(merchantProductsProvider.notifier);
         final ok = product == null ? await notifier.addProduct(saved) : await notifier.updateProduct(saved);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(ok
-                  ? (product == null ? 'Product published successfully' : 'Product updated successfully')
-                  : 'Failed to save product'),
-              backgroundColor: ok ? AppColors.success : AppColors.error,
-            ),
-          );
+          if (ok) {
+            AppSnackbar.success(
+              context,
+              product == null ? 'Product published successfully' : 'Product updated successfully',
+            );
+          } else {
+            AppSnackbar.error(context, 'Failed to save product');
+          }
         }
         return ok;
       },
@@ -210,12 +210,11 @@ class _MerchantProductsScreenState extends ConsumerState<MerchantProductsScreen>
     if (confirmed == true && context.mounted) {
       final success = await ref.read(merchantProductsProvider.notifier).deleteProduct(product.id);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(success ? 'Product deleted successfully' : 'Failed to delete product'),
-            backgroundColor: success ? AppColors.success : AppColors.error,
-          ),
-        );
+        if (success) {
+          AppSnackbar.success(context, 'Product deleted successfully');
+        } else {
+          AppSnackbar.error(context, 'Failed to delete product');
+        }
       }
     }
   }

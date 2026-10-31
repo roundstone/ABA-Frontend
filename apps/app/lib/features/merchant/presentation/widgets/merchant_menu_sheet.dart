@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../auth/application/auth_providers.dart';
 import 'merchant_account_dialogs.dart';
 import 'merchant_menu_tile.dart';
@@ -103,11 +104,9 @@ class _MerchantMenuModal extends ConsumerWidget {
                 InkWell(
                   onTap: () {
                     Clipboard.setData(ClipboardData(text: referralCode));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Referral code "$referralCode" copied!'),
-                        duration: const Duration(seconds: 2),
-                      ),
+                    AppSnackbar.success(
+                      context,
+                      'Referral code "$referralCode" copied!',
                     );
                   },
                   borderRadius: BorderRadius.circular(8),

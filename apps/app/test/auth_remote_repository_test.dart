@@ -1,9 +1,10 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app/core/network/api_endpoints.dart';
 import 'package:app/core/network/api_error.dart';
-import 'package:app/features/auth/domain/auth_entities.dart';
 import 'package:app/features/auth/data/auth_remote_repository.dart';
+import 'package:app/features/auth/domain/auth_entities.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -138,6 +139,95 @@ void main() {
 
       await repo.persistUser(dummyUser);
       expect(repo.getStoredUserSync(), isNull);
+    });
+
+    test('getProfile parses mobile-app profile schema from live backend', () async {
+      SharedPreferences.setMockInitialValues({'access_token': 'test-jwt'});
+      final prefs = await SharedPreferences.getInstance();
+
+      final dio = Dio();
+      dio.interceptors.add(InterceptorsWrapper(
+        onRequest: (options, handler) {
+          if (options.path == ApiEndpoints.profile.base && options.method == 'GET') {
+            return handler.resolve(Response(
+              requestOptions: options,
+              statusCode: 200,
+              data: {
+                'success': true,
+                'statusCode': 200,
+                'message': 'Request completed successfully',
+                'data': {
+                  'id': 10,
+                  'first_name': 'David',
+                  'middle_name': null,
+                  'last_name': 'Enabs',
+                  'user_type_id': 3,
+                  'user_type': {
+                    'id': 3,
+                    'name': 'Customer',
+                    'description': 'Customer purchasing products/services',
+                  },
+                  'phone': '+2348140000003',
+                  'email': 'c-davidenabs@gmail.com',
+                  'username': 'c-davidenabs',
+                },
+              },
+            ));
+          }
+          return handler.next(options);
+        },
+      ));
+
+      final repo = AuthRemoteRepository(dio: dio, prefs: prefs);
+      final profile = await repo.getProfile();
+
+      expect(profile.id, equals('10'));
+      expect(profile.name, equals('David Enabs'));
+      expect(profile.email, equals('c-davidenabs@gmail.com'));
+      expect(profile.phone, equals('+2348140000003'));
+      expect(profile.role, equals(UserRole.customer));
+    });
+
+    test('updateProfile sends PATCH and returns updated user', () async {
+      SharedPreferences.setMockInitialValues({'access_token': 'test-jwt'});
+      final prefs = await SharedPreferences.getInstance();
+
+      final dio = Dio();
+      dio.interceptors.add(InterceptorsWrapper(
+        onRequest: (options, handler) {
+          if (options.path == ApiEndpoints.profile.base && options.method == 'PATCH') {
+            return handler.resolve(Response(
+              requestOptions: options,
+              statusCode: 200,
+              data: {
+                'success': true,
+                'statusCode': 200,
+                'message': 'Request completed successfully',
+                'data': {
+                  'id': 10,
+                  'first_name': 'David Updated',
+                  'middle_name': null,
+                  'last_name': 'Enabs',
+                  'phone': '+2348140000099',
+                  'email': 'c-davidenabs@gmail.com',
+                  'user_type': {'id': 3, 'name': 'Customer'},
+                },
+              },
+            ));
+          }
+          return handler.next(options);
+        },
+      ));
+
+      final repo = AuthRemoteRepository(dio: dio, prefs: prefs);
+      final updated = await repo.updateProfile(
+        firstName: 'David Updated',
+        lastName: 'Enabs',
+        phone: '+2348140000099',
+      );
+
+      expect(updated.name, equals('David Updated Enabs'));
+      expect(updated.phone, equals('+2348140000099'));
     });
   });
 }

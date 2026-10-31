@@ -148,7 +148,10 @@ class _ShopBody extends ConsumerWidget {
                   ),
                   sliver: SliverGrid(
                     delegate: SliverChildBuilderDelegate(
-                      (context, i) => ProductCard(product: products[i]),
+                      (context, i) => ProductCard(
+                        key: ValueKey('product_grid_${products[i].id}'),
+                        product: products[i],
+                      ),
                       childCount: products.length,
                     ),
                     gridDelegate:
@@ -170,8 +173,11 @@ class _ShopBody extends ConsumerWidget {
                   ),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
-                      (context, i) =>
-                          ProductCard(product: products[i], listMode: true),
+                      (context, i) => ProductCard(
+                        key: ValueKey('product_list_${products[i].id}'),
+                        product: products[i],
+                        listMode: true,
+                      ),
                       childCount: products.length,
                     ),
                   ),

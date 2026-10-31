@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../application/auth_providers.dart';
 import '../domain/auth_entities.dart';
@@ -57,14 +58,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final password = _passwordController.text;
 
     if (identifier.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _isMerchant
-                ? 'Please enter your business email and password'
-                : 'Please enter your email/phone and password',
-          ),
-        ),
+      AppSnackbar.warning(
+        context,
+        _isMerchant
+            ? 'Please enter your business email and password'
+            : 'Please enter your email/phone and password',
       );
       return;
     }

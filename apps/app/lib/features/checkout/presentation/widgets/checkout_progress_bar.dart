@@ -15,11 +15,10 @@ class CheckoutProgressBar extends StatelessWidget {
   final ValueChanged<int> onStepTapped;
 
   static const _steps = [
-    (num: 1, label: 'Info'),
-    (num: 2, label: 'Address'),
-    (num: 3, label: 'Delivery'),
-    (num: 4, label: 'Payment'),
-    (num: 5, label: 'Review'),
+    (num: 1, label: 'Address'),
+    (num: 2, label: 'Delivery'),
+    (num: 3, label: 'Payment'),
+    (num: 4, label: 'Review'),
   ];
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../../core/providers/notifications_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../shop/application/shop_providers.dart';
@@ -9,10 +10,8 @@ import '../domain/checkout_repository.dart';
 import 'checkout_state.dart';
 
 class CheckoutNotifier extends StateNotifier<CheckoutState> {
-  CheckoutNotifier({
-    required this.repository,
-    required this.ref,
-  }) : super(const CheckoutState()) {
+  CheckoutNotifier({required this.repository, required this.ref})
+    : super(const CheckoutState()) {
     init();
   }
 
@@ -81,17 +80,11 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
   }
 
   void selectAddress(CheckoutAddress address) {
-    state = state.copyWith(
-      selectedAddress: address,
-      isNewAddressMode: false,
-    );
+    state = state.copyWith(selectedAddress: address, isNewAddressMode: false);
   }
 
   void updateCustomAddress(CheckoutAddress address) {
-    state = state.copyWith(
-      selectedAddress: address,
-      isNewAddressMode: true,
-    );
+    state = state.copyWith(selectedAddress: address, isNewAddressMode: true);
   }
 
   void toggleNewAddressMode(bool isNew) {
@@ -166,10 +159,12 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
     // 1. Check availability via GET /api/v1/cart/mobile-app/availability
     try {
       final avail = await ref.read(cartProvider.notifier).checkAvailability();
+      AppLogger.d('Cart availability: ${avail.isAvailable}');
       if (!avail.isAvailable) {
         state = state.copyWith(
           isSubmitting: false,
-          errorMessage: avail.message ??
+          errorMessage:
+              avail.message ??
               'Some items in your cart are no longer available in the requested quantity.',
         );
         return null;
@@ -182,7 +177,8 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
       if (!verified) {
         state = state.copyWith(
           isSubmitting: false,
-          errorMessage: 'Paystack payment verification failed. Please try again.',
+          errorMessage:
+              'Paystack payment verification failed. Please try again.',
         );
         return null;
       }
@@ -217,10 +213,7 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         ),
       );
 
-      state = state.copyWith(
-        isSubmitting: false,
-        createdOrderResult: result,
-      );
+      state = state.copyWith(isSubmitting: false, createdOrderResult: result);
       return result;
     } catch (e) {
       state = state.copyWith(

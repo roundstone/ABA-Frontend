@@ -202,4 +202,31 @@ class AuthMockRepository implements AuthRepository {
     await Future.delayed(const Duration(milliseconds: 150));
     return 'mock-refreshed-jwt-token';
   }
+
+  @override
+  Future<AuthUser> getProfile() async {
+    await Future.delayed(const Duration(milliseconds: 150));
+    return _currentUser ?? demoCustomer;
+  }
+
+  @override
+  Future<AuthUser> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? phone,
+    String? businessName,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    final current = _currentUser ?? demoCustomer;
+    final fullName = [firstName, lastName]
+        .where((s) => s != null && s.isNotEmpty)
+        .join(' ');
+    final updated = current.copyWith(
+      name: fullName.isNotEmpty ? fullName : current.name,
+      phone: phone ?? current.phone,
+      businessName: businessName ?? current.businessName,
+    );
+    await persistUser(updated);
+    return updated;
+  }
 }

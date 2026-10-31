@@ -10,6 +10,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../application/auth_providers.dart';
 import '../domain/auth_entities.dart';
 import 'widgets/customer_register_fields.dart';
@@ -76,9 +77,7 @@ class _CustomerRegisterScreenState
     }
 
     if (!_acceptTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please accept terms and conditions.')),
-      );
+      AppSnackbar.warning(context, 'Please accept terms and conditions.');
       return;
     }
 

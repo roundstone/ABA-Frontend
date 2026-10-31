@@ -86,16 +86,10 @@ class WalletScreen extends ConsumerWidget {
                   data: (info) => WalletBalanceCard(
                     info: info,
                     onFund: () {
-                      // TODO: Implement fund action
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Fund wallet tapped')),
-                      );
+                      AppSnackbar.info(context, 'Fund wallet coming soon');
                     },
                     onWithdraw: () {
-                      // TODO: Implement withdraw action
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Withdraw tapped')),
-                      );
+                      AppSnackbar.info(context, 'Withdrawal coming soon');
                     },
                   ),
                 ),

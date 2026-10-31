@@ -10,12 +10,17 @@ import '../domain/auth_repository.dart';
 import 'auth_mock_repository.dart';
 
 class AuthRemoteRepository implements AuthRepository {
-  AuthRemoteRepository({Dio? dio, SharedPreferences? prefs})
-    : _dio = dio ?? Dio(BaseOptions(baseUrl: ApiEndpoints.baseUrl)),
-      _prefs = prefs;
+  AuthRemoteRepository({
+    Dio? dio,
+    SharedPreferences? prefs,
+    AuthMockRepository? mock,
+  }) : _dio = dio ?? Dio(BaseOptions(baseUrl: ApiEndpoints.baseUrl)),
+       _prefs = prefs,
+       _mock = mock ?? AuthMockRepository();
 
   final Dio _dio;
   final SharedPreferences? _prefs;
+  final AuthMockRepository _mock;
 
   static const _tokenKey = 'auth_access_token';
   static const _refreshKey = 'auth_refresh_token';
@@ -395,6 +400,97 @@ class AuthRemoteRepository implements AuthRepository {
         await logout();
       }
       throw ApiError.fromDio(e);
+    }
+  }
+
+  @override
+  Future<AuthUser> getProfile() async {
+    try {
+      final token = _prefs?.getString(_tokenKey) ?? '';
+      final res = await _dio.get(
+        ApiEndpoints.profile.base,
+        options: token.isNotEmpty
+            ? Options(headers: {'Authorization': 'Bearer $token'})
+            : null,
+      );
+      final data = ApiResponse.unwrapMap(res.data);
+      final current = getStoredUserSync();
+      final user = await _fetchProfile(
+        token,
+        current?.refreshToken,
+        data['email'] as String? ?? current?.email ?? '',
+        current?.role ?? UserRole.customer,
+        initialData: data,
+      );
+      await persistUser(user);
+      return user;
+    } on DioException catch (e) {
+      AppLogger.w(
+        'AuthRemoteRepository.getProfile failed: $e, falling back to cached/mock',
+      );
+      final cached = getStoredUserSync();
+      if (cached != null) return cached;
+      return _mock.getProfile();
+    }
+  }
+
+  @override
+  Future<AuthUser> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? phone,
+    String? businessName,
+  }) async {
+    try {
+      final token = _prefs?.getString(_tokenKey) ?? '';
+      final payload = <String, dynamic>{
+        if (firstName != null && firstName.isNotEmpty) ...{
+          'first_name': firstName,
+          'firstName': firstName,
+        },
+        if (lastName != null && lastName.isNotEmpty) ...{
+          'last_name': lastName,
+          'lastName': lastName,
+        },
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
+        if (businessName != null && businessName.isNotEmpty) ...{
+          'business_name': businessName,
+          'businessName': businessName,
+        },
+      };
+
+      final res = await _dio.patch(
+        ApiEndpoints.profile.base,
+        data: payload,
+        options: token.isNotEmpty
+            ? Options(headers: {'Authorization': 'Bearer $token'})
+            : null,
+      );
+
+      final data = ApiResponse.unwrapMap(res.data);
+      final current = getStoredUserSync();
+      final user = await _fetchProfile(
+        token,
+        current?.refreshToken,
+        data['email'] as String? ?? current?.email ?? '',
+        current?.role ?? UserRole.customer,
+        initialData: data,
+      );
+      await persistUser(user);
+      return user;
+    } on DioException catch (e) {
+      AppLogger.w(
+        'AuthRemoteRepository.updateProfile failed: $e',
+      );
+      if (e.response != null && e.response!.statusCode != null) {
+        throw ApiError.fromDio(e);
+      }
+      return _mock.updateProfile(
+        firstName: firstName,
+        lastName: lastName,
+        phone: phone,
+        businessName: businessName,
+      );
     }
   }
 }

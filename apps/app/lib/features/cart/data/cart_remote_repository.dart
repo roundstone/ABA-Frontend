@@ -15,6 +15,40 @@ class CartRemoteRepository implements CartRepository {
   final Dio dio;
   final CartMockRepository _mock;
 
+  static Map<String, dynamic> _extractItemMap(
+    Map<String, dynamic> data, {
+    int? productVariantId,
+    String? itemId,
+  }) {
+    if (data.containsKey('items') && data['items'] is List) {
+      final items = (data['items'] as List).whereType<Map>().toList();
+      if (productVariantId != null) {
+        final match = items.firstWhere(
+          (m) =>
+              m['product_variant_id'] == productVariantId ||
+              m['productVariantId'] == productVariantId ||
+              (m['productVariant'] is Map &&
+                  (m['productVariant']['id'] == productVariantId ||
+                      m['productVariant']['id']?.toString() ==
+                          productVariantId.toString())),
+          orElse: () => items.isNotEmpty ? items.last : const {},
+        );
+        if (match.isNotEmpty) return Map<String, dynamic>.from(match);
+      }
+      if (itemId != null) {
+        final match = items.firstWhere(
+          (m) =>
+              m['id']?.toString() == itemId ||
+              m['itemId']?.toString() == itemId,
+          orElse: () => items.isNotEmpty ? items.last : const {},
+        );
+        if (match.isNotEmpty) return Map<String, dynamic>.from(match);
+      }
+      if (items.isNotEmpty) return Map<String, dynamic>.from(items.last);
+    }
+    return data;
+  }
+
   @override
   Future<Cart> getCart() async {
     try {
@@ -24,8 +58,7 @@ class CartRemoteRepository implements CartRepository {
         final unwrapped = data is Map<String, dynamic>
             ? (data['data'] ?? data)
             : data;
-        final cart = Cart.fromJson(unwrapped);
-        if (cart.items.isNotEmpty) return cart;
+        return Cart.fromJson(unwrapped);
       }
     } catch (e) {
       AppLogger.w('CartRemoteRepository.getCart failed: $e, falling back to mock');
@@ -80,7 +113,15 @@ class CartRemoteRepository implements CartRepository {
       };
       final res = await dio.post(ApiEndpoints.cart.items, data: payload);
       final data = ApiResponse.unwrapMap(res.data);
-      final item = CartItem.fromJson(data);
+      final itemMap = _extractItemMap(data, productVariantId: productVariantId);
+      var item = CartItem.fromJson(
+        itemMap,
+        catalogue: product != null ? [product] : const [],
+      );
+      if (product != null &&
+          (item.product.id == 'item' || item.product.id.isEmpty)) {
+        item = item.copyWith(product: product);
+      }
       // Synchronize in mock cache
       try {
         await _mock.addItem(
@@ -109,7 +150,8 @@ class CartRemoteRepository implements CartRepository {
       final payload = {'quantity': quantity};
       final res = await dio.patch(ApiEndpoints.cart.item(itemId), data: payload);
       final data = ApiResponse.unwrapMap(res.data);
-      final item = CartItem.fromJson(data);
+      final itemMap = _extractItemMap(data, itemId: itemId);
+      final item = CartItem.fromJson(itemMap);
       try {
         await _mock.updateItemQuantity(itemId: itemId, quantity: quantity);
       } catch (_) {}

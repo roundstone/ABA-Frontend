@@ -4,9 +4,11 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../auth/application/auth_providers.dart';
 import '../../application/shop_providers.dart';
 import '../../domain/shop_entities.dart';
+import 'review_form_sheet.dart';
 
 /// Displays paginated product 
 ///  (`GET /api/v1/reviews`) with smooth loading,
@@ -105,18 +107,35 @@ class ProductReviewsSection extends ConsumerWidget {
     );
   }
 
-  Future<void> _openReviewSheet(BuildContext context, WidgetRef ref, int reviewableId, {ProductReview? existing}) async {
+  Future<void> _openReviewSheet(
+    BuildContext context,
+    WidgetRef ref,
+    int reviewableId, {
+    ProductReview? existing,
+  }) async {
     final submitted = await showModalBottomSheet<bool>(
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => _ReviewFormSheet(reviewableId: reviewableId, existing: existing),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => ReviewFormSheet(
+        reviewableId: reviewableId,
+        existing: existing,
+      ),
     );
-    if (submitted == true) {
-      ref.read(paginatedReviewsNotifierProvider(_numericProductId).notifier).fetchFirstPage();
+    if (submitted == true && context.mounted) {
+      AppSnackbar.success(
+        context,
+        existing != null
+            ? 'Review updated successfully'
+            : 'Review submitted successfully',
+      );
+      final pid = _numericProductId ?? reviewableId;
+      ref.read(paginatedReviewsNotifierProvider(pid).notifier).fetchFirstPage();
     }
   }
 
@@ -137,9 +156,9 @@ class ProductReviewsSection extends ConsumerWidget {
       try {
         await ref.read(shopRepositoryProvider).deleteReview(review.id.toString());
         ref.read(paginatedReviewsNotifierProvider(_numericProductId).notifier).fetchFirstPage();
-        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Review deleted')));
+        if (context.mounted) AppSnackbar.success(context, 'Review deleted');
       } catch (e) {
-        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete review: $e')));
+        if (context.mounted) AppSnackbar.error(context, 'Failed to delete review: $e');
       }
     }
   }
@@ -202,112 +221,6 @@ class _ReviewTile extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(review.comment, style: AppTypography.bodySmall.copyWith(color: cs.onSurface)),
           ],
-        ],
-      ),
-    );
-  }
-}
-
-class _ReviewFormSheet extends ConsumerStatefulWidget {
-  const _ReviewFormSheet({required this.reviewableId, this.existing});
-  final int reviewableId;
-  final ProductReview? existing;
-
-  @override
-  ConsumerState<_ReviewFormSheet> createState() => _ReviewFormSheetState();
-}
-
-class _ReviewFormSheetState extends ConsumerState<_ReviewFormSheet> {
-  late double _rating = widget.existing?.rating ?? 5.0;
-  late final TextEditingController _commentCtrl = TextEditingController(text: widget.existing?.comment ?? '');
-  bool _submitting = false;
-
-  @override
-  void dispose() {
-    _commentCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    final comment = _commentCtrl.text.trim();
-    if (comment.isEmpty) return;
-    setState(() => _submitting = true);
-    try {
-      final repo = ref.read(shopRepositoryProvider);
-      if (widget.existing != null) {
-        await repo.updateReview(widget.existing!.id.toString(), UpdateReviewInput(rating: _rating, comment: comment));
-      } else {
-        await repo.createReview(CreateReviewInput(reviewableType: 'product', reviewableId: widget.reviewableId, rating: _rating, comment: comment));
-      }
-      if (mounted) Navigator.pop(context, true);
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to submit review: $e')));
-    } finally {
-      if (mounted) setState(() => _submitting = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final bottomOffset = MediaQuery.viewInsetsOf(context).bottom + MediaQuery.viewPaddingOf(context).bottom + AppSpacing.xl;
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, bottomOffset),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40, height: 4, margin: const EdgeInsets.only(bottom: AppSpacing.md),
-              decoration: BoxDecoration(color: cs.onSurfaceVariant.withAlpha(60), borderRadius: BorderRadius.circular(2)),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(widget.existing != null ? 'Edit Review' : 'Write a Review', style: AppTypography.h5.copyWith(fontWeight: FontWeight.w800)),
-              IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close, size: 20), visualDensity: VisualDensity.compact),
-            ],
-          ),
-          Row(
-            children: [
-              ...List.generate(5, (i) {
-                final starValue = (i + 1).toDouble();
-                return GestureDetector(
-                  onTap: () => setState(() => _rating = starValue),
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: Icon(
-                      starValue <= _rating ? Icons.star_rounded : (starValue - 0.5 <= _rating ? Icons.star_half_rounded : Icons.star_border_rounded),
-                      size: 28, color: Colors.amber,
-                    ),
-                  ),
-                );
-              }),
-              const SizedBox(width: AppSpacing.xs),
-              Text(_rating.toStringAsFixed(1), style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w700)),
-              Expanded(child: Slider(value: _rating, min: 1.0, max: 5.0, divisions: 8, onChanged: (v) => setState(() => _rating = v))),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          TextField(
-            controller: _commentCtrl, maxLines: 4,
-            decoration: InputDecoration(
-              hintText: 'Share your experience with this product...', filled: true,
-              fillColor: cs.surfaceContainerHighest.withAlpha(90),
-              border: const OutlineInputBorder(borderRadius: AppSpacing.borderRadiusMD, borderSide: BorderSide.none),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          SizedBox(
-            width: double.infinity, height: 48,
-            child: FilledButton(
-              onPressed: _submitting ? null : _submit,
-              child: Text(_submitting ? 'Submitting...' : (widget.existing != null ? 'Update Review' : 'Submit Review')),
-            ),
-          ),
         ],
       ),
     );

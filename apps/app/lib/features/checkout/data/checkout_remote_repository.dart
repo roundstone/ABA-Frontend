@@ -18,20 +18,23 @@ class CheckoutRemoteRepository implements CheckoutRepository {
   @override
   Future<List<CheckoutAddress>> getSavedAddresses() async {
     try {
-      final response = await _dio.get('/customer/addresses');
-      final data = response.data['data'] as List<dynamic>?;
-      if (data != null && data.isNotEmpty) {
-        return data.map((json) {
+      final response = await _dio.get(ApiEndpoints.deliveryAddresses.base);
+      final list = ApiResponse.unwrapList(response.data);
+      if (list.isNotEmpty) {
+        return list.whereType<Map>().map((item) {
+          final json = Map<String, dynamic>.from(item);
           return CheckoutAddress(
-            id: json['id'] as String,
-            label: json['label'] as String? ?? 'Address',
-            fullName: json['fullName'] as String? ?? 'Customer',
+            id: (json['id'] ?? '').toString(),
+            label: json['name'] as String? ??
+                json['label'] as String? ??
+                'Address',
+            fullName: json['fullName'] as String? ?? '',
             street: json['street'] as String? ?? '',
             city: json['city'] as String? ?? '',
             state: json['state'] as String? ?? '',
-            zipCode: json['zipCode'] as String? ?? '',
-            phone: json['phone'] as String? ?? '',
-            isDefault: json['isDefault'] as bool? ?? false,
+            zipCode: (json['zip'] ?? json['zipCode'] ?? '').toString(),
+            phone: (json['phone'] ?? '').toString(),
+            isDefault: json['is_default'] == true || json['isDefault'] == true,
           );
         }).toList();
       }
@@ -100,8 +103,14 @@ class CheckoutRemoteRepository implements CheckoutRepository {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data;
         if (data is Map) {
-          final status = data['status'] ?? data['data']?['status'];
-          return status == 'success' || status == true || data['success'] == true;
+          final status = (data['data']?['status'] ?? data['status'])
+              ?.toString()
+              .toLowerCase();
+          return status == 'successful' ||
+              status == 'success' ||
+              status == 'paid' ||
+              status == 'true' ||
+              data['success'] == true;
         }
         return true;
       }
@@ -155,7 +164,7 @@ class CheckoutRemoteRepository implements CheckoutRepository {
     try {
       Response<dynamic> response;
       try {
-        response = await _dio.post(ApiEndpoints.orders.mobileApp, data: payload);
+        response = await _dio.post(ApiEndpoints.orders.base, data: payload);
       } catch (_) {
         response = await _dio.post('/checkout/process', data: payload);
       }

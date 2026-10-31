@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import '../widgets/app_widgets.dart';
 import 'notification_sim_buttons.dart';
 import 'push_notification_providers.dart';
 import 'push_notification_service.dart';
@@ -168,11 +169,9 @@ class NotificationDebugSheet extends ConsumerWidget {
                     onPressed: () {
                       final tokenToCopy = token ?? 'aba-mock-fcm-device-token';
                       Clipboard.setData(ClipboardData(text: tokenToCopy));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('FCM Device Token copied to clipboard!'),
-                          duration: Duration(seconds: 2),
-                        ),
+                      AppSnackbar.success(
+                        context,
+                        'FCM Device Token copied to clipboard!',
                       );
                     },
                   ),

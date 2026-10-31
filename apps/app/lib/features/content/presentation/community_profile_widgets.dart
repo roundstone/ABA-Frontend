@@ -6,6 +6,7 @@ import '../../../core/config/app_brand.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../domain/content_entities.dart';
 
 /// Statistical metric box for partner profile.
@@ -103,11 +104,9 @@ class CommunityJoinNetworkCard extends StatelessWidget {
             GestureDetector(
               onTap: () {
                 Clipboard.setData(ClipboardData(text: partner.referralCode!));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Referral code copied to clipboard!'),
-                    duration: Duration(seconds: 2),
-                  ),
+                AppSnackbar.success(
+                  context,
+                  'Referral code copied to clipboard!',
                 );
               },
               child: Container(

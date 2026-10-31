@@ -15,6 +15,7 @@ class AppTextField extends StatelessWidget {
   final void Function(String)? onChanged;
   final int maxLines;
   final bool enabled;
+  final bool readOnly;
   final String? errorText;
   final AutovalidateMode? autovalidateMode;
 
@@ -31,6 +32,7 @@ class AppTextField extends StatelessWidget {
     this.onChanged,
     this.maxLines = 1,
     this.enabled = true,
+    this.readOnly = false,
     this.errorText,
     this.autovalidateMode,
   });
@@ -77,6 +79,7 @@ class AppTextField extends StatelessWidget {
           onChanged: onChanged,
           maxLines: maxLines,
           enabled: enabled,
+          readOnly: readOnly,
           autovalidateMode: autovalidateMode,
           style: AppTypography.bodyMedium.copyWith(color: cs.onSurface),
           decoration: InputDecoration(

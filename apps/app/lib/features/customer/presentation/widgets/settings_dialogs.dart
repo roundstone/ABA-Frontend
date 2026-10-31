@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../auth/application/auth_providers.dart';
 import '../../../auth/domain/auth_entities.dart';
 import '../../../auth/presentation/widgets/logout_dialog.dart';
@@ -35,10 +36,9 @@ void showCustomerDeleteAccountDialog(BuildContext context, WidgetRef ref) {
             Navigator.pop(ctx);
             ref.read(authStateProvider.notifier).logout();
             context.go('/role-select');
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Account has been scheduled for deletion.'),
-              ),
+            AppSnackbar.info(
+              context,
+              'Account has been scheduled for deletion.',
             );
           },
           child: const Text('Delete', style: TextStyle(color: Colors.white)),

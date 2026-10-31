@@ -33,9 +33,8 @@ class _GridCard extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cartNotifier = ref.read(cartProvider.notifier);
-    final cartItems =
-        (ref.watch(cartProvider).valueOrNull ?? const Cart()).items;
-    final inCart = cartItems.any((i) => i.product.id == product.id);
+    final cart = ref.watch(cartProvider).valueOrNull ?? const Cart();
+    final inCart = cart.containsProduct(product);
 
     return GestureDetector(
       onTap: () => context.push('/product/${product.id}'),
@@ -160,14 +159,9 @@ class _GridCard extends ConsumerWidget {
                           onTap: () {
                             if (!inCart) {
                               cartNotifier.addToCart(product);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    '${product.name} added to cart',
-                                  ),
-                                  duration: const Duration(seconds: 2),
-                                  behavior: SnackBarBehavior.floating,
-                                ),
+                              AppSnackbar.success(
+                                context,
+                                '${product.name} added to cart',
                               );
                             }
                           },
@@ -224,8 +218,8 @@ class _ListCard extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cartNotifier = ref.read(cartProvider.notifier);
-    final inCart = (ref.watch(cartProvider).valueOrNull ?? const Cart()).items
-        .any((i) => i.product.id == product.id);
+    final cart = ref.watch(cartProvider).valueOrNull ?? const Cart();
+    final inCart = cart.containsProduct(product);
 
     return GestureDetector(
       onTap: () => context.push('/product/${product.id}'),
@@ -307,14 +301,9 @@ class _ListCard extends ConsumerWidget {
                           onTap: () {
                             if (!inCart) {
                               cartNotifier.addToCart(product);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    '${product.name} added to cart',
-                                  ),
-                                  duration: const Duration(seconds: 2),
-                                  behavior: SnackBarBehavior.floating,
-                                ),
+                              AppSnackbar.success(
+                                context,
+                                '${product.name} added to cart',
                               );
                             }
                           },

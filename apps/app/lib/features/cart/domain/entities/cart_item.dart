@@ -48,10 +48,6 @@ class CartItem {
     if (variant != null && variant!.id > 0) {
       return variant!.id;
     }
-    final parsed = int.tryParse(product.id);
-    if (parsed != null && parsed > 0) {
-      return parsed;
-    }
     return null;
   }
 
@@ -89,53 +85,27 @@ class CartItem {
     Map<String, dynamic> json, {
     List<Product> catalogue = const [],
   }) {
-    final rawProd = json['product'] ?? json['productVariant'] ?? json['variant'];
-    Product? prod;
-
-    if (rawProd is Map<String, dynamic>) {
-      prod = Product.fromJson(rawProd);
-    } else {
-      final pid = json['productId']?.toString() ??
-          json['product_id']?.toString() ??
-          json['productVariantId']?.toString() ??
-          json['product_variant_id']?.toString() ??
-          '';
-      if (pid.isNotEmpty && catalogue.isNotEmpty) {
-        prod = catalogue.firstWhere(
-          (p) => p.id == pid,
-          orElse: () => Product(
-            id: pid,
-            name: json['name'] as String? ?? json['productName'] as String? ?? 'Product',
-            slug: 'product-$pid',
-            price: (json['price'] as num?)?.toDouble() ?? 0.0,
-            category: 'General',
-            brand: 'Store',
-            rating: 5.0,
-            reviewCount: 0,
-            stock: 100,
-            images: const [],
-          ),
-        );
-      }
+    Map<String, dynamic>? variantMap;
+    if (json['productVariant'] is Map) {
+      variantMap = Map<String, dynamic>.from(json['productVariant'] as Map);
+    } else if (json['product_variant'] is Map) {
+      variantMap = Map<String, dynamic>.from(json['product_variant'] as Map);
+    } else if (json['variant'] is Map) {
+      variantMap = Map<String, dynamic>.from(json['variant'] as Map);
     }
 
-    prod ??= Product(
-      id: json['id']?.toString() ?? 'item',
-      name: json['name'] as String? ?? json['productName'] as String? ?? 'Product',
-      slug: 'item',
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      category: 'General',
-      brand: 'Store',
-      rating: 5.0,
-      reviewCount: 0,
-      stock: 100,
-      images: const [],
-    );
+    Product? prod;
+    if (json['product'] is Map) {
+      prod = Product.fromJson(Map<String, dynamic>.from(json['product'] as Map));
+    } else if (variantMap != null && variantMap['product'] is Map) {
+      prod = Product.fromJson(Map<String, dynamic>.from(variantMap['product'] as Map));
+    }
 
     final rawVariantId = json['productVariantId'] ??
         json['product_variant_id'] ??
         json['variantId'] ??
-        json['variant_id'];
+        json['variant_id'] ??
+        variantMap?['id'];
 
     int? vId;
     if (rawVariantId is num) {
@@ -144,15 +114,85 @@ class CartItem {
       vId = int.tryParse(rawVariantId);
     }
 
+    if (prod == null) {
+      final pid = json['productId']?.toString() ??
+          json['product_id']?.toString() ??
+          variantMap?['product_id']?.toString() ??
+          variantMap?['productId']?.toString() ??
+          '';
+
+      if (pid.isNotEmpty && catalogue.isNotEmpty) {
+        prod = catalogue.where((p) => p.id == pid).firstOrNull;
+      }
+
+      if (prod == null && pid.isNotEmpty) {
+        final prodName = (variantMap?['name'] as String?) ??
+            (json['name'] as String?) ??
+            (json['productName'] as String?) ??
+            'Product';
+        final price = (json['price'] as num?)?.toDouble() ??
+            (json['unitPrice'] as num?)?.toDouble() ??
+            (variantMap != null ? double.tryParse(variantMap['price']?.toString() ?? '') : null) ??
+            0.0;
+        prod = Product(
+          id: pid,
+          name: prodName,
+          slug: 'product-$pid',
+          price: price,
+          category: 'General',
+          brand: 'Store',
+          rating: 5.0,
+          reviewCount: 0,
+          stock: 100,
+          images: const [],
+        );
+      }
+    }
+
+    prod ??= Product(
+      id: json['product_id']?.toString() ??
+          json['productId']?.toString() ??
+          variantMap?['product_id']?.toString() ??
+          'item',
+      name: (json['name'] as String?) ??
+          (json['productName'] as String?) ??
+          (variantMap?['name'] as String?) ??
+          'Product',
+      slug: 'item',
+      price: (json['price'] as num?)?.toDouble() ??
+          (json['unitPrice'] as num?)?.toDouble() ??
+          0.0,
+      category: 'General',
+      brand: 'Store',
+      rating: 5.0,
+      reviewCount: 0,
+      stock: 100,
+      images: const [],
+    );
+
+    final color = json['selectedColor'] as String? ??
+        json['color'] as String? ??
+        (variantMap != null && variantMap['attributes'] is Map
+            ? variantMap['attributes']['color']?.toString()
+            : null);
+    final size = json['selectedSize'] as String? ??
+        json['size'] as String? ??
+        (variantMap != null && variantMap['attributes'] is Map
+            ? variantMap['attributes']['size']?.toString()
+            : null);
+    final unitPrice = (json['price'] as num?)?.toDouble() ??
+        (json['unitPrice'] as num?)?.toDouble() ??
+        (variantMap != null ? double.tryParse(variantMap['price']?.toString() ?? '') : null) ??
+        prod.price;
+
     return CartItem(
       id: json['id']?.toString() ?? json['itemId']?.toString(),
       product: prod,
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       productVariantId: vId,
-      unitPrice: (json['price'] as num?)?.toDouble() ??
-          (json['unitPrice'] as num?)?.toDouble(),
-      selectedColor: json['selectedColor'] as String? ?? json['color'] as String?,
-      selectedSize: json['selectedSize'] as String? ?? json['size'] as String?,
+      unitPrice: unitPrice,
+      selectedColor: color,
+      selectedSize: size,
       isAvailable: json['isAvailable'] as bool? ?? json['available'] as bool? ?? true,
       availabilityMessage: json['availabilityMessage'] as String? ?? json['message'] as String?,
     );

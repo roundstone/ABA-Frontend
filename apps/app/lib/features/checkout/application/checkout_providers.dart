@@ -1,11 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/checkout_mock_repository.dart';
+import '../../../core/network/dio_client.dart';
+import '../data/checkout_remote_repository.dart';
 import '../domain/checkout_repository.dart';
 import 'checkout_notifier.dart';
 import 'checkout_state.dart';
 
 final checkoutRepositoryProvider = Provider<CheckoutRepository>((ref) {
-  return CheckoutMockRepository();
+  return CheckoutRemoteRepository(ref.watch(dioProvider));
 });
 
 final checkoutProvider =
