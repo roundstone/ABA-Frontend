@@ -145,45 +145,34 @@ class CheckoutRemoteRepository implements CheckoutRepository {
     ReferralCandidate? referral,
     String? paymentReference,
   }) async {
-    final methodStr = paymentType == CheckoutPaymentType.paystack
-        ? 'paystack'
-        : paymentType.name;
-    final payload = {
-      'paymentReference': paymentReference,
-      'payment_reference': paymentReference,
-      'paymentMethod': methodStr,
-      'payment_method': methodStr,
-      'deliveryMethodId': deliveryMethod.id,
-      'referralCode': referral?.code,
-      'customer': {
-        'firstName': customerInfo.firstName,
-        'lastName': customerInfo.lastName,
-        'email': customerInfo.email,
-        'phone': customerInfo.phone,
-      },
-      'address': {
-        'street': address.street,
-        'city': address.city,
-        'state': address.state,
-        'zipCode': address.zipCode,
-        'phone': address.phone,
-      },
-      'items': cart.items.map((i) => {
-        'productId': i.product.id,
-        'productVariantId': i.effectiveVariantId,
+    final addressId = int.tryParse(address.id) ?? address.id;
+    final itemsPayload = cart.items.map((i) {
+      final variantId =
+          i.effectiveVariantId ?? (int.tryParse(i.product.id) ?? 1);
+      return {
+        'productVariantId': variantId,
         'quantity': i.quantity,
-        'price': i.itemTotal,
-        'color': i.selectedColor,
-        'size': i.selectedSize,
-      }).toList(),
+      };
+    }).toList();
+
+    final payload = {
+      'deliveryAddressId': addressId,
+      'items': itemsPayload,
+      'referralCode': referral?.code,
     };
 
     try {
       Response<dynamic> response;
       try {
-        response = await _dio.post(ApiEndpoints.orders.base, data: payload);
+        response = await _dio.post(
+          ApiEndpoints.orders.createOrder,
+          data: payload,
+        );
       } catch (_) {
-        response = await _dio.post('/checkout/process', data: payload);
+        response = await _dio.post(
+          ApiEndpoints.orders.list,
+          data: payload,
+        );
       }
 
       final unwrapped = ApiResponse.unwrapMap(response.data);

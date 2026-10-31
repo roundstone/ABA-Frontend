@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/network/api_error.dart';
 import '../domain/merchant_product_entities.dart';
 import '../domain/merchant_repository.dart';
 
@@ -66,7 +67,7 @@ class MerchantProductsNotifier extends StateNotifier<MerchantProductsState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
     }
   }
@@ -98,7 +99,7 @@ class MerchantProductsNotifier extends StateNotifier<MerchantProductsState> {
     } catch (e) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
       return false;
     }
@@ -114,7 +115,7 @@ class MerchantProductsNotifier extends StateNotifier<MerchantProductsState> {
     } catch (e) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
       return false;
     }
@@ -130,7 +131,7 @@ class MerchantProductsNotifier extends StateNotifier<MerchantProductsState> {
     } catch (e) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
       return false;
     }
@@ -152,7 +153,7 @@ class MerchantProductsNotifier extends StateNotifier<MerchantProductsState> {
     } catch (e) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
       return false;
     }

@@ -47,13 +47,18 @@ class StepPaymentMethod extends ConsumerWidget {
                 size: 20,
               ),
               const SizedBox(width: AppSpacing.sm),
-              Text('Payment Method', style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700)),
+              Text(
+                'Payment Method',
+                style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
           // 1. Paystack Gateway (Card, Transfer, USSD)
           _PaymentOptionTile(
-            isSelected: selectedType == CheckoutPaymentType.paystack || selectedType == CheckoutPaymentType.card,
+            isSelected:
+                selectedType == CheckoutPaymentType.paystack ||
+                selectedType == CheckoutPaymentType.card,
             onTap: () => onSelectType(CheckoutPaymentType.paystack),
             icon: HugeIcons.strokeRoundedCreditCard,
             title: 'Paystack Gateway',
@@ -64,7 +69,14 @@ class StepPaymentMethod extends ConsumerWidget {
                 color: const Color(0xFF0BA4DB).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text('paystack', style: TextStyle(color: Color(0xFF0BA4DB), fontSize: 10, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'paystack',
+                style: TextStyle(
+                  color: Color(0xFF0BA4DB),
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
 
@@ -72,21 +84,21 @@ class StepPaymentMethod extends ConsumerWidget {
           walletAsync.when(
             data: (info) => _PaymentOptionTile(
               isSelected: selectedType == CheckoutPaymentType.wallet,
-              onTap: () => onSelectType(CheckoutPaymentType.wallet),
+              onTap: () => AppSnackbar.info(context, 'Wallet coming soon!'),
               icon: HugeIcons.strokeRoundedWallet01,
               title: '${AppBrand.shortName} Wallet',
               subtitle: 'Available Balance: ${formatNaira(info.balance)}',
             ),
             loading: () => _PaymentOptionTile(
               isSelected: selectedType == CheckoutPaymentType.wallet,
-              onTap: () => onSelectType(CheckoutPaymentType.wallet),
+              onTap: () {},
               icon: HugeIcons.strokeRoundedWallet01,
               title: '${AppBrand.shortName} Wallet',
               subtitle: 'Checking balance...',
             ),
             error: (_, __) => _PaymentOptionTile(
               isSelected: selectedType == CheckoutPaymentType.wallet,
-              onTap: () => onSelectType(CheckoutPaymentType.wallet),
+              onTap: () {},
               icon: HugeIcons.strokeRoundedWallet01,
               title: '${AppBrand.shortName} Wallet',
               subtitle: 'Wallet balance available',
@@ -96,7 +108,7 @@ class StepPaymentMethod extends ConsumerWidget {
           // 3. Bank Transfer
           _PaymentOptionTile(
             isSelected: selectedType == CheckoutPaymentType.bankTransfer,
-            onTap: () => onSelectType(CheckoutPaymentType.bankTransfer),
+            onTap: () => AppSnackbar.info(context, 'Bank transfer coming soon!'),
             icon: HugeIcons.strokeRoundedBank,
             title: 'Bank Transfer',
             subtitle: 'Instant transfer to designated escrow account',
@@ -120,9 +132,7 @@ class StepPaymentMethod extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     '256-bit SSL encrypted & NDPR compliant checkout.',
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.grey,
-                    ),
+                    style: AppTypography.caption.copyWith(color: AppColors.grey),
                   ),
                 ),
               ],
@@ -133,10 +143,7 @@ class StepPaymentMethod extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: AppButton.outlined(
-                  label: 'Back',
-                  onPressed: onBack,
-                ),
+                child: AppButton.outlined(label: 'Back', onPressed: onBack),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
@@ -182,8 +189,8 @@ class _PaymentOptionTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? (isDark
-                  ? AppColors.secondary.withAlpha(25)
-                  : AppColors.primary.withAlpha(15))
+                    ? AppColors.secondary.withAlpha(25)
+                    : AppColors.primary.withAlpha(15))
               : (isDark ? const Color(0xFF252525) : Colors.white),
           borderRadius: AppSpacing.borderRadiusMD,
           border: Border.all(

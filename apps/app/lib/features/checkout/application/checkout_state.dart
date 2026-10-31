@@ -4,10 +4,10 @@ class CheckoutState {
   const CheckoutState({
     this.step = 1,
     this.customerInfo = const CheckoutCustomerInfo(
-      firstName: 'Jane',
-      lastName: 'Doe',
-      email: 'jane.doe@example.com',
-      phone: '+234 801 234 5678',
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
     ),
     this.savedAddresses = const [],
     this.selectedAddress,

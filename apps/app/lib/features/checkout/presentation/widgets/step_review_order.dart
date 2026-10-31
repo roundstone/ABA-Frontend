@@ -138,7 +138,7 @@ class StepReviewOrder extends StatelessWidget {
                 child: AppButton.primary(
                   label: (state.paymentType == CheckoutPaymentType.paystack ||
                           state.paymentType == CheckoutPaymentType.card)
-                      ? 'Pay with Paystack (${formatNaira(grandTotal)})'
+                      ? 'Pay (${formatNaira(grandTotal)})'
                       : 'Place Order (${formatNaira(grandTotal)})',
                   isLoading: state.isSubmitting,
                   onPressed: state.isSubmitting ? null : onPlaceOrder,

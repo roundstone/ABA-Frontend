@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/network/api_error.dart';
 import '../../../core/providers/notifications_provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../auth/application/auth_providers.dart';
 import '../../shop/application/shop_providers.dart';
 import '../../shop/domain/shop_entities.dart';
 import '../domain/checkout_entities.dart';
@@ -21,38 +23,46 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
   Future<void> init() async {
     state = state.copyWith(isLoadingInit: true, clearError: true);
     try {
+      final user = ref.read(currentUserProvider);
+      CheckoutCustomerInfo customerInfo = state.customerInfo;
+      if (user != null) {
+        final nameParts = user.name.trim().split(RegExp(r'\s+'));
+        final firstName = nameParts.isNotEmpty ? nameParts.first : '';
+        final lastName =
+            nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+        customerInfo = CheckoutCustomerInfo(
+          firstName: firstName,
+          lastName: lastName,
+          email: user.email,
+          phone: user.phone,
+        );
+      }
+
       final addresses = await repository.getSavedAddresses();
       final methods = await repository.getDeliveryMethods();
 
-      final defaultAddress = addresses.firstWhere(
-        (a) => a.isDefault,
-        orElse: () => addresses.isNotEmpty
-            ? addresses.first
-            : const CheckoutAddress(
-                id: 'new_1',
-                label: 'Home',
-                fullName: 'Jane Doe',
-                street: '123 Market Street, Victoria Island',
-                city: 'Lagos',
-                state: 'Lagos',
-                zipCode: '101241',
-                phone: '+234 801 234 5678',
-              ),
-      );
+      final CheckoutAddress? defaultAddress = addresses.isNotEmpty
+          ? addresses.firstWhere(
+              (a) => a.isDefault,
+              orElse: () => addresses.first,
+            )
+          : null;
 
       final defaultMethod = methods.isNotEmpty ? methods.first : null;
 
       state = state.copyWith(
         isLoadingInit: false,
+        customerInfo: customerInfo,
         savedAddresses: addresses,
         selectedAddress: defaultAddress,
+        isNewAddressMode: addresses.isEmpty,
         deliveryMethods: methods,
         selectedDeliveryMethod: defaultMethod,
       );
     } catch (e) {
       state = state.copyWith(
         isLoadingInit: false,
-        errorMessage: 'Failed to initialize checkout: ${e.toString()}',
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
     }
   }
@@ -146,6 +156,7 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
   Future<CheckoutOrderResult?> submitOrder(
     Cart cart, {
     String? paymentReference,
+    bool clearCartOnSuccess = true,
   }) async {
     if (state.selectedAddress == null || state.selectedDeliveryMethod == null) {
       state = state.copyWith(
@@ -196,8 +207,10 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         paymentReference: paymentReference,
       );
 
-      // Clear the user's cart (DELETE /api/v1/cart/mobile-app)
-      await ref.read(cartProvider.notifier).clearCart();
+      // Clear the user's cart if immediate settlement is desired
+      if (clearCartOnSuccess) {
+        await ref.read(cartProvider.notifier).clearCart();
+      }
 
       // Add notification
       final notifNotifier = ref.read(notificationsProvider.notifier);
@@ -218,7 +231,7 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
     } catch (e) {
       state = state.copyWith(
         isSubmitting: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
       return null;
     }

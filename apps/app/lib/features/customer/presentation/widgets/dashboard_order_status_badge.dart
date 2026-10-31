@@ -26,6 +26,7 @@ class DashboardOrderStatusBadge extends StatelessWidget {
         bg = isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7);
         fg = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF15803D);
         break;
+      case OrderStatus.unpaid:
       case OrderStatus.pending:
         bg = isDark ? const Color(0xFF3F1B1B) : const Color(0xFFFEE2E2);
         fg = isDark ? const Color(0xFFFCA5A5) : const Color(0xFFDC2626);

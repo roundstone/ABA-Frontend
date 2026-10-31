@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/network/api_error.dart';
 import '../domain/auth_entities.dart';
 import '../domain/auth_repository.dart';
 
@@ -44,7 +45,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       AppLogger.e('Customer login failed', error: e, stackTrace: stackTrace);
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
       return false;
     }
@@ -60,7 +61,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       AppLogger.e('Customer registration failed', error: e, stackTrace: stackTrace);
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
       return false;
     }
@@ -81,7 +82,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
       return false;
     }
@@ -96,7 +97,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
       return false;
     }
@@ -112,7 +113,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       AppLogger.e('Forgot password failed', error: e, stackTrace: stackTrace);
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
       return false;
     }
@@ -138,7 +139,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       AppLogger.e('Reset password failed', error: e, stackTrace: stackTrace);
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
       return false;
     }

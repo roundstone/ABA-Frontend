@@ -28,24 +28,38 @@ class CheckoutRemoteHelpers {
         DateTime.now();
 
     final safeStatus = OrderStatus.fromString(
-      orderJson['status']?.toString() ?? 'pending',
+      orderJson['payment_state']?.toString() ??
+          orderJson['status']?.toString() ??
+          'pending',
     );
 
-    final safeTotal = (orderJson['total'] as num?)?.toInt() ??
-        (orderJson['total_amount'] as num?)?.toInt() ??
-        (orderJson['totalAmount'] as num?)?.toInt() ??
-        cart.total.toInt();
+    final rawTotal = orderJson['total'] ??
+        orderJson['total_amount'] ??
+        orderJson['totalAmount'];
+
+    // Backend returns '25300.00' in Naira.
+    // CustomerOrder.total stores integer minor units (kobo, per Doc 1 §16),
+    // which gets formatted by dividing by 100 in the UI.
+    final double totalNaira = rawTotal is num
+        ? rawTotal.toDouble()
+        : (double.tryParse(rawTotal?.toString() ?? '') ?? cart.total);
+
+    final int safeTotalKobo = (totalNaira * 100).round();
 
     final safeOrder = CustomerOrder(
       id: ordId,
+      orderNumber: orderJson['order_number']?.toString() ?? ordId,
       date: safeDate,
       status: safeStatus,
-      total: safeTotal,
+      paymentState: orderJson['payment_state']?.toString() ??
+          (safeStatus == OrderStatus.unpaid ? 'unpaid' : 'paid'),
+      total: safeTotalKobo,
       paymentMethod: paymentType.name,
       shippingAddress: ShippingAddress(
         fullName: address.fullName,
         street: address.street,
         city: address.city,
+        state: address.state,
         zipCode: address.zipCode,
         phone: address.phone,
       ),
@@ -54,7 +68,7 @@ class CheckoutRemoteHelpers {
                 id: i.effectiveId,
                 productId: i.product.id,
                 productName: i.product.name,
-                price: i.product.price.toInt(),
+                price: (i.product.price * 100).round(),
                 quantity: i.quantity,
               ))
           .toList(),
@@ -63,7 +77,7 @@ class CheckoutRemoteHelpers {
     return CheckoutOrderResult(
       orderId: ordId,
       status: safeStatus.label,
-      totalAmount: safeTotal.toDouble(),
+      totalAmount: totalNaira,
       createdAt: safeDate,
       order: safeOrder,
     );

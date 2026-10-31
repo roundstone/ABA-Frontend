@@ -118,9 +118,11 @@ class _DeliveryAddressEndpoints {
 /// 8. Orders Endpoints
 class _OrdersEndpoints {
   const _OrdersEndpoints();
-  static const String _base = '${ApiEndpoints.apiV1}/orders/mobile-app';
+  static const String _base = '${ApiEndpoints.apiV1}/order/mobile-app';
   String get base => _base;
-  String byId(String id) => '$_base/$id';
+  String get createOrder => _base;
+  String get list => '${ApiEndpoints.apiV1}/orders/mobile-app';
+  String byId(String id) => '${ApiEndpoints.apiV1}/orders/mobile-app/$id';
 }
 
 /// 9. Marketers Endpoints

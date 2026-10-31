@@ -13,6 +13,7 @@ import '../../merchants/application/merchant_providers.dart';
 import '../application/shop_providers.dart';
 import '../domain/shop_entities.dart';
 import 'widgets/home_category_marquee.dart';
+import 'widgets/home_cart_floating_button.dart';
 import 'widgets/home_hero_banner.dart';
 import 'widgets/home_merchant_sections.dart';
 import 'widgets/home_promos.dart';
@@ -35,6 +36,7 @@ class HomeScreen extends ConsumerWidget {
         ),
         data: (catalogue) => _HomeBody(catalogue: catalogue),
       ),
+      floatingActionButton: const HomeCartFloatingButton(),
     );
   }
 }

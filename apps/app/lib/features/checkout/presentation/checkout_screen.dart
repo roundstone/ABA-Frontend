@@ -9,12 +9,10 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../shop/application/shop_providers.dart';
 import '../application/checkout_providers.dart';
-import '../domain/checkout_entities.dart';
-import 'checkout_success_screen.dart';
+import 'checkout_order_handler.dart';
 import 'widgets/checkout_progress_bar.dart';
 import 'widgets/checkout_referral_section.dart';
 import 'widgets/checkout_summary_card.dart';
-import 'widgets/paystack_payment_sheet.dart';
 import 'widgets/step_delivery_address.dart';
 import 'widgets/step_delivery_method.dart';
 import 'widgets/step_payment_method.dart';
@@ -69,7 +67,9 @@ class CheckoutScreen extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.md),
                     Text(
                       'Your cart is empty',
-                      style: AppTypography.h5.copyWith(fontWeight: FontWeight.bold),
+                      style: AppTypography.h5.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
@@ -134,10 +134,18 @@ class CheckoutScreen extends ConsumerWidget {
                     ),
                   ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                  ),
                   child: Column(
                     children: [
-                      _buildCurrentStep(context, checkoutState, notifier, cart, ref),
+                      _buildCurrentStep(
+                        context,
+                        checkoutState,
+                        notifier,
+                        cart,
+                        ref,
+                      ),
                       const SizedBox(height: AppSpacing.md),
                       if (checkoutState.step < 5) ...[
                         CheckoutReferralSection(
@@ -205,31 +213,16 @@ class CheckoutScreen extends ConsumerWidget {
         return StepReviewOrder(
           state: checkoutState,
           cart: cart,
-          onEditAddress: () => notifier.goToStep(2),
-          onEditPayment: () => notifier.goToStep(4),
+          onEditAddress: () => notifier.goToStep(1),
+          onEditPayment: () => notifier.goToStep(3),
           onBack: notifier.prevStep,
-          onPlaceOrder: () async {
-            String? paymentRef;
-            if (checkoutState.paymentType == CheckoutPaymentType.paystack ||
-                checkoutState.paymentType == CheckoutPaymentType.card) {
-              final deliveryCost = checkoutState.selectedDeliveryMethod?.cost ?? 2500.0;
-              final total = cart.subtotal + deliveryCost + cart.tax;
-              final email = checkoutState.customerInfo.email.isNotEmpty
-                  ? checkoutState.customerInfo.email
-                  : 'customer@aba.ng';
-              paymentRef = await PaystackPaymentSheet.show(context, amount: total, email: email);
-              if (paymentRef == null || paymentRef.isEmpty) return;
-            }
-
-            final res = await notifier.submitOrder(cart, paymentReference: paymentRef);
-            if (res != null && context.mounted) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (_) => CheckoutSuccessScreen(order: res.order),
-                ),
-              );
-            }
-          },
+          onPlaceOrder: () => CheckoutOrderHandler.handlePlaceOrder(
+            context: context,
+            ref: ref,
+            checkoutState: checkoutState,
+            notifier: notifier,
+            cart: cart,
+          ),
         );
     }
   }

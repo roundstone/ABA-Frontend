@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/logging/app_logger.dart';
@@ -34,6 +35,16 @@ void main() async {
 
   // Catch unhandled asynchronous & platform dispatcher errors
   PlatformDispatcher.instance.onError = (error, stack) {
+    if (error is PlatformException &&
+        error.code == 'channel-error' &&
+        (error.message?.contains('webview_flutter') == true ||
+            error.message?.contains('PigeonInternalInstanceManager') == true)) {
+      AppLogger.w(
+        'Native WebView plugin not yet compiled into running binary. '
+        'Please restart the flutter run session to link native CocoaPods.',
+      );
+      return true;
+    }
     AppLogger.e(
       'Unhandled Asynchronous Error: $error',
       error: error,

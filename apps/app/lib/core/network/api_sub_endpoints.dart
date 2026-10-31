@@ -78,6 +78,8 @@ class PaymentsEndpoints {
   const PaymentsEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/payments/mobile-app';
   String get base => _base;
+  String paystackInitialize(dynamic orderId) =>
+      '$_base/orders/$orderId/paystack/initialize';
   String paystackVerify(String reference) => '$_base/paystack/$reference/verify';
 }
 

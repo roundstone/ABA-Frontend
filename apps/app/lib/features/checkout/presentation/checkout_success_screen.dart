@@ -17,11 +17,16 @@ class CheckoutSuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final orderId = order?.id ?? 'ORD-2026-X8F9A';
-    final totalInNaira = (order?.total ?? 4670000) / 100.0;
-    final fullName = order?.shippingAddress.fullName ?? 'Jane Doe';
+    final orderId = order?.orderNumber.isNotEmpty == true
+        ? order!.orderNumber
+        : (order?.id.isNotEmpty == true ? order!.id : '-');
+    final totalInNaira = (order?.total ?? 0) / 100.0;
+    final fullName = order?.shippingAddress.fullName ?? '';
+    final street = order?.shippingAddress.street ?? '';
+    final city = order?.shippingAddress.city ?? '';
+    final state = order?.shippingAddress.state ?? '';
     final addressText =
-        '${order?.shippingAddress.street ?? "123 Market Street, Victoria Island"}, ${order?.shippingAddress.city ?? "Lagos"}';
+        [street, city, state].where((s) => s.isNotEmpty).join(', ');
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -127,39 +132,44 @@ class CheckoutSuccessScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  Divider(color: isDark ? Colors.white10 : AppColors.border),
-                  const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedLocation01,
-                        color: isDark ? AppColors.secondary : AppColors.primary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              fullName,
-                              style: AppTypography.bodySmall.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            Text(
-                              addressText,
-                              style: AppTypography.caption.copyWith(
-                                color: AppColors.grey,
-                              ),
-                            ),
-                          ],
+                  if (fullName.isNotEmpty || addressText.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    Divider(color: isDark ? Colors.white10 : AppColors.border),
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedLocation01,
+                          color:
+                              isDark ? AppColors.secondary : AppColors.primary,
+                          size: 20,
                         ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (fullName.isNotEmpty)
+                                Text(
+                                  fullName,
+                                  style: AppTypography.bodySmall.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              if (addressText.isNotEmpty)
+                                Text(
+                                  addressText,
+                                  style: AppTypography.caption.copyWith(
+                                    color: AppColors.grey,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: AppSpacing.md),
                   const OrderSuccessTimeline(),
                 ],
@@ -169,7 +179,11 @@ class CheckoutSuccessScreen extends StatelessWidget {
             AppButton.primary(
               label: 'View Order Details',
               onPressed: () {
-                context.go('/account/orders');
+                if (order?.id != null && order!.id.isNotEmpty) {
+                  context.push('/account/orders/${order!.id}');
+                } else {
+                  context.go('/account/orders');
+                }
               },
             ),
             const SizedBox(height: AppSpacing.sm),

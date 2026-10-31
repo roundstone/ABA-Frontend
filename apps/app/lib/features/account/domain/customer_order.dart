@@ -1,5 +1,9 @@
+import 'customer_order_models.dart';
+export 'customer_order_models.dart';
+
 enum OrderStatus {
   pending('Pending'),
+  unpaid('Unpaid'),
   processing('Processing'),
   shipped('Shipped'),
   delivered('Delivered'),
@@ -9,95 +13,140 @@ enum OrderStatus {
   final String label;
 
   factory OrderStatus.fromString(String value) {
+    final v = value.toLowerCase().trim();
+    if (v == 'unpaid') return OrderStatus.unpaid;
+    if (v == 'confirmed') return OrderStatus.processing;
     return OrderStatus.values.firstWhere(
-      (e) => e.name.toLowerCase() == value.toLowerCase() || e.label.toLowerCase() == value.toLowerCase(),
+      (e) => e.name.toLowerCase() == v || e.label.toLowerCase() == v,
       orElse: () => OrderStatus.pending,
-    );
-  }
-}
-
-class ShippingAddress {
-  final String fullName;
-  final String street;
-  final String city;
-  final String zipCode;
-  final String phone;
-
-  ShippingAddress({
-    required this.fullName,
-    required this.street,
-    required this.city,
-    required this.zipCode,
-    required this.phone,
-  });
-
-  factory ShippingAddress.fromJson(Map<String, dynamic> json) {
-    return ShippingAddress(
-      fullName: json['fullName'] as String,
-      street: json['street'] as String,
-      city: json['city'] as String,
-      zipCode: json['zipCode'] as String,
-      phone: json['phone'] as String,
-    );
-  }
-}
-
-class OrderItem {
-  final String id;
-  final String productId;
-  final String productName;
-  final int price;
-  final int quantity;
-
-  OrderItem({
-    required this.id,
-    required this.productId,
-    required this.productName,
-    required this.price,
-    required this.quantity,
-  });
-
-  factory OrderItem.fromJson(Map<String, dynamic> json) {
-    return OrderItem(
-      id: json['id'] as String,
-      productId: json['productId'] as String,
-      productName: json['productName'] as String,
-      price: json['price'] as int,
-      quantity: json['quantity'] as int,
     );
   }
 }
 
 class CustomerOrder {
   final String id;
+  final String orderNumber;
   final DateTime date;
   final OrderStatus status;
+  final String paymentState;
   final int total;
   final String paymentMethod;
   final ShippingAddress shippingAddress;
   final List<OrderItem> items;
+  final List<CustomerOrderPayment> payments;
 
   CustomerOrder({
     required this.id,
+    String? orderNumber,
     required this.date,
     required this.status,
+    this.paymentState = 'paid',
     required this.total,
     required this.paymentMethod,
     required this.shippingAddress,
     required this.items,
-  });
+    this.payments = const [],
+  }) : orderNumber = orderNumber ?? id;
+
+  bool get isUnpaid => paymentState.toLowerCase() == 'unpaid';
 
   factory CustomerOrder.fromJson(Map<String, dynamic> json) {
+    int parsedTotal = 0;
+    if (json['total_amount'] != null) {
+      final d = double.tryParse(json['total_amount'].toString()) ?? 0.0;
+      parsedTotal = (d * 100).round();
+    } else if (json['total'] != null) {
+      if (json['total'] is int) {
+        parsedTotal = json['total'] as int;
+      } else {
+        final d = double.tryParse(json['total'].toString()) ?? 0.0;
+        parsedTotal = (d * 100).round();
+      }
+    }
+
+    DateTime parsedDate;
+    if (json['createdAt'] != null) {
+      parsedDate =
+          DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now();
+    } else if (json['date'] != null) {
+      parsedDate =
+          DateTime.tryParse(json['date'].toString()) ?? DateTime.now();
+    } else {
+      parsedDate = DateTime.now();
+    }
+
+    final payState = json['payment_state']?.toString() ?? 'paid';
+    OrderStatus parsedStatus;
+    if (json['status'] != null) {
+      parsedStatus = OrderStatus.fromString(json['status'].toString());
+    } else if (payState.toLowerCase() == 'unpaid') {
+      parsedStatus = OrderStatus.unpaid;
+    } else {
+      parsedStatus = OrderStatus.processing;
+    }
+
+    List<CustomerOrderPayment> parsedPayments = [];
+    if (json['payments'] is List) {
+      parsedPayments = (json['payments'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map((p) => CustomerOrderPayment.fromJson(p))
+          .toList();
+    }
+
+    String method = json['paymentMethod']?.toString() ?? '';
+    if (method.isEmpty && parsedPayments.isNotEmpty) {
+      method = parsedPayments.first.paymentMethod ?? 'Card';
+    }
+    if (method.isEmpty) method = 'Paystack';
+
+    final addrJson = (json['deliveryAddress'] ?? json['shippingAddress'])
+        as Map<String, dynamic>?;
+    final address = addrJson != null
+        ? ShippingAddress.fromJson(addrJson)
+        : ShippingAddress(
+            fullName: '',
+            street: '',
+            city: '',
+            zipCode: '',
+            phone: '',
+          );
+
+    List<OrderItem> parsedItems = [];
+    if (json['items'] is List) {
+      parsedItems = (json['items'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map((item) => OrderItem.fromJson(item))
+          .toList();
+    }
+
     return CustomerOrder(
-      id: json['id'] as String,
-      date: DateTime.parse(json['date'] as String),
-      status: OrderStatus.fromString(json['status'] as String),
-      total: json['total'] as int,
-      paymentMethod: json['paymentMethod'] as String,
-      shippingAddress: ShippingAddress.fromJson(json['shippingAddress'] as Map<String, dynamic>),
-      items: (json['items'] as List<dynamic>)
-          .map((item) => OrderItem.fromJson(item as Map<String, dynamic>))
-          .toList(),
+      id: json['id']?.toString() ?? '',
+      orderNumber:
+          json['order_number']?.toString() ?? json['id']?.toString() ?? '',
+      date: parsedDate,
+      status: parsedStatus,
+      paymentState: payState,
+      total: parsedTotal,
+      paymentMethod: method,
+      shippingAddress: address,
+      items: parsedItems,
+      payments: parsedPayments,
     );
   }
+}
+
+class PaginatedOrdersResult {
+  final List<CustomerOrder> orders;
+  final int totalItems;
+  final int totalPages;
+  final int currentPage;
+  final bool hasNext;
+
+  const PaginatedOrdersResult({
+    required this.orders,
+    required this.totalItems,
+    required this.totalPages,
+    required this.currentPage,
+    required this.hasNext,
+  });
 }

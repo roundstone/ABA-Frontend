@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/network/api_error.dart';
 import '../domain/merchant_dashboard_entities.dart';
 import '../domain/merchant_repository.dart';
 
@@ -48,7 +49,7 @@ class MerchantDashboardNotifier extends StateNotifier<MerchantDashboardState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
     }
   }

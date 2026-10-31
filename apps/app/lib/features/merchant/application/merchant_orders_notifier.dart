@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/network/api_error.dart';
 import '../domain/merchant_order_entities.dart';
 import '../domain/merchant_repository.dart';
 
@@ -63,7 +64,7 @@ class MerchantOrdersNotifier extends StateNotifier<MerchantOrdersState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
     }
   }
@@ -98,7 +99,7 @@ class MerchantOrdersNotifier extends StateNotifier<MerchantOrdersState> {
     } catch (e) {
       state = state.copyWith(
         isUpdating: false,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: ApiError.toUserFriendlyMessage(e),
       );
       return false;
     }
