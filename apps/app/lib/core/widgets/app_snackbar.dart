@@ -8,15 +8,21 @@ export 'app_snackbar_content.dart' show AppSnackbarType;
 /// Designed as a compact, floating pill that animates in like a flash
 /// with smooth scaling, fading, and subtle spring dynamics.
 abstract final class AppSnackbar {
+  /// Global key used by [MaterialApp] so snackbars can be shown from anywhere
+  /// without requiring an active [BuildContext] (e.g. background listeners, Dio interceptors).
+  static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
+
   static void show(
-    BuildContext context, {
+    BuildContext? context, {
     required String message,
     AppSnackbarType type = AppSnackbarType.info,
     String? actionLabel,
     VoidCallback? onAction,
     Duration duration = const Duration(milliseconds: 2600),
   }) {
-    final messenger = ScaffoldMessenger.maybeOf(context);
+    final messenger = (context != null ? ScaffoldMessenger.maybeOf(context) : null) ??
+        scaffoldMessengerKey.currentState;
     if (messenger == null) return;
 
     messenger.hideCurrentSnackBar();
@@ -43,8 +49,24 @@ abstract final class AppSnackbar {
     );
   }
 
+  static void showGlobal({
+    required String message,
+    AppSnackbarType type = AppSnackbarType.info,
+    String? actionLabel,
+    VoidCallback? onAction,
+    Duration duration = const Duration(milliseconds: 3000),
+  }) =>
+      show(
+        null,
+        message: message,
+        type: type,
+        actionLabel: actionLabel,
+        onAction: onAction,
+        duration: duration,
+      );
+
   static void success(
-    BuildContext context,
+    BuildContext? context,
     String message, {
     String? actionLabel,
     VoidCallback? onAction,
@@ -59,8 +81,22 @@ abstract final class AppSnackbar {
         duration: duration,
       );
 
+  static void successGlobal(
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+    Duration duration = const Duration(milliseconds: 2600),
+  }) =>
+      success(
+        null,
+        message,
+        actionLabel: actionLabel,
+        onAction: onAction,
+        duration: duration,
+      );
+
   static void error(
-    BuildContext context,
+    BuildContext? context,
     String message, {
     String? actionLabel,
     VoidCallback? onAction,
@@ -75,8 +111,22 @@ abstract final class AppSnackbar {
         duration: duration,
       );
 
+  static void errorGlobal(
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+    Duration duration = const Duration(milliseconds: 3200),
+  }) =>
+      error(
+        null,
+        message,
+        actionLabel: actionLabel,
+        onAction: onAction,
+        duration: duration,
+      );
+
   static void info(
-    BuildContext context,
+    BuildContext? context,
     String message, {
     String? actionLabel,
     VoidCallback? onAction,
@@ -91,8 +141,22 @@ abstract final class AppSnackbar {
         duration: duration,
       );
 
+  static void infoGlobal(
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+    Duration duration = const Duration(milliseconds: 2600),
+  }) =>
+      info(
+        null,
+        message,
+        actionLabel: actionLabel,
+        onAction: onAction,
+        duration: duration,
+      );
+
   static void warning(
-    BuildContext context,
+    BuildContext? context,
     String message, {
     String? actionLabel,
     VoidCallback? onAction,
@@ -107,8 +171,24 @@ abstract final class AppSnackbar {
         duration: duration,
       );
 
-  static void hide(BuildContext context) {
-    ScaffoldMessenger.maybeOf(context)?.hideCurrentSnackBar();
+  static void warningGlobal(
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+    Duration duration = const Duration(milliseconds: 2800),
+  }) =>
+      warning(
+        null,
+        message,
+        actionLabel: actionLabel,
+        onAction: onAction,
+        duration: duration,
+      );
+
+  static void hide([BuildContext? context]) {
+    final messenger = (context != null ? ScaffoldMessenger.maybeOf(context) : null) ??
+        scaffoldMessengerKey.currentState;
+    messenger?.hideCurrentSnackBar();
   }
 }
 

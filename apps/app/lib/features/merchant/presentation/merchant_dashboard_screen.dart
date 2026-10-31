@@ -87,7 +87,13 @@ class MerchantDashboardScreen extends ConsumerWidget {
       ),
       body: dashState.isLoading && m == null
           ? const LoadingState(message: 'Loading merchant insights...')
-          : RefreshIndicator(
+          : dashState.errorMessage != null && m == null
+              ? ErrorState(
+                  message: dashState.errorMessage!,
+                  onRetry: () =>
+                      ref.read(merchantDashboardProvider.notifier).refresh(),
+                )
+              : RefreshIndicator(
               onRefresh: () async {
                 await ref.read(merchantDashboardProvider.notifier).refresh();
                 await ref.read(merchantOrdersProvider.notifier).loadOrders();

@@ -1,3 +1,4 @@
+import 'package:app/core/config/app_config.dart';
 import 'package:app/core/network/api_endpoints.dart';
 import 'package:app/core/network/api_error.dart';
 import 'package:app/features/auth/data/auth_remote_repository.dart';
@@ -68,6 +69,9 @@ void main() {
 
   group('AuthRemoteRepository Tests', () {
     test('authenticates with live backend schema', () async {
+      AppConfig.isMockMode = true;
+      addTearDown(() => AppConfig.isMockMode = false);
+
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
 

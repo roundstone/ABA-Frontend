@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:app/features/merchant/application/merchant_dashboard_notifier.dart';
-import 'package:app/features/merchant/application/merchant_orders_notifier.dart';
-import 'package:app/features/merchant/application/merchant_products_notifier.dart';
+import 'package:app/features/merchant/application/merchant_providers.dart';
 import 'package:app/features/merchant/data/merchant_mock_repository.dart';
 import 'package:app/features/merchant/domain/merchant_order_entities.dart';
 import 'package:app/features/merchant/presentation/merchant_dashboard_screen.dart';
@@ -65,10 +63,19 @@ void main() {
   });
 
   group('Merchant Screens Widget Tests', () {
+    late MerchantMockRepository mockRepo;
+
+    setUp(() {
+      mockRepo = MerchantMockRepository();
+    });
+
     testWidgets('MerchantDashboardScreen renders KPIs and Quick Actions', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
+        ProviderScope(
+          overrides: [
+            merchantRepositoryProvider.overrideWithValue(mockRepo),
+          ],
+          child: const MaterialApp(
             home: MerchantDashboardScreen(),
           ),
         ),
@@ -85,8 +92,11 @@ void main() {
 
     testWidgets('MerchantDashboardScreen opens MerchantMenuSheet and renders options', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
+        ProviderScope(
+          overrides: [
+            merchantRepositoryProvider.overrideWithValue(mockRepo),
+          ],
+          child: const MaterialApp(
             home: MerchantDashboardScreen(),
           ),
         ),
@@ -113,8 +123,11 @@ void main() {
 
     testWidgets('MerchantProductsScreen renders products catalog and search', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
+        ProviderScope(
+          overrides: [
+            merchantRepositoryProvider.overrideWithValue(mockRepo),
+          ],
+          child: const MaterialApp(
             home: MerchantProductsScreen(),
           ),
         ),
@@ -129,8 +142,11 @@ void main() {
 
     testWidgets('MerchantOrdersScreen renders order tabs and cards', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
+        ProviderScope(
+          overrides: [
+            merchantRepositoryProvider.overrideWithValue(mockRepo),
+          ],
+          child: const MaterialApp(
             home: MerchantOrdersScreen(),
           ),
         ),

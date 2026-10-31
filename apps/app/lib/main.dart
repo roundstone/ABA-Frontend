@@ -4,12 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/logging/app_logger.dart';
 import 'core/logging/app_provider_observer.dart';
+import 'core/network/network_connectivity_provider.dart';
 import 'core/notifications/push_notification_providers.dart';
 import 'core/notifications/push_notification_service.dart';
 import 'core/providers/shared_preferences_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
+import 'core/widgets/app_snackbar.dart';
 
 void main() async {
   // Must be called before any plugin (SharedPreferences, etc.)
@@ -64,12 +66,15 @@ class ABAApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Activate push notification state bridge (updates in-app notification center & token)
     ref.watch(pushNotificationInitializerProvider);
+    // Activate network connectivity listener (displays alerts on network loss / restore)
+    ref.watch(networkConnectivityProvider);
 
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
       title: 'BUYNAIJA',
+      scaffoldMessengerKey: AppSnackbar.scaffoldMessengerKey,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,

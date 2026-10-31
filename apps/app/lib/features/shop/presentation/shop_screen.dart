@@ -136,6 +136,16 @@ class _ShopBody extends ConsumerWidget {
                     child: Center(child: CircularProgressIndicator.adaptive()),
                   ),
                 )
+              else if (paginatedState.error != null && products.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: ErrorState(
+                    message: paginatedState.error.toString(),
+                    onRetry: () => ref
+                        .read(paginatedProductsNotifierProvider.notifier)
+                        .fetchFirstPage(),
+                  ),
+                )
               else if (products.isEmpty)
                 const SliverFillRemaining(child: _EmptyProducts())
               else if (shopState.viewMode == ViewMode.grid)
@@ -195,6 +205,21 @@ class _ShopBody extends ConsumerWidget {
                         child: CircularProgressIndicator.adaptive(
                           strokeWidth: 2.5,
                         ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (paginatedState.error != null && products.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                    child: Center(
+                      child: TextButton.icon(
+                        icon: const Icon(Icons.refresh, size: 16),
+                        label: const Text('Failed to load more products. Tap to retry.'),
+                        onPressed: () => ref
+                            .read(paginatedProductsNotifierProvider.notifier)
+                            .loadMore(),
                       ),
                     ),
                   ),

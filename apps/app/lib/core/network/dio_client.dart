@@ -11,6 +11,7 @@ export 'api_endpoints.dart';
 export 'api_error.dart';
 export 'api_response.dart';
 export 'list_query_params.dart';
+export 'network_connectivity_provider.dart';
 export 'paginated_list_state.dart';
 export 'sort_direction.dart';
 

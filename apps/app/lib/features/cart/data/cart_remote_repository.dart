@@ -1,10 +1,12 @@
 import 'package:dio/dio.dart';
-import '../../../core/logging/app_logger.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/network/api_endpoints.dart';
+import '../../../core/network/api_error.dart';
 import '../../../core/network/api_response.dart';
 import '../../shop/domain/shop_entities.dart';
 import '../domain/cart_repository.dart';
 import 'cart_mock_repository.dart';
+import 'cart_remote_helpers.dart';
 
 class CartRemoteRepository implements CartRepository {
   CartRemoteRepository({
@@ -15,55 +17,24 @@ class CartRemoteRepository implements CartRepository {
   final Dio dio;
   final CartMockRepository _mock;
 
-  static Map<String, dynamic> _extractItemMap(
-    Map<String, dynamic> data, {
-    int? productVariantId,
-    String? itemId,
-  }) {
-    if (data.containsKey('items') && data['items'] is List) {
-      final items = (data['items'] as List).whereType<Map>().toList();
-      if (productVariantId != null) {
-        final match = items.firstWhere(
-          (m) =>
-              m['product_variant_id'] == productVariantId ||
-              m['productVariantId'] == productVariantId ||
-              (m['productVariant'] is Map &&
-                  (m['productVariant']['id'] == productVariantId ||
-                      m['productVariant']['id']?.toString() ==
-                          productVariantId.toString())),
-          orElse: () => items.isNotEmpty ? items.last : const {},
-        );
-        if (match.isNotEmpty) return Map<String, dynamic>.from(match);
-      }
-      if (itemId != null) {
-        final match = items.firstWhere(
-          (m) =>
-              m['id']?.toString() == itemId ||
-              m['itemId']?.toString() == itemId,
-          orElse: () => items.isNotEmpty ? items.last : const {},
-        );
-        if (match.isNotEmpty) return Map<String, dynamic>.from(match);
-      }
-      if (items.isNotEmpty) return Map<String, dynamic>.from(items.last);
-    }
-    return data;
-  }
-
   @override
   Future<Cart> getCart() async {
     try {
       final res = await dio.get(ApiEndpoints.cart.base);
       final data = res.data;
       if (data != null) {
-        final unwrapped = data is Map<String, dynamic>
-            ? (data['data'] ?? data)
-            : data;
+        final unwrapped =
+            data is Map<String, dynamic> ? (data['data'] ?? data) : data;
         return Cart.fromJson(unwrapped);
       }
+      return const Cart();
+    } on DioException catch (e) {
+      if (AppConfig.isMockMode) return _mock.getCart();
+      throw ApiError.fromDio(e);
     } catch (e) {
-      AppLogger.w('CartRemoteRepository.getCart failed: $e, falling back to mock');
+      if (AppConfig.isMockMode) return _mock.getCart();
+      rethrow;
     }
-    return _mock.getCart();
   }
 
   @override
@@ -72,15 +43,18 @@ class CartRemoteRepository implements CartRepository {
       final res = await dio.get(ApiEndpoints.cart.me);
       final data = res.data;
       if (data != null) {
-        final unwrapped = data is Map<String, dynamic>
-            ? (data['data'] ?? data)
-            : data;
+        final unwrapped =
+            data is Map<String, dynamic> ? (data['data'] ?? data) : data;
         return Cart.fromJson(unwrapped);
       }
+      return const Cart();
+    } on DioException catch (e) {
+      if (AppConfig.isMockMode) return _mock.getMyCart();
+      throw ApiError.fromDio(e);
     } catch (e) {
-      AppLogger.w('CartRemoteRepository.getMyCart failed: $e, falling back to mock');
+      if (AppConfig.isMockMode) return _mock.getMyCart();
+      rethrow;
     }
-    return _mock.getMyCart();
   }
 
   @override
@@ -89,15 +63,18 @@ class CartRemoteRepository implements CartRepository {
       final res = await dio.get(ApiEndpoints.cart.availability);
       final data = res.data;
       if (data != null) {
-        final unwrapped = data is Map<String, dynamic>
-            ? (data['data'] ?? data)
-            : data;
+        final unwrapped =
+            data is Map<String, dynamic> ? (data['data'] ?? data) : data;
         return CartAvailabilityResult.fromJson(unwrapped);
       }
+      return const CartAvailabilityResult(cartId: 0, isAvailable: true, items: []);
+    } on DioException catch (e) {
+      if (AppConfig.isMockMode) return _mock.checkAvailability();
+      throw ApiError.fromDio(e);
     } catch (e) {
-      AppLogger.w('CartRemoteRepository.checkAvailability failed: $e, falling back to mock');
+      if (AppConfig.isMockMode) return _mock.checkAvailability();
+      rethrow;
     }
-    return _mock.checkAvailability();
   }
 
   @override
@@ -107,58 +84,52 @@ class CartRemoteRepository implements CartRepository {
     Product? product,
   }) async {
     try {
-      final payload = {
-        'productVariantId': productVariantId,
-        'quantity': quantity,
-      };
+      final payload = {'productVariantId': productVariantId, 'quantity': quantity};
       final res = await dio.post(ApiEndpoints.cart.items, data: payload);
       final data = ApiResponse.unwrapMap(res.data);
-      final itemMap = _extractItemMap(data, productVariantId: productVariantId);
-      var item = CartItem.fromJson(
-        itemMap,
-        catalogue: product != null ? [product] : const [],
-      );
-      if (product != null &&
-          (item.product.id == 'item' || item.product.id.isEmpty)) {
+      final itemMap = CartRemoteHelpers.extractItemMap(data, productVariantId: productVariantId);
+      var item = CartItem.fromJson(itemMap, catalogue: product != null ? [product] : const []);
+      if (product != null && (item.product.id == 'item' || item.product.id.isEmpty)) {
         item = item.copyWith(product: product);
       }
-      // Synchronize in mock cache
-      try {
-        await _mock.addItem(
-          productVariantId: productVariantId,
-          quantity: quantity,
-          product: product ?? item.product,
-        );
-      } catch (_) {}
+      if (AppConfig.isMockMode) {
+        try {
+          await _mock.addItem(productVariantId: productVariantId, quantity: quantity, product: product ?? item.product);
+        } catch (_) {}
+      }
       return item;
+    } on DioException catch (e) {
+      if (AppConfig.isMockMode) {
+        return _mock.addItem(productVariantId: productVariantId, quantity: quantity, product: product);
+      }
+      throw ApiError.fromDio(e);
     } catch (e) {
-      AppLogger.w('CartRemoteRepository.addItem failed: $e, falling back to mock');
-      return _mock.addItem(
-        productVariantId: productVariantId,
-        quantity: quantity,
-        product: product,
-      );
+      if (AppConfig.isMockMode) {
+        return _mock.addItem(productVariantId: productVariantId, quantity: quantity, product: product);
+      }
+      rethrow;
     }
   }
 
   @override
-  Future<CartItem> updateItemQuantity({
-    required String itemId,
-    required int quantity,
-  }) async {
+  Future<CartItem> updateItemQuantity({required String itemId, required int quantity}) async {
     try {
-      final payload = {'quantity': quantity};
-      final res = await dio.patch(ApiEndpoints.cart.item(itemId), data: payload);
+      final res = await dio.patch(ApiEndpoints.cart.item(itemId), data: {'quantity': quantity});
       final data = ApiResponse.unwrapMap(res.data);
-      final itemMap = _extractItemMap(data, itemId: itemId);
+      final itemMap = CartRemoteHelpers.extractItemMap(data, itemId: itemId);
       final item = CartItem.fromJson(itemMap);
-      try {
-        await _mock.updateItemQuantity(itemId: itemId, quantity: quantity);
-      } catch (_) {}
+      if (AppConfig.isMockMode) {
+        try {
+          await _mock.updateItemQuantity(itemId: itemId, quantity: quantity);
+        } catch (_) {}
+      }
       return item;
+    } on DioException catch (e) {
+      if (AppConfig.isMockMode) return _mock.updateItemQuantity(itemId: itemId, quantity: quantity);
+      throw ApiError.fromDio(e);
     } catch (e) {
-      AppLogger.w('CartRemoteRepository.updateItemQuantity failed: $e, falling back to mock');
-      return _mock.updateItemQuantity(itemId: itemId, quantity: quantity);
+      if (AppConfig.isMockMode) return _mock.updateItemQuantity(itemId: itemId, quantity: quantity);
+      rethrow;
     }
   }
 
@@ -166,42 +137,52 @@ class CartRemoteRepository implements CartRepository {
   Future<void> removeItem(String itemId) async {
     try {
       await dio.delete(ApiEndpoints.cart.item(itemId));
+      if (AppConfig.isMockMode) {
+        try {
+          await _mock.removeItem(itemId);
+        } catch (_) {}
+      }
+    } on DioException catch (e) {
+      if (AppConfig.isMockMode) {
+        await _mock.removeItem(itemId);
+        return;
+      }
+      throw ApiError.fromDio(e);
     } catch (e) {
-      AppLogger.w('CartRemoteRepository.removeItem failed: $e, falling back to mock');
+      if (AppConfig.isMockMode) {
+        await _mock.removeItem(itemId);
+        return;
+      }
+      rethrow;
     }
-    try {
-      await _mock.removeItem(itemId);
-    } catch (_) {}
   }
 
   @override
   Future<void> clearCart() async {
     try {
       await dio.delete(ApiEndpoints.cart.base);
+      if (AppConfig.isMockMode) await _mock.clearCart();
+    } on DioException catch (e) {
+      if (AppConfig.isMockMode) {
+        await _mock.clearCart();
+        return;
+      }
+      throw ApiError.fromDio(e);
     } catch (e) {
-      AppLogger.w('CartRemoteRepository.clearCart failed: $e, falling back to mock');
+      if (AppConfig.isMockMode) {
+        await _mock.clearCart();
+        return;
+      }
+      rethrow;
     }
-    await _mock.clearCart();
   }
 
-  // ── Backward-compatible legacy interface ──────────────────────────────
   @override
   Future<List<CartItem>> getCartItems() async => (await getCart()).items;
 
   @override
-  Future<CartItem> addToCart(
-    Product product, {
-    int quantity = 1,
-    int? variantId,
-  }) {
-    final vId = variantId ??
-        (product.variants.isNotEmpty ? product.variants.first.id : (int.tryParse(product.id) ?? 1));
-    return addItem(
-      productVariantId: vId,
-      quantity: quantity,
-      product: product,
-    );
-  }
+  Future<CartItem> addToCart(Product p, {int quantity = 1, int? variantId}) =>
+      addItem(productVariantId: variantId ?? (p.variants.isNotEmpty ? p.variants.first.id : (int.tryParse(p.id) ?? 1)), quantity: quantity, product: p);
 
   @override
   Future<void> updateQuantity(String productId, int quantity) =>

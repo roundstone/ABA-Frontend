@@ -1,12 +1,14 @@
 import 'package:dio/dio.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/network/api_endpoints.dart';
+import '../../../core/network/api_error.dart';
 import '../../../core/network/api_response.dart';
-import '../../account/domain/customer_order.dart';
 import '../../shop/domain/shop_entities.dart';
 import '../domain/checkout_entities.dart';
 import '../domain/checkout_repository.dart';
 import 'checkout_mock_repository.dart';
+import 'checkout_remote_helpers.dart';
 
 class CheckoutRemoteRepository implements CheckoutRepository {
   CheckoutRemoteRepository(this._dio, [CheckoutMockRepository? mock])
@@ -20,28 +22,32 @@ class CheckoutRemoteRepository implements CheckoutRepository {
     try {
       final response = await _dio.get(ApiEndpoints.deliveryAddresses.base);
       final list = ApiResponse.unwrapList(response.data);
-      if (list.isNotEmpty) {
-        return list.whereType<Map>().map((item) {
-          final json = Map<String, dynamic>.from(item);
-          return CheckoutAddress(
-            id: (json['id'] ?? '').toString(),
-            label: json['name'] as String? ??
-                json['label'] as String? ??
-                'Address',
-            fullName: json['fullName'] as String? ?? '',
-            street: json['street'] as String? ?? '',
-            city: json['city'] as String? ?? '',
-            state: json['state'] as String? ?? '',
-            zipCode: (json['zip'] ?? json['zipCode'] ?? '').toString(),
-            phone: (json['phone'] ?? '').toString(),
-            isDefault: json['is_default'] == true || json['isDefault'] == true,
-          );
-        }).toList();
+      return list.whereType<Map>().map((item) {
+        final json = Map<String, dynamic>.from(item);
+        return CheckoutAddress(
+          id: (json['id'] ?? '').toString(),
+          label: json['name'] as String? ??
+              json['label'] as String? ??
+              'Address',
+          fullName: json['fullName'] as String? ?? '',
+          street: json['street'] as String? ?? '',
+          city: json['city'] as String? ?? '',
+          state: json['state'] as String? ?? '',
+          zipCode: (json['zip'] ?? json['zipCode'] ?? '').toString(),
+          phone: (json['phone'] ?? '').toString(),
+          isDefault: json['is_default'] == true || json['isDefault'] == true,
+        );
+      }).toList();
+    } on DioException catch (e) {
+      if (AppConfig.isMockMode) {
+        AppLogger.w('CheckoutRemoteRepository.getSavedAddresses fallback: $e');
+        return _mock.getSavedAddresses();
       }
+      throw ApiError.fromDio(e);
     } catch (e) {
-      AppLogger.w('CheckoutRemoteRepository.getSavedAddresses failed: $e, using mock');
+      if (AppConfig.isMockMode) return _mock.getSavedAddresses();
+      rethrow;
     }
-    return _mock.getSavedAddresses();
   }
 
   @override
@@ -60,7 +66,7 @@ class CheckoutRemoteRepository implements CheckoutRepository {
         }).toList();
       }
     } catch (e) {
-      AppLogger.w('CheckoutRemoteRepository.getDeliveryMethods failed: $e, using mock');
+      AppLogger.w('CheckoutRemoteRepository.getDeliveryMethods: $e');
     }
     return _mock.getDeliveryMethods();
   }
@@ -85,9 +91,9 @@ class CheckoutRemoteRepository implements CheckoutRepository {
         }).toList();
       }
     } catch (e) {
-      AppLogger.w('CheckoutRemoteRepository.searchReferrals failed: $e, using mock');
+      if (AppConfig.isMockMode) return _mock.searchReferrals(query);
     }
-    return _mock.searchReferrals(query);
+    return const [];
   }
 
   @override
@@ -95,9 +101,11 @@ class CheckoutRemoteRepository implements CheckoutRepository {
     try {
       Response<dynamic> response;
       try {
-        response = await _dio.get(ApiEndpoints.payments.paystackVerify(reference));
+        response =
+            await _dio.get(ApiEndpoints.payments.paystackVerify(reference));
       } catch (_) {
-        response = await _dio.post(ApiEndpoints.payments.paystackVerify(reference));
+        response =
+            await _dio.post(ApiEndpoints.payments.paystackVerify(reference));
       }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -114,10 +122,17 @@ class CheckoutRemoteRepository implements CheckoutRepository {
         }
         return true;
       }
+      return false;
+    } on DioException catch (e) {
+      if (AppConfig.isMockMode) {
+        AppLogger.w('CheckoutRemoteRepository.verifyPaystack fallback: $e');
+        return _mock.verifyPaystackPayment(reference);
+      }
+      throw ApiError.fromDio(e);
     } catch (e) {
-      AppLogger.w('CheckoutRemoteRepository.verifyPaystackPayment failed: $e, using mock');
+      if (AppConfig.isMockMode) return _mock.verifyPaystackPayment(reference);
+      rethrow;
     }
-    return _mock.verifyPaystackPayment(reference);
   }
 
   @override
@@ -130,7 +145,9 @@ class CheckoutRemoteRepository implements CheckoutRepository {
     ReferralCandidate? referral,
     String? paymentReference,
   }) async {
-    final methodStr = paymentType == CheckoutPaymentType.paystack ? 'paystack' : paymentType.name;
+    final methodStr = paymentType == CheckoutPaymentType.paystack
+        ? 'paystack'
+        : paymentType.name;
     final payload = {
       'paymentReference': paymentReference,
       'payment_reference': paymentReference,
@@ -170,72 +187,39 @@ class CheckoutRemoteRepository implements CheckoutRepository {
       }
 
       final unwrapped = ApiResponse.unwrapMap(response.data);
-      final orderJson = unwrapped['order'] is Map<String, dynamic>
-          ? unwrapped['order'] as Map<String, dynamic>
-          : unwrapped;
-
-      final ordId = unwrapped['orderId']?.toString() ??
-          orderJson['id']?.toString() ??
-          orderJson['order_number']?.toString() ??
-          'ORD-${DateTime.now().millisecondsSinceEpoch % 100000}';
-
-      final safeDate = DateTime.tryParse(orderJson['date']?.toString() ??
-              orderJson['createdAt']?.toString() ??
-              orderJson['created_at']?.toString() ??
-              '') ??
-          DateTime.now();
-
-      final safeStatus = OrderStatus.fromString(
-        orderJson['status']?.toString() ?? 'pending',
-      );
-
-      final safeTotal = (orderJson['total'] as num?)?.toInt() ??
-          (orderJson['total_amount'] as num?)?.toInt() ??
-          (orderJson['totalAmount'] as num?)?.toInt() ??
-          cart.total.toInt();
-
-      final safeOrder = CustomerOrder(
-        id: ordId,
-        date: safeDate,
-        status: safeStatus,
-        total: safeTotal,
-        paymentMethod: paymentType.name,
-        shippingAddress: ShippingAddress(
-          fullName: address.fullName,
-          street: address.street,
-          city: address.city,
-          zipCode: address.zipCode,
-          phone: address.phone,
-        ),
-        items: cart.items
-            .map((i) => OrderItem(
-                  id: i.effectiveId,
-                  productId: i.product.id,
-                  productName: i.product.name,
-                  price: i.product.price.toInt(),
-                  quantity: i.quantity,
-                ))
-            .toList(),
-      );
-
-      return CheckoutOrderResult(
-        orderId: ordId,
-        status: safeStatus.label,
-        totalAmount: safeTotal.toDouble(),
-        createdAt: safeDate,
-        order: safeOrder,
-      );
-    } catch (e) {
-      AppLogger.w('CheckoutRemoteRepository.placeOrder failed: $e, falling back to mock');
-      return _mock.placeOrder(
+      return CheckoutRemoteHelpers.parseOrderResult(
+        unwrapped: unwrapped,
         cart: cart,
-        customerInfo: customerInfo,
         address: address,
-        deliveryMethod: deliveryMethod,
         paymentType: paymentType,
-        referral: referral,
-        paymentReference: paymentReference,
       );
+    } on DioException catch (e) {
+      if (AppConfig.isMockMode) {
+        AppLogger.w('CheckoutRemoteRepository.placeOrder fallback: $e');
+        return _mock.placeOrder(
+          cart: cart,
+          customerInfo: customerInfo,
+          address: address,
+          deliveryMethod: deliveryMethod,
+          paymentType: paymentType,
+          referral: referral,
+          paymentReference: paymentReference,
+        );
+      }
+      throw ApiError.fromDio(e);
+    } catch (e) {
+      if (AppConfig.isMockMode) {
+        return _mock.placeOrder(
+          cart: cart,
+          customerInfo: customerInfo,
+          address: address,
+          deliveryMethod: deliveryMethod,
+          paymentType: paymentType,
+          referral: referral,
+          paymentReference: paymentReference,
+        );
+      }
+      rethrow;
     }
   }
 }

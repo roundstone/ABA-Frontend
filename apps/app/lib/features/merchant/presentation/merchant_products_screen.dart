@@ -122,7 +122,12 @@ class _MerchantProductsScreenState extends ConsumerState<MerchantProductsScreen>
             Expanded(
               child: state.isLoading && state.products.isEmpty
                   ? const LoadingState(message: 'Loading products...')
-                  : RefreshIndicator(
+                  : state.errorMessage != null && state.products.isEmpty
+                      ? ErrorState(
+                          message: state.errorMessage!,
+                          onRetry: () => notifier.loadProducts(),
+                        )
+                      : RefreshIndicator(
                       onRefresh: () => notifier.loadProducts(),
                       child: state.products.isEmpty
                           ? ListView(

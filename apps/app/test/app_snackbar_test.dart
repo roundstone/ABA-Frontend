@@ -123,6 +123,26 @@ void main() {
       await tester.pump(const Duration(seconds: 4));
       await tester.pumpAndSettle();
     });
+
+    testWidgets('AppSnackbar.errorGlobal displays snackbar using scaffoldMessengerKey without context', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          scaffoldMessengerKey: AppSnackbar.scaffoldMessengerKey,
+          home: const Scaffold(
+            body: Center(child: Text('Home Screen')),
+          ),
+        ),
+      );
+
+      AppSnackbar.errorGlobal('No internet connection. Please check your network.');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('No internet connection. Please check your network.'), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 4));
+      await tester.pumpAndSettle();
+    });
   });
 }
 

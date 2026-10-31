@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/network/api_endpoints.dart';
+import '../../../core/network/api_error.dart';
 import '../../../core/network/api_response.dart';
 import '../../../core/network/list_query_params.dart';
 import '../domain/merchant_entities.dart';
@@ -28,10 +30,23 @@ class MerchantRemoteRepository implements MerchantRepository {
         query['search'] = effectiveSearch.trim();
       }
       if (queryParams?.startDate != null) {
-        query['startDate'] = queryParams!.startDateString;
+        query['startDate'] = queryParams!.startDate!.toIso8601String();
       }
       if (queryParams?.endDate != null) {
-        query['endDate'] = queryParams!.endDateString;
+        query['endDate'] = queryParams!.endDate!.toIso8601String();
+      }
+
+      if (params.state.isNotEmpty && params.state != 'All') {
+        query['state'] = params.state;
+      }
+      if (params.category.isNotEmpty && params.category != 'All') {
+        query['category'] = params.category;
+      }
+      if (params.verifiedOnly) {
+        query['isVerified'] = true;
+      }
+      if (params.minRating != null && params.minRating! > 0) {
+        query['rating'] = params.minRating;
       }
 
       final response = await _dio.get(
@@ -39,74 +54,57 @@ class MerchantRemoteRepository implements MerchantRepository {
         queryParameters: query,
       );
 
-      final list = ApiResponse.unwrapList(response.data);
-      var merchants = list
+      final rawData = response.data;
+      var list = ApiResponse.unwrapList(rawData);
+      int total = list.length;
+
+      if (rawData is Map<String, dynamic> && rawData.containsKey('meta')) {
+        final meta = rawData['meta'] as Map<String, dynamic>?;
+        if (meta != null && meta['total'] is num) {
+          total = (meta['total'] as num).toInt();
+        }
+      }
+
+      final merchants = list
           .whereType<Map>()
           .map((json) => Merchant.fromJson(Map<String, dynamic>.from(json)))
           .toList();
 
-      if (merchants.isNotEmpty) {
-        if (params.category.trim().isNotEmpty) {
-          merchants = merchants
-              .where((m) =>
-                  m.category.toLowerCase() ==
-                  params.category.trim().toLowerCase())
-              .toList();
-        }
-        if (params.state.trim().isNotEmpty) {
-          merchants = merchants
-              .where((m) =>
-                  m.state.toLowerCase() == params.state.trim().toLowerCase())
-              .toList();
-        }
-        if (params.minRating != null) {
-          merchants =
-              merchants.where((m) => m.rating >= params.minRating!).toList();
-        }
-        if (params.verifiedOnly) {
-          merchants = merchants.where((m) => m.isVerified).toList();
-        }
+      final states = merchants
+          .map((m) => m.state)
+          .where((s) => s.isNotEmpty)
+          .toSet()
+          .toList()
+        ..sort();
+      final categories = merchants
+          .map((m) => m.category)
+          .where((c) => c.isNotEmpty)
+          .toSet()
+          .toList()
+        ..sort();
 
-        int total = merchants.length;
-        if (response.data is Map &&
-            response.data['data'] is Map &&
-            response.data['data']['meta'] is Map) {
-          total = (response.data['data']['meta']['totalItems'] as num?)
-                  ?.toInt() ??
-              merchants.length;
-        }
-
-        final states = merchants
-            .map((m) => m.state)
-            .where((s) => s.isNotEmpty)
-            .toSet()
-            .toList()
-          ..sort();
-        final categories = merchants
-            .map((m) => m.category)
-            .where((c) => c.isNotEmpty)
-            .toSet()
-            .toList()
-          ..sort();
-
-        return MerchantDirectoryResult(
-          merchants: merchants,
-          totalCount: total,
-          availableStates: states.isNotEmpty
-              ? states
-              : const ['Lagos', 'Abia', 'Abuja', 'Kano', 'Rivers'],
-          availableCategories: categories.isNotEmpty
-              ? categories
-              : const ['Clothing', 'Bags', 'Shoes', 'Electronics'],
-        );
-      }
+      return MerchantDirectoryResult(
+        merchants: merchants,
+        totalCount: total,
+        availableStates: states.isNotEmpty
+            ? states
+            : const ['Lagos', 'Abia', 'Abuja', 'Kano', 'Rivers'],
+        availableCategories: categories.isNotEmpty
+            ? categories
+            : const ['Clothing', 'Bags', 'Shoes', 'Electronics'],
+      );
     } on DioException catch (e) {
-      AppLogger.w('MerchantRemoteRepository.getMerchants failed: ${e.message}');
+      if (AppConfig.isMockMode) {
+        AppLogger.w('MerchantRemoteRepository.getMerchants fallback: ${e.message}');
+        return MerchantMockRepository().getMerchants(params, queryParams);
+      }
+      throw ApiError.fromDio(e);
     } catch (e) {
-      AppLogger.e('MerchantRemoteRepository: error in getMerchants', error: e);
+      if (AppConfig.isMockMode) {
+        return MerchantMockRepository().getMerchants(params, queryParams);
+      }
+      rethrow;
     }
-
-    return MerchantMockRepository().getMerchants(params, queryParams);
   }
 
   @override
@@ -116,11 +114,18 @@ class MerchantRemoteRepository implements MerchantRepository {
       try {
         final response = await _dio.get(ApiEndpoints.merchants.byId(id));
         final map = ApiResponse.unwrapMap(response.data);
-        if (map.isNotEmpty) {
-          return Merchant.fromJson(map);
+        return map.isNotEmpty ? Merchant.fromJson(map) : null;
+      } on DioException catch (e) {
+        if (e.response?.statusCode == 404) return null;
+        if (AppConfig.isMockMode) {
+          return MerchantMockRepository().getMerchantById(id);
         }
+        throw ApiError.fromDio(e);
       } catch (e) {
-        AppLogger.w('MerchantRemoteRepository.getMerchantById($id) failed: $e');
+        if (AppConfig.isMockMode) {
+          return MerchantMockRepository().getMerchantById(id);
+        }
+        rethrow;
       }
     } else {
       try {
@@ -137,26 +142,39 @@ class MerchantRemoteRepository implements MerchantRepository {
             int.tryParse(match.id) != null) {
           return getMerchantById(match.id);
         }
-      } catch (_) {}
+        return match;
+      } catch (e) {
+        if (AppConfig.isMockMode) {
+          return MerchantMockRepository().getMerchantById(id);
+        }
+        rethrow;
+      }
     }
-    return MerchantMockRepository().getMerchantById(id);
   }
 
   @override
   Future<List<Merchant>> getMerchantsSpotlight() async {
     try {
-      final response = await _dio.get(ApiEndpoints.storefront.merchantsSpotlight);
+      final response =
+          await _dio.get(ApiEndpoints.storefront.merchantsSpotlight);
       final list = ApiResponse.unwrapList(response.data);
-      final merchants = list
+      return list
           .whereType<Map>()
           .map((json) => Merchant.fromJson(Map<String, dynamic>.from(json)))
           .toList();
-      if (merchants.isNotEmpty) return merchants;
     } on DioException catch (e) {
-      AppLogger.w('MerchantRemoteRepository.getMerchantsSpotlight failed: ${e.message}');
+      if (AppConfig.isMockMode) {
+        AppLogger.w(
+          'MerchantRemoteRepository.getMerchantsSpotlight fallback: ${e.message}',
+        );
+        return MerchantMockRepository().getMerchantsSpotlight();
+      }
+      throw ApiError.fromDio(e);
     } catch (e) {
-      AppLogger.e('MerchantRemoteRepository.getMerchantsSpotlight error', error: e);
+      if (AppConfig.isMockMode) {
+        return MerchantMockRepository().getMerchantsSpotlight();
+      }
+      rethrow;
     }
-    return MerchantMockRepository().getMerchantsSpotlight();
   }
 }

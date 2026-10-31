@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/network/api_endpoints.dart';
 import '../../../core/network/api_error.dart';
@@ -76,7 +77,8 @@ class AuthRemoteRepository implements AuthRepository {
       await persistUser(user);
       return user;
     } on DioException catch (e) {
-      if ((id.contains('jane') || id.contains('emeka')) &&
+      if (AppConfig.isMockMode &&
+          (id.contains('jane') || id.contains('emeka')) &&
           pwd == 'password123') {
         final mock = id.contains('emeka')
             ? AuthMockRepository.demoMerchant
@@ -426,11 +428,12 @@ class AuthRemoteRepository implements AuthRepository {
       return user;
     } on DioException catch (e) {
       AppLogger.w(
-        'AuthRemoteRepository.getProfile failed: $e, falling back to cached/mock',
+        'AuthRemoteRepository.getProfile failed: $e, checking cached user',
       );
       final cached = getStoredUserSync();
       if (cached != null) return cached;
-      return _mock.getProfile();
+      if (AppConfig.isMockMode) return _mock.getProfile();
+      throw ApiError.fromDio(e);
     }
   }
 
@@ -482,15 +485,15 @@ class AuthRemoteRepository implements AuthRepository {
       AppLogger.w(
         'AuthRemoteRepository.updateProfile failed: $e',
       );
-      if (e.response != null && e.response!.statusCode != null) {
-        throw ApiError.fromDio(e);
+      if (AppConfig.isMockMode) {
+        return _mock.updateProfile(
+          firstName: firstName,
+          lastName: lastName,
+          phone: phone,
+          businessName: businessName,
+        );
       }
-      return _mock.updateProfile(
-        firstName: firstName,
-        lastName: lastName,
-        phone: phone,
-        businessName: businessName,
-      );
+      throw ApiError.fromDio(e);
     }
   }
 }

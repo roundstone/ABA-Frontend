@@ -76,7 +76,10 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           const Scaffold(body: LoadingState(message: 'Loading product…')),
       error: (e, _) => Scaffold(
         appBar: AppBar(),
-        body: ErrorState(message: e.toString()),
+        body: ErrorState(
+          message: e.toString(),
+          onRetry: () => ref.refresh(productDetailProvider(widget.productId)),
+        ),
       ),
       data: (product) {
         if (product == null) {

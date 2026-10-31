@@ -207,11 +207,48 @@ void main() {
 
     test('fetchProductById handles non-numeric slug safely without 400 error', () async {
       final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            if (options.path.contains('/api/v1/products/5')) {
+              return handler.resolve(
+                Response(
+                  requestOptions: options,
+                  statusCode: 200,
+                  data: {
+                    'success': true,
+                    'data': {
+                      ...sampleProductJson,
+                      'slug': 'wander-pack-heaven-backpack',
+                    },
+                  },
+                ),
+              );
+            }
+            return handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {
+                  'success': true,
+                  'data': [
+                    {
+                      ...sampleProductJson,
+                      'slug': 'wander-pack-heaven-backpack',
+                    }
+                  ],
+                },
+              ),
+            );
+          },
+        ),
+      );
       final repo = ShopRemoteRepository(dio: dio);
 
       // Should not throw or crash on non-numeric slug
       final product = await repo.fetchProductById('wander-pack-heaven-backpack');
       expect(product, isNotNull);
+      expect(product!.slug, 'wander-pack-heaven-backpack');
     });
 
     test('fetchFeaturedProducts queries storefront endpoint', () async {
