@@ -1,13 +1,13 @@
 import 'package:app/features/customer/application/referrals_network_providers.dart';
 import 'package:app/features/customer/presentation/marketer_profile_screen.dart';
-import 'package:app/features/customer/presentation/widgets/marketer_network_section.dart';
 import 'package:app/features/customer/presentation/widgets/network_member_tile.dart';
+import 'package:app/features/customer/presentation/widgets/network_tree.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('MarketerNetworkSection Widget Tests', () {
+  group('NetworkTreeWidget Tests', () {
     final testDownline = [
       const ReferralNetworkMember(
         id: 12,
@@ -42,7 +42,7 @@ void main() {
       ),
     ];
 
-    testWidgets('renders Downline Network by default with member tiles and depth chips', (tester) async {
+    testWidgets('renders Downline Network by default with tree view and depth chips', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -52,7 +52,7 @@ void main() {
           child: const MaterialApp(
             home: Scaffold(
               body: SingleChildScrollView(
-                child: MarketerNetworkSection(),
+                child: NetworkTreeWidget(),
               ),
             ),
           ),
@@ -61,18 +61,19 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Referral Network Explorer'), findsOneWidget);
+      expect(find.byType(NetworkTreeWidget), findsOneWidget);
       expect(find.text('Downline Network'), findsOneWidget);
       expect(find.text('Upline Mentors'), findsOneWidget);
       expect(find.text('Level 1'), findsWidgets);
       expect(find.text('Level 2'), findsOneWidget);
       expect(find.text('Level 3'), findsOneWidget);
-      expect(find.byType(NetworkMemberTile), findsOneWidget);
+
+      // In tree view, tree node is rendered with root and member
+      expect(find.byType(TreeNodeWidget), findsWidgets);
       expect(find.text('John Doe'), findsOneWidget);
-      expect(find.text('@john.doe'), findsOneWidget);
     });
 
-    testWidgets('switching to Upline Mentors updates view and displays mentor tile', (tester) async {
+    testWidgets('toggling list view displays member tiles and switching to Upline displays mentor', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -82,7 +83,7 @@ void main() {
           child: const MaterialApp(
             home: Scaffold(
               body: SingleChildScrollView(
-                child: MarketerNetworkSection(),
+                child: NetworkTreeWidget(),
               ),
             ),
           ),
@@ -90,6 +91,15 @@ void main() {
       );
 
       await tester.pumpAndSettle();
+
+      // Tap view mode toggle button to switch to List View
+      await tester.tap(find.byTooltip('Switch to List View'));
+      await tester.pumpAndSettle();
+
+      // List view displays member tile
+      expect(find.byType(NetworkMemberTile), findsOneWidget);
+      expect(find.text('John Doe'), findsOneWidget);
+      expect(find.text('@john.doe'), findsOneWidget);
 
       // Tap 'Upline Mentors' tab
       await tester.tap(find.text('Upline Mentors'));
@@ -100,7 +110,7 @@ void main() {
       expect(find.text('@mentor.chioma'), findsOneWidget);
     });
 
-    testWidgets('renders MarketerProfileScreen including network explorer section', (tester) async {
+    testWidgets('renders MarketerProfileScreen with NetworkTreeWidget in Network Visualisation', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -116,8 +126,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Marketer Profile'), findsOneWidget);
-      expect(find.byType(MarketerNetworkSection), findsOneWidget);
-      expect(find.text('Referral Network Explorer'), findsOneWidget);
+      expect(find.text('Network Visualisation'), findsOneWidget);
+      expect(find.byType(NetworkTreeWidget), findsOneWidget);
+      expect(find.text('Downline Network'), findsOneWidget);
+      expect(find.text('Upline Mentors'), findsOneWidget);
     });
   });
 }

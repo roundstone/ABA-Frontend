@@ -8,7 +8,6 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../auth/application/auth_providers.dart';
 import 'marketer_profile_models.dart';
-import 'widgets/marketer_network_section.dart';
 import 'widgets/marketer_performance_charts.dart';
 import 'widgets/marketer_profile_header.dart';
 import 'widgets/marketer_profile_kpis.dart';
@@ -88,11 +87,7 @@ class _MarketerProfileScreenState extends ConsumerState<MarketerProfileScreen> {
                         MarketerProfileKpis(profile: profile),
                         const SizedBox(height: AppSpacing.xl),
 
-                        // 3. Referral Network Explorer (Upline & Downline with Depth 1-3)
-                        const MarketerNetworkSection(),
-                        const SizedBox(height: AppSpacing.xl),
-
-                        // 4. Network Visualisation (Tree view)
+                        // 3. Network Visualisation (Tree & List view with Upline/Downline & Depth)
                         Text(
                           'Network Visualisation',
                           style: AppTypography.h6.copyWith(
@@ -101,12 +96,12 @@ class _MarketerProfileScreenState extends ConsumerState<MarketerProfileScreen> {
                         ),
                         const SizedBox(height: AppSpacing.md),
                         NetworkTreeWidget(
-                          data: profile.networkData,
-                          anonymize: true,
+                          profile: profile,
+                          anonymize: isPublic,
                         ),
                         const SizedBox(height: AppSpacing.xl),
 
-                        // 5. Performance Metrics
+                        // 4. Performance Metrics
                         Text(
                           'Performance Metrics',
                           style: AppTypography.h6.copyWith(
