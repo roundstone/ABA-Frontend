@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../../core/network/api_error.dart';
 import '../../../core/router/safe_navigation.dart';
-import '../../auth/application/auth_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_widgets.dart';
+import '../../auth/application/auth_providers.dart';
 import '../application/wallet_providers.dart';
 import 'widgets/transaction_tile.dart';
 import 'widgets/wallet_balance_card.dart';
+import 'widgets/wallet_filter_bar.dart';
 
 class WalletScreen extends ConsumerWidget {
   const WalletScreen({super.key});
@@ -19,7 +21,7 @@ class WalletScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final walletInfoAsync = ref.watch(walletInfoProvider);
     final transactionsAsync = ref.watch(walletTransactionsProvider);
-
+    final filter = ref.watch(walletFilterProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -34,7 +36,9 @@ class WalletScreen extends ConsumerWidget {
                 ),
                 tooltip: 'Back',
                 onPressed: () {
-                  final fallback = ref.read(authStateProvider).isMerchant ? '/merchant' : '/home';
+                  final fallback = ref.read(authStateProvider).isMerchant
+                      ? '/merchant'
+                      : '/home';
                   context.popOrGo(fallback);
                 },
               )
@@ -48,11 +52,15 @@ class WalletScreen extends ConsumerWidget {
         centerTitle: false,
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              ref.invalidate(walletInfoProvider);
+              ref.invalidate(walletTransactionsProvider);
+            },
             icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedSettings01,
+              icon: HugeIcons.strokeRoundedRefresh,
               color: AppColors.grey,
             ),
+            tooltip: 'Refresh',
           ),
         ],
       ),
@@ -60,7 +68,9 @@ class WalletScreen extends ConsumerWidget {
         canPop: context.canPopSafely,
         onPopInvokedWithResult: (didPop, result) {
           if (didPop) return;
-          final fallback = ref.read(authStateProvider).isMerchant ? '/merchant' : '/home';
+          final fallback = ref.read(authStateProvider).isMerchant
+              ? '/merchant'
+              : '/home';
           context.popOrGo(fallback);
         },
         child: SafeArea(
@@ -77,10 +87,10 @@ class WalletScreen extends ConsumerWidget {
                 walletInfoAsync.when(
                   loading: () => const SizedBox(
                     height: 160,
-                    child: Center(child: CircularProgressIndicator()),
+                    child: Center(child: CircularProgressIndicator.adaptive()),
                   ),
                   error: (err, stack) => ErrorState(
-                    message: err.toString(),
+                    message: ApiError.toUserFriendlyMessage(err),
                     onRetry: () => ref.invalidate(walletInfoProvider),
                   ),
                   data: (info) => WalletBalanceCard(
@@ -105,10 +115,14 @@ class WalletScreen extends ConsumerWidget {
                       vertical: AppSpacing.sm + 2,
                     ),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E2820) : const Color(0xFFF1F8F3),
+                      color: isDark
+                          ? const Color(0xFF1E2820)
+                          : const Color(0xFFF1F8F3),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isDark ? const Color(0xFF2C3E30) : const Color(0xFFD0E6D5),
+                        color: isDark
+                            ? const Color(0xFF2C3E30)
+                            : const Color(0xFFD0E6D5),
                       ),
                     ),
                     child: Row(
@@ -132,14 +146,20 @@ class WalletScreen extends ConsumerWidget {
                               Text(
                                 'Trace double-entry journal entries from order to bank payout',
                                 style: AppTypography.caption.copyWith(
-                                  color: isDark ? AppColors.darkTextSecondary : AppColors.grey,
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.grey,
                                   fontSize: 11,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const Icon(Icons.chevron_right, color: AppColors.grey, size: 20),
+                        const Icon(
+                          Icons.chevron_right,
+                          color: AppColors.grey,
+                          size: 20,
+                        ),
                       ],
                     ),
                   ),
@@ -156,41 +176,43 @@ class WalletScreen extends ConsumerWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Navigate to all transactions
-                      },
-                      child: Text(
-                        'See All',
-                        style: AppTypography.bodySmall.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    if (filter.type != null)
+                      TextButton(
+                        onPressed: () {
+                          ref
+                              .read(walletFilterProvider.notifier)
+                              .update((s) => s.copyWith(clearType: true));
+                        },
+                        child: const Text('Clear Filter'),
                       ),
-                    ),
                   ],
                 ),
+                const SizedBox(height: AppSpacing.xs),
+                const WalletFilterBar(),
                 AppSpacing.verticalSpaceSM,
 
                 // Transactions List
                 transactionsAsync.when(
                   loading: () => const Padding(
                     padding: EdgeInsets.all(AppSpacing.xl),
-                    child: Center(child: CircularProgressIndicator()),
+                    child: Center(child: CircularProgressIndicator.adaptive()),
                   ),
                   error: (err, stack) => ErrorState(
-                    message: err.toString(),
+                    message: ApiError.toUserFriendlyMessage(err),
                     onRetry: () => ref.invalidate(walletTransactionsProvider),
                   ),
                   data: (transactions) {
                     if (transactions.isEmpty) {
+                      final hasFilter = filter.type != null;
                       return Padding(
                         padding: const EdgeInsets.symmetric(
                           vertical: AppSpacing.xl,
                         ),
                         child: Center(
                           child: Text(
-                            'No recent transactions',
+                            hasFilter
+                                ? 'No ${filter.type!.displayName.toLowerCase()} transactions found'
+                                : 'No recent transactions',
                             style: AppTypography.bodyMedium.copyWith(
                               color: Theme.of(
                                 context,
@@ -214,8 +236,7 @@ class WalletScreen extends ConsumerWidget {
                   },
                 ),
 
-                // Extra padding at the bottom for the navigation bar
-                const SizedBox(height: 100),
+                const SizedBox(height: AppSpacing.xl),
               ],
             ),
           ),

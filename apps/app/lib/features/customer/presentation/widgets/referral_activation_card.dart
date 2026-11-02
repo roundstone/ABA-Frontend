@@ -1,71 +1,83 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../../../core/network/api_error.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../application/referral_activation_provider.dart';
+import 'referral_active_code_view.dart';
+// Note: Preserved for when KYC flow with payment is restored per backend specification
+// ignore: unused_import
 import 'referral_activation_sheet.dart';
 
 /// Card showing referral code status & commission earning activation state.
 class ReferralActivationCard extends ConsumerWidget {
   const ReferralActivationCard({super.key});
 
+  Future<void> _handleGenerateCode(BuildContext context, WidgetRef ref) async {
+    // Note: The KYC modal flow with payment is temporarily skipped per backend instructions.
+    // Uncomment the following line when KYC verification is ready to be restored:
+    // ReferralActivationSheet.show(context);
+
+    try {
+      final code = await ref
+          .read(referralActivationProvider.notifier)
+          .generateReferralCode();
+      if (context.mounted && code != null) {
+        AppSnackbar.show(
+          context,
+          message: 'Referral code $code generated successfully!',
+          type: AppSnackbarType.success,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        AppSnackbar.show(
+          context,
+          message: ApiError.toUserFriendlyMessage(e),
+          type: AppSnackbarType.error,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(referralActivationProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    if (state.isActive) {
+    if (state.isLoading) {
       return Container(
         margin: const EdgeInsets.only(bottom: AppSpacing.lg),
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: AppColors.success.withAlpha(isDark ? 30 : 15),
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.success.withAlpha(80)),
+          border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
         ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.xs),
-              decoration: const BoxDecoration(
-                color: AppColors.success,
-                shape: BoxShape.circle,
-              ),
-              child: const HugeIcon(
-                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                color: Colors.white,
-                size: 18,
-              ),
+        child: const Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Commission Earning Active',
-                    style: AppTypography.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.success,
-                    ),
-                  ),
-                  Text(
-                    'KYC verified • ₦5,000 shopping credit active in wallet',
-                    style: AppTypography.caption.copyWith(
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       );
     }
 
+    // 1. User HAS a referral code and it is ACTIVE
+    if (state.hasCode && state.isActive) {
+      return ReferralActiveCodeView(referralCode: state.referralCode!);
+    }
+
+    // 2. User DOES NOT have a referral code yet (or inactive)
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.xl),
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -79,11 +91,8 @@ class ReferralActivationCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.xs,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -104,13 +113,14 @@ class ReferralActivationCard extends ConsumerWidget {
                   ),
                 ),
               ),
-              Text(
-                'Code: ${state.referralCode}',
-                style: AppTypography.caption.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFFC28B38),
+              if (state.hasCode)
+                Text(
+                  'Code: ${state.referralCode}',
+                  style: AppTypography.caption.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFFC28B38),
+                  ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -120,7 +130,7 @@ class ReferralActivationCard extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Every user gets a code upon registration, but earning commissions requires completing KYC verification and the one-time ₦5,000 membership fee.',
+            'Generate your unique referral code to start inviting customers and earning commissions on purchases across the marketplace.',
             style: AppTypography.bodySmall.copyWith(
               color: isDark ? AppColors.darkTextSecondary : AppColors.grey,
               height: 1.4,
@@ -139,14 +149,14 @@ class ReferralActivationCard extends ConsumerWidget {
             child: Row(
               children: [
                 const HugeIcon(
-                  icon: HugeIcons.strokeRoundedCoins01,
+                  icon: HugeIcons.strokeRoundedGift,
                   color: Color(0xFFC28B38),
                   size: 20,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
-                    'Fee is 100% credited to your shopping wallet for purchasing BuyNaija products (non-withdrawable).',
+                    'Earn direct commissions on every purchase made with your code.',
                     style: AppTypography.caption.copyWith(
                       fontWeight: FontWeight.w600,
                       color: isDark ? Colors.white70 : AppColors.onBackground,
@@ -156,19 +166,40 @@ class ReferralActivationCard extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'Note: Users who only wish to shop can do so freely without activating their referral codes.',
-            style: AppTypography.caption.copyWith(
-              fontStyle: FontStyle.italic,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.grey,
+          const SizedBox(height: AppSpacing.lg),
+          if (!state.hasCode) ...[
+            AppButton.primary(
+              label: state.isGenerating
+                  ? 'Generating...'
+                  : 'Generate Referral Code',
+              isLoading: state.isGenerating,
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedQrCode01,
+                color: Colors.white,
+                size: 18,
+              ),
+              onPressed: state.isGenerating
+                  ? null
+                  : () => _handleGenerateCode(context, ref),
             ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          AppButton.primary(
-            label: 'Activate Earning (KYC & ₦5,000 Fee)',
-            onPressed: () => ReferralActivationSheet.show(context),
-          ),
+          ] else ...[
+            AppButton.primary(
+              label: 'Share Referral Code',
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedShare01,
+                color: Colors.white,
+                size: 18,
+              ),
+              onPressed: () {
+                SharePlus.instance.share(
+                  ShareParams(
+                    text:
+                        'Join me on BuyNaija! Use my referral code: ${state.referralCode} when signing up: https://aba-erp.com/register?ref=${state.referralCode}',
+                  ),
+                );
+              },
+            ),
+          ],
         ],
       ),
     );

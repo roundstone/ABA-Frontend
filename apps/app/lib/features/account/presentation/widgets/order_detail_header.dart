@@ -161,7 +161,7 @@ class OrderDetailHeader extends ConsumerWidget {
                     size: 18,
                     color: cs.onSurface,
                   ),
-                  onPressed: () => InvoiceService.downloadAndShareInvoice(context, order),
+                  onPressed: () => InvoiceService.downloadAndShareInvoice(context, order, ref: ref),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),

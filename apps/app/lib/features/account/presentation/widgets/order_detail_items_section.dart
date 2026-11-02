@@ -1,6 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:app/core/widgets/app_widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -34,11 +33,15 @@ class OrderDetailItemsSection extends StatelessWidget {
               children: [
                 Text(
                   'Items in Order',
-                  style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                  style: AppTypography.bodyMedium.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Text(
                   '${items.length} ${items.length == 1 ? 'item' : 'items'}',
-                  style: AppTypography.caption.copyWith(color: cs.onSurfaceVariant),
+                  style: AppTypography.caption.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -51,7 +54,8 @@ class OrderDetailItemsSection extends StatelessWidget {
             separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final item = items[index];
-              final totalPrice = item.totalPrice ?? (item.price * item.quantity);
+              final totalPrice =
+                  item.totalPrice ?? (item.price * item.quantity);
               return Padding(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 child: Row(
@@ -63,21 +67,12 @@ class OrderDetailItemsSection extends StatelessWidget {
                         width: 60,
                         height: 60,
                         color: cs.surfaceContainerHighest,
-                        child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                            ? CachedNetworkImage(
-                                imageUrl: item.imageUrl!,
-                                fit: BoxFit.cover,
-                                errorWidget: (_, __, ___) => const HugeIcon(
-                                  icon: HugeIcons.strokeRoundedImage01,
-                                  color: AppColors.grey,
-                                  size: 20,
-                                ),
-                              )
-                            : const HugeIcon(
-                                icon: HugeIcons.strokeRoundedPackage,
-                                color: AppColors.grey,
-                                size: 24,
-                              ),
+                        child: AppNetworkImage.product(
+                          imageUrl: item.imageUrl,
+                          width: 20,
+                          height: 20,
+                          borderRadius: AppSpacing.borderRadiusSM,
+                        ),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.md),
@@ -91,26 +86,37 @@ class OrderDetailItemsSection extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   item.productName,
-                                  style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                                  style: AppTypography.bodyMedium.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              _ItemStatusBadge(status: item.status, isDark: isDark),
+                              _ItemStatusBadge(
+                                status: item.status,
+                                isDark: isDark,
+                              ),
                             ],
                           ),
-                          if (item.variantName != null && item.variantName!.isNotEmpty) ...[
+                          if (item.variantName != null &&
+                              item.variantName!.isNotEmpty) ...[
                             const SizedBox(height: 2),
                             Text(
                               item.variantName!,
-                              style: AppTypography.caption.copyWith(color: cs.onSurfaceVariant),
+                              style: AppTypography.caption.copyWith(
+                                color: cs.onSurfaceVariant,
+                              ),
                             ),
                           ],
-                          if (item.attributes != null && item.attributes!.isNotEmpty) ...[
+                          if (item.attributes != null &&
+                              item.attributes!.isNotEmpty) ...[
                             const SizedBox(height: 2),
                             Text(
-                              item.attributes!.entries.map((e) => '${e.key}: ${e.value}').join(' • '),
+                              item.attributes!.entries
+                                  .map((e) => '${e.key}: ${e.value}')
+                                  .join(' • '),
                               style: AppTypography.caption.copyWith(
                                 color: cs.onSurfaceVariant,
                                 fontSize: 11,
@@ -134,11 +140,15 @@ class OrderDetailItemsSection extends StatelessWidget {
                             children: [
                               Text(
                                 'Qty: ${item.quantity} × ₦${formatter.format(item.price / 100.0)}',
-                                style: AppTypography.caption.copyWith(color: cs.onSurfaceVariant),
+                                style: AppTypography.caption.copyWith(
+                                  color: cs.onSurfaceVariant,
+                                ),
                               ),
                               Text(
                                 '₦${formatter.format(totalPrice / 100.0)}',
-                                style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                                style: AppTypography.bodyMedium.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ],
                           ),

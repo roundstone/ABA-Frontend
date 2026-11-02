@@ -1,21 +1,26 @@
 enum ReferralActivationStatus {
-  /// User has a referral code, but has not completed payment & KYC to earn.
+  /// User has no referral code or has not completed activation.
   inactive,
 
   /// KYC documents submitted, waiting for verification or fee payment.
   pending,
 
-  /// Fee paid and KYC verified. Referral code actively earns commissions.
+  /// Referral code is generated and actively earns commissions.
   active,
 }
 
 class ReferralActivationState {
   const ReferralActivationState({
-    required this.referralCode,
-    required this.status,
-    required this.feeAmountNaira,
-    required this.isKycCompleted,
-    required this.isFeePaid,
+    this.id,
+    this.referralCode,
+    this.isActive = false,
+    this.isLoading = false,
+    this.isGenerating = false,
+    this.errorMessage,
+    this.status = ReferralActivationStatus.inactive,
+    this.feeAmountNaira = 5000,
+    this.isKycCompleted = false,
+    this.isFeePaid = false,
     this.ninNumber,
     this.idType,
     this.idDocumentName,
@@ -23,7 +28,13 @@ class ReferralActivationState {
     this.activatedAt,
   });
 
-  final String referralCode;
+  final int? id;
+  final String? referralCode;
+  final bool isActive;
+  final bool isLoading;
+  final bool isGenerating;
+  final String? errorMessage;
+
   final ReferralActivationStatus status;
   final int feeAmountNaira;
   final bool isKycCompleted;
@@ -34,10 +45,17 @@ class ReferralActivationState {
   final String? proofOfAddressName;
   final DateTime? activatedAt;
 
-  bool get isActive => status == ReferralActivationStatus.active;
+  bool get hasCode => referralCode != null && referralCode!.trim().isNotEmpty;
 
   ReferralActivationState copyWith({
+    int? id,
     String? referralCode,
+    bool clearReferralCode = false,
+    bool? isActive,
+    bool? isLoading,
+    bool? isGenerating,
+    String? errorMessage,
+    bool clearError = false,
     ReferralActivationStatus? status,
     int? feeAmountNaira,
     bool? isKycCompleted,
@@ -49,7 +67,12 @@ class ReferralActivationState {
     DateTime? activatedAt,
   }) {
     return ReferralActivationState(
-      referralCode: referralCode ?? this.referralCode,
+      id: id ?? this.id,
+      referralCode: clearReferralCode ? null : (referralCode ?? this.referralCode),
+      isActive: isActive ?? this.isActive,
+      isLoading: isLoading ?? this.isLoading,
+      isGenerating: isGenerating ?? this.isGenerating,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       status: status ?? this.status,
       feeAmountNaira: feeAmountNaira ?? this.feeAmountNaira,
       isKycCompleted: isKycCompleted ?? this.isKycCompleted,

@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../domain/wallet_entities.dart';
+import 'transaction_detail_sheet.dart';
 
 class TransactionTile extends StatelessWidget {
   const TransactionTile({super.key, required this.transaction});
@@ -18,71 +19,75 @@ class TransactionTile extends StatelessWidget {
     final isCredit = transaction.type == TransactionType.credit;
     final iconColor = isCredit ? AppColors.success : AppColors.error;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: cs.outlineVariant.withAlpha(51),
+    return InkWell(
+      onTap: () => TransactionDetailSheet.show(context, transaction),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: cs.outlineVariant.withAlpha(51)),
           ),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: iconColor.withAlpha(25),
-              borderRadius: AppSpacing.borderRadiusMD,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: iconColor.withAlpha(25),
+                borderRadius: AppSpacing.borderRadiusMD,
+              ),
+              child: HugeIcon(
+                icon: isCredit
+                    ? HugeIcons.strokeRoundedArrowDownLeft01
+                    : HugeIcons.strokeRoundedArrowUpRight01,
+                color: iconColor,
+                size: AppSpacing.iconSizeSM,
+              ),
             ),
-            child: HugeIcon(
-              icon: isCredit
-                  ? HugeIcons.strokeRoundedArrowDownLeft01
-                  : HugeIcons.strokeRoundedArrowUpRight01,
-              color: iconColor,
-              size: AppSpacing.iconSizeSM,
-            ),
-          ),
-          AppSpacing.horizontalSpaceMD,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  transaction.description,
-                  style: AppTypography.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                AppSpacing.verticalSpaceXS,
-                Row(
-                  children: [
-                    Text(
-                      DateFormat('MMM dd, yyyy • hh:mm a').format(transaction.date),
-                      style: AppTypography.label.copyWith(
-                        color: cs.onSurface.withAlpha(153),
-                      ),
+            AppSpacing.horizontalSpaceMD,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    transaction.description,
+                    style: AppTypography.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
-                    if (transaction.status != TransactionStatus.completed) ...[
-                      const SizedBox(width: AppSpacing.xs),
-                      _StatusBadge(status: transaction.status),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  AppSpacing.verticalSpaceXS,
+                  Row(
+                    children: [
+                      Text(
+                        DateFormat(
+                          'MMM dd, yyyy • hh:mm a',
+                        ).format(transaction.date),
+                        style: AppTypography.label.copyWith(
+                          color: cs.onSurface.withAlpha(153),
+                        ),
+                      ),
+                      if (transaction.status !=
+                          TransactionStatus.completed) ...[
+                        const SizedBox(width: AppSpacing.xs),
+                        _StatusBadge(status: transaction.status),
+                      ],
                     ],
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          AppSpacing.horizontalSpaceSM,
-          Text(
-            '${isCredit ? '+' : '-'}${formatNaira(transaction.amount)}',
-            style: AppTypography.bodyMedium.copyWith(
-              fontWeight: FontWeight.bold,
-              color: isCredit ? AppColors.success : cs.onSurface,
+            AppSpacing.horizontalSpaceSM,
+            Text(
+              '${isCredit ? '+' : '-'}${formatNaira(transaction.amount)}',
+              style: AppTypography.bodyMedium.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isCredit ? AppColors.success : AppColors.error,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -95,19 +100,16 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color color;
-    String label;
     switch (status) {
       case TransactionStatus.pending:
         color = AppColors.warning;
-        label = 'Pending';
         break;
       case TransactionStatus.failed:
+      case TransactionStatus.cancelled:
         color = AppColors.error;
-        label = 'Failed';
         break;
       case TransactionStatus.completed:
         color = AppColors.success;
-        label = 'Completed';
         break;
     }
 
@@ -118,7 +120,7 @@ class _StatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        label,
+        status.displayName,
         style: AppTypography.label.copyWith(
           color: color,
           fontSize: 10,

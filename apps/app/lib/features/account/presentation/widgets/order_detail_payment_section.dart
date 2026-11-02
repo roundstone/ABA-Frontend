@@ -1,23 +1,93 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/logging/app_logger.dart';
+import '../../../../core/network/api_error.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_snackbar.dart';
+import '../../application/orders_providers.dart';
 import '../../domain/customer_order.dart';
+import 'payment_attempt_tile.dart';
+import 'payment_verify_button.dart';
 
-class OrderDetailPaymentSection extends StatelessWidget {
+class OrderDetailPaymentSection extends ConsumerStatefulWidget {
   const OrderDetailPaymentSection({super.key, required this.order});
 
   final CustomerOrder order;
+
+  @override
+  ConsumerState<OrderDetailPaymentSection> createState() =>
+      _OrderDetailPaymentSectionState();
+}
+
+class _OrderDetailPaymentSectionState
+    extends ConsumerState<OrderDetailPaymentSection> {
+  String? _verifyingReference;
+
+  Future<void> _handleVerify(String reference) async {
+    setState(() => _verifyingReference = reference);
+    try {
+      AppSnackbar.show(
+        context,
+        message: 'Verifying payment with gateway...',
+        type: AppSnackbarType.info,
+      );
+
+      final api = ref.read(ordersApiProvider);
+      final isVerified = await api.verifyPayment(reference);
+
+      if (!mounted) return;
+
+      if (isVerified) {
+        AppSnackbar.show(
+          context,
+          message: 'Payment verified successfully! Updating order...',
+          type: AppSnackbarType.success,
+        );
+        ref.invalidate(customerOrderByIdProvider(widget.order.id));
+        ref.read(customerOrdersNotifierProvider.notifier).refresh();
+      } else {
+        AppSnackbar.show(
+          context,
+          message:
+              'Payment is still pending on gateway. Please try again shortly.',
+          type: AppSnackbarType.warning,
+        );
+      }
+    } catch (e, stack) {
+      AppLogger.e('Payment verification failed', error: e, stackTrace: stack);
+      if (mounted) {
+        AppSnackbar.show(
+          context,
+          message:
+              'Could not verify payment: ${ApiError.toUserFriendlyMessage(e)}',
+          type: AppSnackbarType.error,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _verifyingReference = null);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final formatter = NumberFormat('#,##0.00');
+
+    final pendingPayment = widget.order.payments
+        .where((p) =>
+            p.status.toLowerCase() == 'pending' &&
+            p.reference != null &&
+            p.reference!.trim().isNotEmpty)
+        .firstOrNull;
+    final bool canVerifySection =
+        widget.order.isUnpaid && pendingPayment != null;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -32,12 +102,39 @@ class OrderDetailPaymentSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Payment & Transactions',
-                  style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
-              _statusChip(
-                order.isPaid ? 'PAID' : (order.isCancelled ? 'CANCELLED' : 'PENDING'),
-                order.isPaid ? AppColors.success : (order.isCancelled ? AppColors.grey : const Color(0xFFB45309)),
-                isDark,
+              Text(
+                'Payment & Transactions',
+                style: AppTypography.bodyMedium
+                    .copyWith(fontWeight: FontWeight.bold),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _statusChip(
+                    widget.order.isPaid
+                        ? 'PAID'
+                        : (widget.order.isCancelled ? 'CANCELLED' : 'PENDING'),
+                    widget.order.isPaid
+                        ? AppColors.success
+                        : (widget.order.isCancelled
+                            ? AppColors.grey
+                            : const Color(0xFFB45309)),
+                    isDark,
+                  ),
+                  if (canVerifySection) ...[
+                    const SizedBox(width: AppSpacing.xs),
+                    PaymentVerifyButton(
+                      key: const ValueKey('header_verify_payment_button'),
+                      reference: pendingPayment.reference!,
+                      isDark: isDark,
+                      isVerifying:
+                          _verifyingReference == pendingPayment.reference,
+                      onTap: _verifyingReference != null
+                          ? null
+                          : () => _handleVerify(pendingPayment.reference!),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
@@ -51,34 +148,57 @@ class OrderDetailPaymentSection extends StatelessWidget {
                   color: AppColors.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const HugeIcon(icon: HugeIcons.strokeRoundedCreditCard, color: AppColors.primary, size: 18),
+                child: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedCreditCard,
+                  color: AppColors.primary,
+                  size: 18,
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(order.paymentMethod,
-                        style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
                     Text(
-                      order.isPaid
-                          ? '₦${formatter.format(order.total / 100.0)} fully paid'
-                          : (order.isCancelled ? 'Order cancelled' : 'Payment pending'),
-                      style: AppTypography.caption.copyWith(color: cs.onSurfaceVariant),
+                      widget.order.paymentMethod,
+                      style: AppTypography.bodyMedium
+                          .copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      widget.order.isPaid
+                          ? '₦${formatter.format(widget.order.total / 100.0)} fully paid'
+                          : (widget.order.isCancelled
+                              ? 'Order cancelled'
+                              : 'Payment pending'),
+                      style: AppTypography.caption
+                          .copyWith(color: cs.onSurfaceVariant),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          if (order.payments.isNotEmpty) ...[
+          if (widget.order.payments.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             const Divider(height: 1),
             const SizedBox(height: AppSpacing.sm),
-            Text('Transaction History (${order.payments.length})',
-                style: AppTypography.caption.copyWith(fontWeight: FontWeight.bold, color: cs.onSurfaceVariant)),
+            Text(
+              'Transaction History (${widget.order.payments.length})',
+              style: AppTypography.caption.copyWith(
+                fontWeight: FontWeight.bold,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: AppSpacing.xs),
-            ..._sortedPayments.map((p) => _PaymentAttemptTile(payment: p, isDark: isDark)),
+            ..._sortedPayments.map(
+              (p) => PaymentAttemptTile(
+                payment: p,
+                order: widget.order,
+                isDark: isDark,
+                isVerifying: _verifyingReference == p.reference,
+                onVerify: _handleVerify,
+              ),
+            ),
           ],
         ],
       ),
@@ -86,10 +206,12 @@ class OrderDetailPaymentSection extends StatelessWidget {
   }
 
   List<CustomerOrderPayment> get _sortedPayments {
-    final list = List<CustomerOrderPayment>.from(order.payments);
+    final list = List<CustomerOrderPayment>.from(widget.order.payments);
     list.sort((a, b) {
-      final aDate = a.createdAt ?? a.paidAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-      final bDate = b.createdAt ?? b.paidAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final aDate =
+          a.createdAt ?? a.paidAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bDate =
+          b.createdAt ?? b.paidAt ?? DateTime.fromMillisecondsSinceEpoch(0);
       return bDate.compareTo(aDate);
     });
     return list;
@@ -103,104 +225,14 @@ class OrderDetailPaymentSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
-      child: Text(label,
-          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: color, letterSpacing: 0.5)),
-    );
-  }
-}
-
-class _PaymentAttemptTile extends StatelessWidget {
-  const _PaymentAttemptTile({required this.payment, required this.isDark});
-
-  final CustomerOrderPayment payment;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final formatter = NumberFormat('#,##0.00');
-    final isSuccess = payment.status.toLowerCase() == 'success' || payment.paidAt != null;
-    final isFailed = payment.status.toLowerCase() == 'failed';
-    final effectiveDate = payment.createdAt ?? payment.paidAt;
-    final dateStr = effectiveDate != null
-        ? DateFormat('MMM d, h:mm a').format(effectiveDate)
-        : null;
-    final badgeColor = isSuccess ? AppColors.success : (isFailed ? AppColors.error : const Color(0xFFB45309));
-
-    return Container(
-      margin: const EdgeInsets.only(top: AppSpacing.xs),
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white10 : AppColors.surface2,
-        borderRadius: AppSpacing.borderRadiusSM,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Text('₦${formatter.format(payment.amount / 100.0)}',
-                        style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold)),
-                    if (dateStr != null) ...[
-                      const SizedBox(width: 6),
-                      Text('• $dateStr',
-                          style: AppTypography.caption.copyWith(color: cs.onSurfaceVariant, fontSize: 10)),
-                    ],
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(
-                  color: badgeColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                child: Text(payment.status.toUpperCase(),
-                    style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: badgeColor)),
-              ),
-            ],
-          ),
-          if (payment.reference != null && payment.reference!.isNotEmpty) ...[
-            const SizedBox(height: 2),
-            Row(
-              children: [
-                Expanded(
-                  child: Text('Ref: ${payment.reference}',
-                      style: AppTypography.caption.copyWith(
-                          color: cs.onSurfaceVariant, fontSize: 10, fontFamily: 'monospace'),
-                      overflow: TextOverflow.ellipsis),
-                ),
-                InkWell(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: payment.reference!));
-                    AppSnackbar.show(context, message: 'Reference copied to clipboard', type: AppSnackbarType.info);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, size: 12, color: cs.onSurfaceVariant),
-                  ),
-                ),
-              ],
-            ),
-          ],
-          if (payment.failureReason != null && payment.failureReason!.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                const HugeIcon(icon: HugeIcons.strokeRoundedAlertCircle, color: AppColors.error, size: 12),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(payment.failureReason!,
-                      style: AppTypography.caption.copyWith(color: AppColors.error, fontSize: 10)),
-                ),
-              ],
-            ),
-          ],
-        ],
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.bold,
+          color: color,
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }

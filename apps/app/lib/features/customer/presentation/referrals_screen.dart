@@ -99,7 +99,9 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
           ),
           tooltip: 'Back',
           onPressed: () {
-            final fallback = ref.read(authStateProvider).isMerchant ? '/merchant' : '/home';
+            final fallback = ref.read(authStateProvider).isMerchant
+                ? '/merchant'
+                : '/home';
             context.popOrGo(fallback);
           },
         ),
@@ -119,7 +121,9 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
         canPop: context.canPopSafely,
         onPopInvokedWithResult: (didPop, result) {
           if (didPop) return;
-          final fallback = ref.read(authStateProvider).isMerchant ? '/merchant' : '/home';
+          final fallback = ref.read(authStateProvider).isMerchant
+              ? '/merchant'
+              : '/home';
           context.popOrGo(fallback);
         },
         child: asyncData.when(
@@ -143,7 +147,10 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
                             Expanded(
                               child: AppButton(
                                 label: 'Marketer',
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 8,
+                                ),
                                 icon: const HugeIcon(
                                   icon: HugeIcons.strokeRoundedNetwork,
                                   color: Colors.white,
@@ -157,7 +164,10 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
                             Expanded(
                               child: AppButton(
                                 label: 'Ledger',
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 8,
+                                ),
                                 icon: const HugeIcon(
                                   icon: HugeIcons.strokeRoundedBook02,
                                   color: Colors.white,
@@ -165,19 +175,6 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
                                 ),
                                 onPressed: () =>
                                     context.push('/referrals/ledger'),
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.xs),
-                            Expanded(
-                              child: AppButton(
-                                label: 'Share',
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                icon: const HugeIcon(
-                                  icon: HugeIcons.strokeRoundedShare01,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                                onPressed: () {},
                               ),
                             ),
                           ],
@@ -192,11 +189,11 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
                         const SizedBox(height: AppSpacing.xl),
 
                         // Invite & Earn Card
-                        _InviteCard(
-                          referralCode: referralCode,
-                          referralLink: referralLink,
-                        ),
-                        const SizedBox(height: AppSpacing.xl),
+                        // _InviteCard(
+                        //   referralCode: referralCode,
+                        //   referralLink: referralLink,
+                        // ),
+                        // const SizedBox(height: AppSpacing.xl),
 
                         // Your Network
                         Text(
@@ -353,6 +350,7 @@ class _KpiCard extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _InviteCard extends StatelessWidget {
   const _InviteCard({required this.referralCode, required this.referralLink});
   final String referralCode;

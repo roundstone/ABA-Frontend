@@ -38,6 +38,8 @@ abstract final class ApiEndpoints {
   static const cart = CartEndpoints();
   static const payments = PaymentsEndpoints();
   static const profile = ProfileEndpoints();
+  static const wallets = _WalletsEndpoints();
+  static const referrals = _ReferralsEndpoints();
 }
 
 /// 1. Auth Endpoints
@@ -68,6 +70,8 @@ class _ReferralCodesEndpoints {
   const _ReferralCodesEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/referral-codes';
   String get base => _base;
+  String get me => '$_base/mobile-app/me';
+  String get generate => '$_base/mobile-app/generate';
   String get myUpline => '$_base/me/upline';
   String get myDownline => '$_base/me/downline';
   String byId(String id) => '$_base/$id';
@@ -123,6 +127,7 @@ class _OrdersEndpoints {
   String get createOrder => _base;
   String get list => '${ApiEndpoints.apiV1}/orders/mobile-app';
   String byId(String id) => '${ApiEndpoints.apiV1}/orders/mobile-app/$id';
+  String invoice(String id) => '${ApiEndpoints.apiV1}/orders/mobile-app/$id/invoice';
   String get cancel => '${ApiEndpoints.apiV1}/orders/mobile-app/cancel';
 }
 
@@ -207,4 +212,20 @@ class _MerchantsEndpoints {
   String get base => _base;
   String byId(String id) => '$_base/$id';
   String status(String id) => '$_base/$id/status';
+}
+
+/// 15. Wallets Endpoints
+class _WalletsEndpoints {
+  const _WalletsEndpoints();
+  static const String _base = '${ApiEndpoints.apiV1}/wallets/mobile-app';
+  String get me => '$_base/me';
+  String get transactions => '$_base/me/transactions';
+}
+
+/// 16. Referrals Endpoints
+class _ReferralsEndpoints {
+  const _ReferralsEndpoints();
+  static const String _base = '${ApiEndpoints.apiV1}/referrals/mobile-app/me';
+  String get upline => '$_base/upline';
+  String get downline => '$_base/downline';
 }
