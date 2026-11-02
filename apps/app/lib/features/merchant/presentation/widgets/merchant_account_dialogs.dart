@@ -1,6 +1,8 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../auth/application/auth_providers.dart';
 import '../../../auth/domain/auth_entities.dart';
@@ -31,15 +33,18 @@ void showConfirmDeleteAccountDialog(BuildContext context, WidgetRef ref) {
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700),
-          onPressed: () {
+          onPressed: () async {
             Navigator.pop(ctx);
             Navigator.pop(context);
-            ref.read(authStateProvider.notifier).logout();
-            context.go('/role-select');
-            AppSnackbar.info(
-              context,
-              'Account deactivation requested successfully.',
-            );
+            await ref.read(authStateProvider.notifier).logout();
+            final nav = rootNavigatorKey.currentContext;
+            if (nav != null) {
+              nav.go('/role-select');
+              AppSnackbar.info(
+                nav,
+                'Account deactivation requested successfully.',
+              );
+            }
           },
           child: const Text('Confirm Delete',
               style: TextStyle(color: Colors.white)),

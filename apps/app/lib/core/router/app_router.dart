@@ -8,9 +8,13 @@ import '../../features/auth/presentation/role_selection_screen.dart';
 import '../../features/auth/presentation/customer_login_screen.dart';
 import '../../features/auth/presentation/customer_register_screen.dart';
 import '../../features/auth/presentation/merchant_login_screen.dart';
+import '../../features/auth/presentation/marketer_login_screen.dart';
 import '../../features/auth/presentation/merchant_onboarding_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/auth/presentation/reset_password_screen.dart';
+import '../../features/marketer/presentation/marketer_dashboard_screen.dart';
+import '../../features/marketer/presentation/marketer_add_customer_screen.dart';
+import '../../features/marketer/presentation/marketer_merchant_profile_screen.dart';
 import '../../features/customer/presentation/customer_shell.dart';
 import '../../features/customer/presentation/dashboard_screen.dart';
 import '../../features/customer/presentation/marketer_profile_screen.dart';
@@ -46,31 +50,78 @@ import '../notifications/notification_navigation_handler.dart';
 final GlobalKey<NavigatorState> rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'rootNavigator');
 
+class _RouterRefreshNotifier extends ChangeNotifier {
+  _RouterRefreshNotifier(Ref ref) {
+    ref.listen<AuthState>(authStateProvider, (_, __) {
+      notifyListeners();
+    });
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
+  final refreshNotifier = _RouterRefreshNotifier(ref);
+  ref.onDispose(refreshNotifier.dispose);
+
   final router = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
+    refreshListenable: refreshNotifier,
     redirect: (context, state) {
       final loc = state.matchedLocation;
       final auth = ref.read(authStateProvider);
 
-      final isMerchantPortal =
-          loc == '/merchant' || loc.startsWith('/merchant/');
-      if (isMerchantPortal) {
-        if (!auth.isAuthenticated || !auth.isMerchant) {
+      final isPublicRoute = loc == '/splash' ||
+          loc == '/role-select' ||
+          loc == '/login' ||
+          loc == '/login/customer' ||
+          loc == '/login/merchant' ||
+          loc == '/login/marketer' ||
+          loc == '/register' ||
+          loc == '/register/customer' ||
+          loc == '/merchants/onboarding' ||
+          loc == '/forgot-password' ||
+          loc == '/reset-password' ||
+          loc == '/about' ||
+          loc == '/community' ||
+          loc.startsWith('/community/');
+
+      if (!auth.isAuthenticated) {
+        if (loc == '/merchant' || loc.startsWith('/merchant/')) {
           return '/login/merchant';
         }
+        if (loc == '/marketer' || loc.startsWith('/marketer/')) {
+          return '/login/marketer';
+        }
+        if (!isPublicRoute) {
+          return '/role-select';
+        }
+        return null;
+      }
+
+      final isMerchantPortal =
+          loc == '/merchant' || loc.startsWith('/merchant/');
+      if (isMerchantPortal && !auth.isMerchant) {
+        return '/home';
+      }
+
+      final isMarketerPortal =
+          loc == '/marketer' || loc.startsWith('/marketer/');
+      if (isMarketerPortal && !auth.isMarketer) {
+        return '/home';
       }
 
       final isAuthScreen = loc == '/login' ||
           loc == '/login/customer' ||
           loc == '/login/merchant' ||
+          loc == '/login/marketer' ||
           loc == '/register' ||
           loc == '/register/customer' ||
           loc == '/role-select';
 
-      if (auth.isAuthenticated && isAuthScreen) {
-        return auth.isMerchant ? '/merchant' : '/home';
+      if (isAuthScreen) {
+        if (auth.isMerchant) return '/merchant';
+        if (auth.isMarketer) return '/marketer';
+        return '/home';
       }
 
       return null;
@@ -101,6 +152,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/merchants/onboarding',
         builder: (context, state) => const MerchantOnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/login/marketer',
+        builder: (context, state) => const MarketerLoginScreen(),
       ),
       GoRoute(
         path: '/forgot-password',
@@ -254,6 +309,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/account/rewards', redirect: (_, __) => '/rewards'),
       GoRoute(path: '/portal/rewards', redirect: (_, __) => '/rewards'),
+      GoRoute(
+        path: '/marketer',
+        builder: (context, state) => const MarketerDashboardScreen(),
+      ),
+      GoRoute(path: '/marketer/dashboard', redirect: (_, __) => '/marketer'),
+      GoRoute(
+        path: '/marketer/add-customer',
+        builder: (context, state) => const MarketerAddCustomerScreen(),
+      ),
+      GoRoute(
+        path: '/marketer/merchant',
+        builder: (context, state) => const MarketerMerchantProfileScreen(),
+      ),
       GoRoute(
         path: '/merchant',
         builder: (context, state) => const MerchantDashboardScreen(),

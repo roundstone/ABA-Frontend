@@ -29,6 +29,10 @@ final isMerchantProvider = Provider<bool>((ref) {
   return ref.watch(authStateProvider).isMerchant;
 });
 
+final isMarketerProvider = Provider<bool>((ref) {
+  return ref.watch(authStateProvider).isMarketer;
+});
+
 final userRoleProvider = Provider<UserRole>((ref) {
   return ref.watch(authStateProvider).role;
 });

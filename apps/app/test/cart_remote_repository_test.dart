@@ -112,10 +112,10 @@ void main() {
       repository = CartRemoteRepository(dio: dio, mockFallback: mockRepo);
     });
 
-    test('getCart calls GET /api/v1/cart/mobile-app', () async {
+    test('getCart calls GET /api/v1/cart/mobile-app/me', () async {
       final cart = await repository.getCart();
       expect(lastRequest?.method, equals('GET'));
-      expect(lastRequest?.path, equals('/api/v1/cart/mobile-app'));
+      expect(lastRequest?.path, equals('/api/v1/cart/mobile-app/me'));
       expect(cart.items.length, equals(1));
     });
 

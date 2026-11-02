@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/features/customer/presentation/more_menu_sheet.dart';
 import 'package:app/features/merchant/presentation/widgets/merchant_menu_sheet.dart';
 import 'package:app/features/auth/application/auth_providers.dart';
+import 'package:app/features/auth/data/auth_mock_repository.dart';
 import 'package:app/features/auth/domain/auth_entities.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -43,6 +44,64 @@ void main() {
       expect(find.text('My Orders'), findsOneWidget);
       expect(find.text('Settings'), findsOneWidget);
       expect(find.text('Logout'), findsOneWidget);
+    });
+
+    testWidgets('Marketer more_menu_sheet shows only the 5 allowed items', (
+      tester,
+    ) async {
+      final container = ProviderContainer();
+      container.read(authStateProvider.notifier).state = AuthState(
+        user: AuthUser(
+          id: 'mkt-1',
+          name: 'David Marketer',
+          email: 'david@example.com',
+          phone: '+2348123456789',
+          role: UserRole.marketer,
+          referralCode: 'REF-DAVID-01',
+          token: 'token-marketer',
+          createdAt: DateTime.now(),
+        ),
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => Center(
+                  child: ElevatedButton(
+                    onPressed: () => showMoreMenu(context),
+                    child: const Text('Open Marketer Menu'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Open Marketer Menu'));
+      await tester.pumpAndSettle();
+
+      // Only the 5 required items for marketers
+      expect(find.text('Notifications'), findsOneWidget);
+      expect(find.text('Referrals'), findsOneWidget);
+      expect(find.text('Reward Points'), findsOneWidget);
+      expect(find.text('Settings'), findsOneWidget);
+      expect(find.text('Logout'), findsOneWidget);
+
+      // Customer-only and merchant items must not display for marketers
+      expect(find.text('My Account'), findsNothing);
+      expect(find.text('Businesses'), findsNothing);
+      expect(find.text('Community'), findsNothing);
+      expect(find.text('My Orders'), findsNothing);
+      expect(find.text('Wishlist'), findsNothing);
+      expect(find.text('About Us'), findsNothing);
+      expect(find.text('Marketer Hub'), findsNothing);
+      expect(find.text('Saved Address'), findsNothing);
+      expect(find.text('Merchant Hub'), findsNothing);
     });
 
     testWidgets('Merchant menu sheet shows all merchant sections and items', (
@@ -143,6 +202,64 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Detail Screen'), findsNothing);
       expect(find.text('Go Detail'), findsOneWidget);
+    });
+
+    testWidgets('Tapping Logout in customer more menu resets auth state to unauthenticated', (tester) async {
+      final mockRepo = AuthMockRepository();
+      final container = ProviderContainer(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(mockRepo),
+        ],
+      );
+      container.read(authStateProvider.notifier).state = AuthState(
+        user: AuthUser(
+          id: 'cust-1',
+          name: 'Ada Obi',
+          email: 'ada@example.com',
+          phone: '+2348000000001',
+          role: UserRole.customer,
+          token: 'test-token',
+          createdAt: DateTime.now(),
+        ),
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            routes: {
+              '/role-select': (_) => const Scaffold(body: Text('Role Select Screen')),
+            },
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => Center(
+                  child: ElevatedButton(
+                    onPressed: () => showMoreMenu(context),
+                    child: const Text('Open Menu'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Open Menu'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(authStateProvider).isAuthenticated, isTrue);
+
+      await tester.scrollUntilVisible(
+        find.text('Logout'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(find.text('Logout'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(authStateProvider).isAuthenticated, isFalse);
+      expect(find.text('Role Select Screen'), findsOneWidget);
     });
   });
 }

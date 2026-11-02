@@ -20,7 +20,16 @@ class CartRemoteRepository implements CartRepository {
   @override
   Future<Cart> getCart() async {
     try {
-      final res = await dio.get(ApiEndpoints.cart.base);
+      Response res;
+      try {
+        res = await dio.get(ApiEndpoints.cart.me);
+      } on DioException catch (dioErr) {
+        if (dioErr.response?.statusCode == 404) {
+          res = await dio.get(ApiEndpoints.cart.base);
+        } else {
+          rethrow;
+        }
+      }
       final data = res.data;
       if (data != null) {
         final unwrapped =

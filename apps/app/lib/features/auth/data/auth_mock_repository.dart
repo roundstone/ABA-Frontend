@@ -41,15 +41,22 @@ class AuthMockRepository implements AuthRepository {
       throw Exception('Invalid password. Minimum 4 characters required.');
     }
 
+    final isMarketer = identifier.startsWith('m-') || identifier.contains('marketer');
     final user = AuthUser(
-      id: identifier.contains('jane') ? demoCustomer.id : 'CUST-${DateTime.now().millisecondsSinceEpoch % 1000}',
-      name: identifier.contains('jane') ? demoCustomer.name : identifier.split('@').first,
+      id: identifier.contains('jane')
+          ? demoCustomer.id
+          : (isMarketer ? 'MKT-701' : 'CUST-${DateTime.now().millisecondsSinceEpoch % 1000}'),
+      name: identifier.contains('jane')
+          ? demoCustomer.name
+          : (isMarketer ? 'David Enabs' : identifier.split('@').first),
       email: identifier.contains('@') ? identifier : '$identifier@example.com',
       phone: identifier.contains('@') ? demoCustomer.phone : identifier,
-      role: UserRole.customer,
+      role: isMarketer ? UserRole.marketer : UserRole.customer,
       token: 'mock-customer-token-${DateTime.now().millisecondsSinceEpoch}',
-      referralCode: 'REF-CUST-${DateTime.now().millisecondsSinceEpoch % 10000}',
-      walletBalance: 15000.0,
+      referralCode: isMarketer ? 'REF-DAVID701' : 'REF-CUST-${DateTime.now().millisecondsSinceEpoch % 10000}',
+      merchantId: isMarketer ? 'mer-1' : null,
+      businessName: isMarketer ? 'Enyimba Leather Works' : null,
+      walletBalance: isMarketer ? 84500.0 : 15000.0,
       createdAt: DateTime.now(),
     );
 

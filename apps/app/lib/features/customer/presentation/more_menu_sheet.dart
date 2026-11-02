@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -15,22 +16,26 @@ void showMoreMenu(BuildContext context) {
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withAlpha(120),
-    builder: (_) => const _MoreMenuSheet(),
+    builder: (_) => _MoreMenuSheet(parentContext: context),
   );
 }
 
 class _MoreMenuSheet extends ConsumerWidget {
-  const _MoreMenuSheet();
+  const _MoreMenuSheet({this.parentContext});
+
+  final BuildContext? parentContext;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sheetBg = isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8F8F9);
     final isMerchant = ref.watch(isMerchantProvider);
+    final isMarketer = ref.watch(isMarketerProvider);
 
     final items = buildMoreMenuItems(
-      context: context,
+      context: parentContext ?? context,
       isMerchant: isMerchant,
+      isMarketer: isMarketer,
       ref: ref,
     );
 
@@ -98,7 +103,10 @@ class _MoreMenuSheet extends ConsumerWidget {
                               childAspectRatio: 0.9,
                             ),
                         itemBuilder: (context, i) =>
-                            _MoreMenuTile(item: items[i]),
+                            _MoreMenuTile(
+                              item: items[i],
+                              parentContext: parentContext,
+                            ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
@@ -116,8 +124,9 @@ class _MoreMenuSheet extends ConsumerWidget {
 // ─── Grid tile ───────────────────────────────────────────────────────────
 
 class _MoreMenuTile extends StatelessWidget {
-  const _MoreMenuTile({required this.item});
+  const _MoreMenuTile({required this.item, this.parentContext});
   final MoreMenuItem item;
+  final BuildContext? parentContext;
 
   @override
   Widget build(BuildContext context) {
@@ -127,10 +136,11 @@ class _MoreMenuTile extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).pop();
+        final target = parentContext ?? rootNavigatorKey.currentContext ?? context;
         if (item.route != null) {
-          context.push(item.route!);
+          target.push(item.route!);
         } else if (item.onTap != null) {
-          item.onTap!(context);
+          item.onTap!(target);
         }
       },
       child: Container(

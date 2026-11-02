@@ -65,6 +65,28 @@ class WalletBalanceCard extends StatelessWidget {
           ),
           AppSpacing.verticalSpaceXS,
           _buildAmountSection(),
+          AppSpacing.verticalSpaceXS,
+          Row(
+            children: [
+              const Icon(
+                Icons.access_time_rounded,
+                color: Color(0xFFFBBF24),
+                size: 14,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'Pending Settlement: ',
+                style: AppTypography.caption.copyWith(color: Colors.white70),
+              ),
+              Text(
+                formatNaira(0.00),
+                style: AppTypography.caption.copyWith(
+                  color: const Color(0xFFFBBF24),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
           AppSpacing.verticalSpaceMD,
           Row(
             children: [

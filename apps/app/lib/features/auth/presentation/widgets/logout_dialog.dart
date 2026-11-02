@@ -1,7 +1,9 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -100,8 +102,14 @@ Future<void> showAppLogoutDialog({
             onPressed: () async {
               Navigator.of(ctx).pop(true);
               await ref.read(authStateProvider.notifier).logout();
-              if (context.mounted) {
-                context.go(redirectTo);
+              final nav = rootNavigatorKey.currentContext ?? context;
+              try {
+                GoRouter.of(nav).go(redirectTo);
+              } catch (_) {
+                Navigator.of(nav).pushNamedAndRemoveUntil(
+                  redirectTo,
+                  (route) => false,
+                );
               }
             },
             child: const Text(

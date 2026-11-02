@@ -1,6 +1,7 @@
 enum UserRole {
   customer('Customer'),
   merchant('Merchant'),
+  marketer('Marketer'),
   admin('Admin');
 
   const UserRole(this.label);
@@ -11,6 +12,9 @@ enum UserRole {
     final r = role.toLowerCase().trim();
     if (r == 'merchant' || r == 'seller' || r == 'vendor') {
       return UserRole.merchant;
+    }
+    if (r == 'marketer') {
+      return UserRole.marketer;
     }
     if (r == 'admin' || r == 'super admin' || r == 'superadmin') {
       return UserRole.admin;
@@ -50,6 +54,7 @@ class AuthUser {
 
   bool get isMerchant => role == UserRole.merchant;
   bool get isCustomer => role == UserRole.customer;
+  bool get isMarketer => role == UserRole.marketer;
   bool get isAdmin => role == UserRole.admin;
 
   AuthUser copyWith({
@@ -200,6 +205,7 @@ class AuthState {
 
   bool get isAuthenticated => user != null;
   bool get isMerchant => user?.isMerchant ?? false;
+  bool get isMarketer => user?.isMarketer ?? false;
   UserRole get role => user?.role ?? UserRole.customer;
 
   AuthState copyWith({

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_client.dart';
+import '../../auth/application/auth_providers.dart';
 import '../../shop/domain/shop_entities.dart';
 import '../data/cart_mock_repository.dart';
 import '../data/cart_remote_repository.dart';
@@ -10,7 +11,10 @@ export 'cart_notifier.dart';
 export 'cart_service.dart';
 
 final cartMockRepositoryProvider = Provider<CartMockRepository>((ref) {
-  return CartMockRepository();
+  final user = ref.watch(currentUserProvider);
+  return CartMockRepository(
+    getUserId: () => user?.id.toString() ?? 'guest',
+  );
 });
 
 final cartRepositoryProvider = Provider<CartRepository>((ref) {

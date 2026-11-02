@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_client.dart';
+import '../../auth/application/auth_providers.dart';
 import '../../shop/domain/product.dart';
 import '../data/wishlist_remote_repository.dart';
 import '../domain/wishlist_item.dart';
@@ -213,6 +214,7 @@ class WishlistNotifier extends StateNotifier<WishlistState> {
 
 final wishlistNotifierProvider =
     StateNotifierProvider<WishlistNotifier, WishlistState>((ref) {
+  ref.watch(currentUserProvider);
   final repo = ref.watch(wishlistRepositoryProvider);
   return WishlistNotifier(repo);
 });

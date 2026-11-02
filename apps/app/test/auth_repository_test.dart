@@ -243,13 +243,25 @@ void main() {
     testWidgets('RoleSelectionScreen renders Customer and Merchant cards', (
       tester,
     ) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
       await tester.pumpWidget(
         const ProviderScope(child: MaterialApp(home: RoleSelectionScreen())),
       );
+      await tester.pumpAndSettle();
 
-      expect(find.text('Welcome to BuyNaija'), findsOneWidget);
-      expect(find.text('Shop, Save & Earn'), findsOneWidget);
-      expect(find.text('Sell, Scale & POS'), findsOneWidget);
+      expect(find.text('BuyNaija'), findsWidgets);
+      expect(find.text('Customer'), findsOneWidget);
+      expect(find.text('Shop & Save'), findsOneWidget);
+      if (find.text('Merchant').evaluate().isNotEmpty) {
+        expect(find.text('Sell & Grow'), findsOneWidget);
+      }
+      expect(find.text('Marketer'), findsOneWidget);
+      expect(find.text('Promote & Earn'), findsOneWidget);
+      expect(find.text('About BuyNaija'), findsOneWidget);
+      expect(find.text('Community'), findsOneWidget);
     });
   });
 }

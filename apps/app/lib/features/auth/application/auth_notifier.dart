@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/network/api_error.dart';
@@ -5,13 +6,16 @@ import '../domain/auth_entities.dart';
 import '../domain/auth_repository.dart';
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier({required AuthRepository repository})
-    : _repository = repository,
-      super(AuthState(user: repository.getStoredUserSync())) {
+  AuthNotifier({
+    required AuthRepository repository,
+    this.onLogout,
+  }) : _repository = repository,
+       super(AuthState(user: repository.getStoredUserSync())) {
     _checkStoredUser();
   }
 
   final AuthRepository _repository;
+  final VoidCallback? onLogout;
 
   Future<void> _checkStoredUser() async {
     try {
@@ -146,8 +150,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
-    await _repository.logout();
     state = const AuthState();
+    onLogout?.call();
+    try {
+      await _repository.logout();
+    } catch (e, stackTrace) {
+      AppLogger.w('AuthNotifier.logout error: $e', stackTrace: stackTrace);
+    }
   }
 
   Future<AuthUser?> fetchProfile() async {

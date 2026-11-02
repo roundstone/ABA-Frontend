@@ -2,7 +2,22 @@ import 'package:app/features/cart/domain/cart_repository.dart';
 import 'package:app/features/shop/domain/shop_entities.dart';
 
 class CartMockRepository implements CartRepository {
-  final List<CartItem> _cartItems = [];
+  CartMockRepository({this.getUserId});
+
+  final String Function()? getUserId;
+  final Map<String, List<CartItem>> _userCartItems = {};
+
+  String get _currentUserId => getUserId?.call() ?? 'guest';
+  List<CartItem> get _cartItems =>
+      _userCartItems.putIfAbsent(_currentUserId, () => []);
+
+  void clearForUser(String userId) {
+    _userCartItems.remove(userId);
+  }
+
+  void clearAll() {
+    _userCartItems.clear();
+  }
 
   @override
   Future<Cart> getCart() async {

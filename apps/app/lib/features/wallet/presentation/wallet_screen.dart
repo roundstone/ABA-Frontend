@@ -10,9 +10,9 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../auth/application/auth_providers.dart';
 import '../application/wallet_providers.dart';
-import 'widgets/transaction_tile.dart';
 import 'widgets/wallet_balance_card.dart';
 import 'widgets/wallet_filter_bar.dart';
+import 'widgets/wallet_transactions_list.dart';
 
 class WalletScreen extends ConsumerWidget {
   const WalletScreen({super.key});
@@ -20,7 +20,6 @@ class WalletScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final walletInfoAsync = ref.watch(walletInfoProvider);
-    final transactionsAsync = ref.watch(walletTransactionsProvider);
     final filter = ref.watch(walletFilterProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -87,7 +86,8 @@ class WalletScreen extends ConsumerWidget {
                 WalletBalanceCard(
                   info: walletInfoAsync.valueOrNull,
                   isLoading: walletInfoAsync.isLoading,
-                  errorMessage: walletInfoAsync.hasError &&
+                  errorMessage:
+                      walletInfoAsync.hasError &&
                           walletInfoAsync.valueOrNull == null
                       ? ApiError.toUserFriendlyMessage(walletInfoAsync.error)
                       : null,
@@ -188,49 +188,7 @@ class WalletScreen extends ConsumerWidget {
                 AppSpacing.verticalSpaceSM,
 
                 // Transactions List
-                transactionsAsync.when(
-                  loading: () => const Padding(
-                    padding: EdgeInsets.all(AppSpacing.xl),
-                    child: Center(child: CircularProgressIndicator.adaptive()),
-                  ),
-                  error: (err, stack) => ErrorState(
-                    message: ApiError.toUserFriendlyMessage(err),
-                    onRetry: () => ref.invalidate(walletTransactionsProvider),
-                  ),
-                  data: (transactions) {
-                    if (transactions.isEmpty) {
-                      final hasFilter = filter.type != null;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppSpacing.xl,
-                        ),
-                        child: Center(
-                          child: Text(
-                            hasFilter
-                                ? 'No ${filter.type!.displayName.toLowerCase()} transactions found'
-                                : 'No recent transactions',
-                            style: AppTypography.bodyMedium.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withAlpha(153),
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: transactions.length,
-                      itemBuilder: (context, index) {
-                        return TransactionTile(
-                          transaction: transactions[index],
-                        );
-                      },
-                    );
-                  },
-                ),
+                const WalletTransactionsList(),
 
                 const SizedBox(height: AppSpacing.xl),
               ],

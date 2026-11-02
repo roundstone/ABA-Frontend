@@ -11,14 +11,10 @@ import '../../../core/widgets/app_snackbar.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../application/auth_providers.dart';
 import '../domain/auth_entities.dart';
-import 'widgets/demo_login_button.dart';
 
 /// Shared Login Screen for both Customer and Merchant roles.
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({
-    super.key,
-    this.role = UserRole.customer,
-  });
+  const LoginScreen({super.key, this.role = UserRole.customer});
 
   final UserRole role;
 
@@ -32,12 +28,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscurePassword = true;
 
   bool get _isMerchant => widget.role == UserRole.merchant;
+  bool get _isMarketer => widget.role == UserRole.marketer;
 
   @override
   void initState() {
     super.initState();
-    if (_isMerchant) {
+    if (kDebugMode && _isMerchant) {
       _identifierController.text = 'v-davidenabs@gmail.com';
+      _passwordController.text = 'password';
+    } else if (kDebugMode && _isMarketer) {
+      _identifierController.text = 'm-davidenabs@gmail.com';
       _passwordController.text = 'password';
     } else if (kDebugMode) {
       _identifierController.text = 'davidenabs@gmail.com';
@@ -68,19 +68,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     final success = _isMerchant
-        ? await ref.read(authStateProvider.notifier).loginMerchant(
-              identifier: identifier,
-              password: password,
-            )
-        : await ref.read(authStateProvider.notifier).loginCustomer(
-              identifier: identifier,
-              password: password,
-            );
+        ? await ref
+              .read(authStateProvider.notifier)
+              .loginMerchant(identifier: identifier, password: password)
+        : await ref
+              .read(authStateProvider.notifier)
+              .loginCustomer(identifier: identifier, password: password);
 
     if (success && mounted) {
       final user = ref.read(currentUserProvider);
       if (_isMerchant || user?.isMerchant == true) {
         context.go('/merchant');
+      } else if (_isMarketer || user?.isMarketer == true) {
+        context.go('/marketer');
       } else {
         context.go('/home');
       }
@@ -93,19 +93,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final badgeColor = _isMerchant ? AppColors.success : AppColors.info;
-    final badgeText =
-        _isMerchant ? 'MERCHANT & SELLER PORTAL' : 'CUSTOMER PORTAL';
+    final badgeText = _isMerchant
+        ? 'MERCHANT & SELLER PORTAL'
+        : _isMarketer
+        ? 'MARKETER PORTAL'
+        : 'CUSTOMER PORTAL';
     final title = _isMerchant ? 'Merchant Sign In' : 'Welcome Back';
     final subtitle = _isMerchant
         ? 'Access your vendor orders, inventory catalog, and in-store POS.'
+        : _isMarketer
+        ? 'Sign in to manage your referrals and wallet balance.'
         : 'Sign in to manage your orders, referrals, and wallet balance.';
-    final identifierLabel =
-        _isMerchant ? 'Business Email or Phone' : 'Email or Phone';
+    final identifierLabel = _isMerchant
+        ? 'Business Email or Phone'
+        : _isMarketer
+        ? 'Marketer Email or Phone'
+        : 'Email or Phone';
     final identifierHint = _isMerchant
         ? 'Enter business email or phone'
+        : _isMarketer
+        ? 'Enter marketer email or phone'
         : 'Enter your email or phone';
-    final submitButtonLabel =
-        _isMerchant ? 'Sign In to Merchant Hub' : 'Sign In';
+    final submitButtonLabel = _isMerchant
+        ? 'Sign In to Merchant Hub'
+        : _isMarketer
+        ? 'Sign In to Marketer Portal'
+        : 'Sign In';
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
@@ -243,54 +256,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   onPressed: _submit,
                 ),
                 const SizedBox(height: AppSpacing.md),
-                if (_isMerchant)
-                  DemoLoginButton(
-                    label: 'Quick Fill (Demo Merchant: Emeka)',
-                    icon: HugeIcons.strokeRoundedStore01,
-                    onPressed: () {
-                      _identifierController.text = 'emeka@abaleather.com';
-                      _passwordController.text = 'password123';
-                      _submit();
-                    },
-                  )
-                else if (kDebugMode)
-                  DemoLoginButton(
-                    label: 'Quick Fill (Admin / Customer)',
-                    icon: HugeIcons.strokeRoundedUser,
-                    onPressed: () {
-                      _identifierController.text = 'yusufshehu-admin@rs.com';
-                      _passwordController.text = 'password';
-                      _submit();
-                    },
-                  ),
-                const SizedBox(height: AppSpacing.md),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _isMerchant
-                          ? 'New manufacturer or artisan? '
-                          : "Don't have an account? ",
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.grey,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => context.go(
+                if (!_isMarketer)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
                         _isMerchant
-                            ? '/merchants/onboarding'
-                            : '/register/customer',
-                      ),
-                      child: Text(
-                        _isMerchant ? 'Apply Now' : 'Sign Up',
+                            ? 'New manufacturer or artisan? '
+                            : "Don't have an account? ",
                         style: AppTypography.bodySmall.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
+                          color: AppColors.grey,
                         ),
                       ),
-                    ),
-                  ],
-                ),
+
+                      TextButton(
+                        onPressed: () => context.go(
+                          _isMerchant
+                              ? '/merchants/onboarding'
+                              : '/register/customer',
+                        ),
+                        child: Text(
+                          _isMerchant ? 'Apply Now' : 'Sign Up',
+                          style: AppTypography.bodySmall.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 Center(
                   child: TextButton(
                     onPressed: () => context.go(
