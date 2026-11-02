@@ -89,3 +89,11 @@ class ProfileEndpoints {
   static const String _base = '${ApiEndpoints.apiV1}/profile/mobile-app';
   String get base => _base;
 }
+
+/// 26. Mobile App Wishlists Endpoints
+class WishlistsEndpoints {
+  const WishlistsEndpoints();
+  static const String _base = '${ApiEndpoints.apiV1}/wishlists/mobile-app';
+  String get base => _base;
+  String byId(dynamic id) => '$_base/$id';
+}

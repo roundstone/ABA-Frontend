@@ -10,6 +10,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../application/shop_providers.dart';
 import '../domain/shop_entities.dart';
+import '../../wishlist/presentation/widgets/wishlist_button.dart';
 import 'widgets/product_reviews_section.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
@@ -1033,6 +1034,10 @@ class _ImageSliverAppBar extends StatelessWidget {
         ),
       ),
       actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: AppSpacing.xs),
+          child: WishlistButton(product: product),
+        ),
         GestureDetector(
           onTap: () => _shareProduct(context, product),
           child: Container(
@@ -1296,20 +1301,11 @@ class _DetailBottomBar extends StatelessWidget {
       child: Row(
         children: [
           // Wishlist button
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              border: Border.all(color: cs.outline.withAlpha(80), width: 1.5),
-              borderRadius: AppSpacing.borderRadiusMD,
-            ),
-            child: const Center(
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedFavourite,
-                size: AppSpacing.iconSizeSM,
-                color: AppColors.error,
-              ),
-            ),
+          WishlistButton(
+            product: product,
+            size: 20,
+            backgroundColor:
+                isDark ? const Color(0xFF2A2A2A) : cs.surfaceContainerHighest,
           ),
           const SizedBox(width: AppSpacing.sm),
 

@@ -8,8 +8,8 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../application/orders_providers.dart';
-import '../domain/customer_order.dart';
-import 'widgets/order_card.dart';
+import '../domain/order_date_cluster.dart';
+import 'widgets/order_cluster_card.dart';
 import 'widgets/orders_active_filters_bar.dart';
 import 'widgets/orders_filter_sheet.dart';
 
@@ -125,8 +125,10 @@ class OrdersScreen extends ConsumerWidget {
       );
     }
 
-    return PaginatedListView<CustomerOrder>(
-      items: state.orders,
+    final clusters = clusterOrdersByDate(state.orders);
+
+    return PaginatedListView<OrderDateCluster>(
+      items: clusters,
       padding: const EdgeInsets.all(AppSpacing.md),
       hasMore: state.hasMore,
       isLoading: state.isLoading,
@@ -135,7 +137,8 @@ class OrdersScreen extends ConsumerWidget {
           ref.read(customerOrdersNotifierProvider.notifier).refresh(),
       onLoadMore: () =>
           ref.read(customerOrdersNotifierProvider.notifier).loadMore(),
-      itemBuilder: (context, order, index) => OrderCard(order: order),
+      itemBuilder: (context, cluster, index) =>
+          OrderClusterCard(cluster: cluster),
       emptyWidget: const _EmptyOrdersView(),
     );
   }

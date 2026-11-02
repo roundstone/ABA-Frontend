@@ -100,6 +100,14 @@ class _HomeBody extends ConsumerWidget {
                 ),
                 onPressed: () => context.go('/shop'),
               ),
+              IconButton(
+                tooltip: 'Wishlist',
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedFavourite,
+                  color: actionColor,
+                ),
+                onPressed: () => context.push('/wishlist'),
+              ),
               NotificationIconButton(color: actionColor),
               const SizedBox(width: AppSpacing.xs),
             ],

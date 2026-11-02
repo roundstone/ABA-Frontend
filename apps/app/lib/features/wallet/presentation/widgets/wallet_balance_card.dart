@@ -8,12 +8,18 @@ import '../../domain/wallet_entities.dart';
 class WalletBalanceCard extends StatelessWidget {
   const WalletBalanceCard({
     super.key,
-    required this.info,
+    this.info,
+    this.isLoading = false,
+    this.errorMessage,
+    this.onRetry,
     required this.onFund,
     required this.onWithdraw,
   });
 
-  final WalletInfo info;
+  final WalletInfo? info;
+  final bool isLoading;
+  final String? errorMessage;
+  final VoidCallback? onRetry;
   final VoidCallback onFund;
   final VoidCallback onWithdraw;
 
@@ -58,13 +64,7 @@ class WalletBalanceCard extends StatelessWidget {
             ],
           ),
           AppSpacing.verticalSpaceXS,
-          Text(
-            formatNaira(info.balance),
-            style: AppTypography.h3.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          _buildAmountSection(),
           AppSpacing.verticalSpaceMD,
           Row(
             children: [
@@ -102,6 +102,112 @@ class WalletBalanceCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAmountSection() {
+    if (isLoading && info == null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Container(
+          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.white.withAlpha(55),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator.adaptive(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Loading...',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (isLoading && info != null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            formatNaira(info!.balance),
+            style: AppTypography.h3.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: 8),
+          const SizedBox(
+            width: 14,
+            height: 14,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (errorMessage != null && info == null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: InkWell(
+          onTap: onRetry,
+          borderRadius: BorderRadius.circular(6),
+          child: Container(
+            height: 32,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(40),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Failed to load',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const HugeIcon(
+                  icon: HugeIcons.strokeRoundedReload,
+                  color: Colors.white,
+                  size: 14,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Text(
+      formatNaira(info?.balance ?? 0.0),
+      style: AppTypography.h3.copyWith(
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
       ),
     );
   }

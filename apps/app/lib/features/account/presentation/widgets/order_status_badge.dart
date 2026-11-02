@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import '../../domain/customer_order.dart';
 
 class OrderStatusBadge extends StatelessWidget {
-  const OrderStatusBadge({
-    super.key,
-    required this.status,
-    this.customLabel,
-  });
+  const OrderStatusBadge({super.key, required this.status, this.customLabel});
 
   final OrderStatus status;
   final String? customLabel;
@@ -21,6 +17,10 @@ class OrderStatusBadge extends StatelessWidget {
 
     switch (status) {
       case OrderStatus.unpaid:
+        bg = isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEF2F2);
+        text = isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB42318);
+        border = isDark ? const Color(0xFFB91C1C) : const Color(0xFFFECACA);
+        break;
       case OrderStatus.pending:
         bg = isDark ? const Color(0xFF4A2B0F) : const Color(0xFFFEF3C7);
         text = isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309);

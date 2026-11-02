@@ -83,25 +83,21 @@ class WalletScreen extends ConsumerWidget {
               padding: AppSpacing.paddingHorizontalMD,
               children: [
                 AppSpacing.verticalSpaceMD,
-                // Balance Card
-                walletInfoAsync.when(
-                  loading: () => const SizedBox(
-                    height: 160,
-                    child: Center(child: CircularProgressIndicator.adaptive()),
-                  ),
-                  error: (err, stack) => ErrorState(
-                    message: ApiError.toUserFriendlyMessage(err),
-                    onRetry: () => ref.invalidate(walletInfoProvider),
-                  ),
-                  data: (info) => WalletBalanceCard(
-                    info: info,
-                    onFund: () {
-                      AppSnackbar.info(context, 'Fund wallet coming soon');
-                    },
-                    onWithdraw: () {
-                      AppSnackbar.info(context, 'Withdrawal coming soon');
-                    },
-                  ),
+                // Balance Card (card always renders; only amount section loads)
+                WalletBalanceCard(
+                  info: walletInfoAsync.valueOrNull,
+                  isLoading: walletInfoAsync.isLoading,
+                  errorMessage: walletInfoAsync.hasError &&
+                          walletInfoAsync.valueOrNull == null
+                      ? ApiError.toUserFriendlyMessage(walletInfoAsync.error)
+                      : null,
+                  onRetry: () => ref.invalidate(walletInfoProvider),
+                  onFund: () {
+                    AppSnackbar.info(context, 'Fund wallet coming soon');
+                  },
+                  onWithdraw: () {
+                    AppSnackbar.info(context, 'Withdrawal coming soon');
+                  },
                 ),
                 AppSpacing.verticalSpaceMD,
 

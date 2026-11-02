@@ -69,6 +69,12 @@ List<MoreMenuItem> buildMoreMenuItems({
     route: '/account/orders',
   ),
   const MoreMenuItem(
+    icon: HugeIcons.strokeRoundedFavourite,
+    label: 'Wishlist',
+    color: Color(0xFFEF4444),
+    route: '/wishlist',
+  ),
+  const MoreMenuItem(
     icon: HugeIcons.strokeRoundedInformationCircle,
     label: 'About Us',
     color: Color(0xFF0284C7),

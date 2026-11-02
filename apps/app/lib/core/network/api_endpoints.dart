@@ -40,6 +40,7 @@ abstract final class ApiEndpoints {
   static const profile = ProfileEndpoints();
   static const wallets = _WalletsEndpoints();
   static const referrals = _ReferralsEndpoints();
+  static const wishlists = WishlistsEndpoints();
 }
 
 /// 1. Auth Endpoints

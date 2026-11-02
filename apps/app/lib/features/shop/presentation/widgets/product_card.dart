@@ -8,6 +8,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../application/shop_providers.dart';
 import '../../domain/shop_entities.dart';
+import '../../../wishlist/presentation/widgets/wishlist_button.dart';
 
 /// Product card — supports both grid and list mode.
 class ProductCard extends ConsumerWidget {
@@ -88,7 +89,7 @@ class _GridCard extends ConsumerWidget {
                   Positioned(
                     top: AppSpacing.xs,
                     right: AppSpacing.xs,
-                    child: _WishlistButton(productId: product.id),
+                    child: WishlistButton(product: product),
                   ),
                 ],
               ),
@@ -419,42 +420,6 @@ class _NewBadge extends StatelessWidget {
           color: Colors.white,
           fontWeight: FontWeight.w700,
           fontSize: 10,
-        ),
-      ),
-    );
-  }
-}
-
-class _WishlistButton extends StatefulWidget {
-  const _WishlistButton({required this.productId});
-  final String productId;
-
-  @override
-  State<_WishlistButton> createState() => _WishlistButtonState();
-}
-
-class _WishlistButtonState extends State<_WishlistButton> {
-  bool _liked = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => setState(() => _liked = !_liked),
-      child: Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(
-          color: Colors.white.withAlpha(220),
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: HugeIcon(
-            icon: _liked
-                ? HugeIcons.strokeRoundedFavourite
-                : HugeIcons.strokeRoundedFavourite,
-            size: 15,
-            color: _liked ? AppColors.error : AppColors.grey,
-          ),
         ),
       ),
     );

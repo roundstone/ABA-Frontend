@@ -38,6 +38,7 @@ import '../../features/customer/presentation/notifications_screen.dart';
 import '../../features/merchants/presentation/merchant_directory_screen.dart';
 import '../../features/merchants/presentation/merchant_detail_screen.dart';
 import '../../features/content/presentation/about_screen.dart';
+import '../../features/wishlist/presentation/wishlist_screen.dart';
 import '../../features/content/presentation/community_screen.dart';
 import '../../features/content/presentation/community_profile_screen.dart';
 import '../notifications/notification_navigation_handler.dart';
@@ -221,6 +222,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/account/addresses',
         builder: (context, state) => const SavedAddressesScreen(),
+      ),
+      GoRoute(
+        path: '/wishlist',
+        builder: (context, state) => const WishlistScreen(),
+      ),
+      GoRoute(
+        path: '/account/wishlist',
+        redirect: (context, state) => '/wishlist',
       ),
       GoRoute(
         path: '/settings',

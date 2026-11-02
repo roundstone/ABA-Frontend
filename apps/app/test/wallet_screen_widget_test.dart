@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app/features/wallet/application/wallet_providers.dart';
 import 'package:app/features/wallet/presentation/wallet_screen.dart';
 import 'package:app/features/wallet/presentation/widgets/transaction_detail_sheet.dart';
@@ -10,6 +12,50 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('WalletScreen Widget Tests', () {
+    testWidgets('only amount section loads while card remains visible when walletInfo is loading', (tester) async {
+      final walletCompleter = Completer<WalletInfo>();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            walletInfoProvider.overrideWith((ref) => walletCompleter.future),
+            walletTransactionsProvider.overrideWith((ref) => Future.value([])),
+          ],
+          child: const MaterialApp(
+            home: WalletScreen(),
+          ),
+        ),
+      );
+
+      // Pump initial frame while provider is loading
+      await tester.pump();
+
+      // Verify the card itself remains fully rendered
+      expect(find.byType(WalletBalanceCard), findsOneWidget);
+      expect(find.text('Total Balance'), findsOneWidget);
+      expect(find.text('Fund Wallet'), findsOneWidget);
+      expect(find.text('Withdraw'), findsOneWidget);
+
+      // Verify only the amount section is in loading state
+      expect(find.text('Loading...'), findsOneWidget);
+      expect(find.text('₦ 75,000.00'), findsNothing);
+
+      // Complete the future with wallet data
+      walletCompleter.complete(const WalletInfo(
+        id: 104,
+        balance: 75000.0,
+        currency: 'NGN',
+        isActive: true,
+      ));
+      await tester.pumpAndSettle();
+
+      // Card remains visible and amount appears
+      expect(find.byType(WalletBalanceCard), findsOneWidget);
+      expect(find.text('Total Balance'), findsOneWidget);
+      expect(find.text('Loading...'), findsNothing);
+      expect(find.text('₦ 75,000.00'), findsOneWidget);
+    });
+
     testWidgets('renders WalletScreen with BalanceCard, FilterBar and transactions', (tester) async {
       const testWallet = WalletInfo(
         id: 104,
