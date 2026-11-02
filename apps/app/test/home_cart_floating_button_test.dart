@@ -4,7 +4,6 @@ import 'package:app/features/shop/presentation/widgets/home_cart_floating_button
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 class _FakeCartNotifier extends CartNotifier {
   _FakeCartNotifier(this._cart);
@@ -31,7 +30,7 @@ void main() {
   );
 
   testWidgets(
-      'HomeCartFloatingButton shows cart icon and hides badge when cart is empty',
+      'HomeCartFloatingButton is hidden when cart is empty',
       (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -49,9 +48,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byType(FloatingActionButton), findsOneWidget);
-    expect(find.byType(HugeIcon), findsOneWidget);
-    expect(find.text('0'), findsNothing);
+    expect(find.byType(FloatingActionButton), findsNothing);
   });
 
   testWidgets('HomeCartFloatingButton shows badge count when cart has items',

@@ -70,7 +70,9 @@ class RewardsPromo extends StatelessWidget {
               color: isDark ? const Color(0xFF332616) : const Color(0xFFFFF9F0),
               borderRadius: AppSpacing.borderRadiusSM,
               border: Border.all(
-                color: isDark ? const Color(0xFF4A3822) : const Color(0xFFF5E6D3),
+                color: isDark
+                    ? const Color(0xFF4A3822)
+                    : const Color(0xFFF5E6D3),
               ),
             ),
             child: Text(
@@ -111,7 +113,6 @@ class RewardsPromo extends StatelessWidget {
             runSpacing: AppSpacing.md,
             children: steps.map((s) {
               return SizedBox(
-                width: (MediaQuery.of(context).size.width - 32 - 32 - 16) / 2,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

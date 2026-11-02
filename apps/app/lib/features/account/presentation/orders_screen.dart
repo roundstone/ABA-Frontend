@@ -35,6 +35,16 @@ class OrdersScreen extends ConsumerWidget {
         ),
         title: const Text('Order History'),
         actions: [
+          IconButton(
+            icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedRefresh,
+              size: 20,
+              color: AppColors.grey,
+            ),
+            tooltip: 'Refresh orders',
+            onPressed: () =>
+                ref.read(customerOrdersNotifierProvider.notifier).refresh(),
+          ),
           Stack(
             alignment: Alignment.center,
             children: [
@@ -62,6 +72,7 @@ class OrdersScreen extends ConsumerWidget {
                 ),
             ],
           ),
+          const SizedBox(width: AppSpacing.xs),
         ],
       ),
       body: PopScope(

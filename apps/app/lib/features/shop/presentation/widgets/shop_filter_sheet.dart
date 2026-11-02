@@ -42,12 +42,7 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
       ref.read(shopCatalogueProvider).valueOrNull?.products.map((p) => p.brand).toSet().toList() ??
       const [];
 
-  static const _merchants = [
-    'Aba Shoemakers',
-    'Nigerian Fabrics',
-    'Lagos Boutique',
-    'Local Artisans',
-  ];
+  static const _merchants = [];
 
   List<String> get _colors {
     final prods = ref.read(shopCatalogueProvider).valueOrNull?.products;

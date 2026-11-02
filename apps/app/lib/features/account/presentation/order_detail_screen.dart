@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -13,14 +14,69 @@ import 'widgets/order_detail_items_section.dart';
 import 'widgets/order_detail_sections.dart';
 import 'widgets/order_detail_timeline.dart';
 
-class OrderDetailScreen extends ConsumerWidget {
+class OrderDetailScreen extends ConsumerStatefulWidget {
   const OrderDetailScreen({super.key, required this.orderId});
 
   final String orderId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final orderAsync = ref.watch(customerOrderByIdProvider(orderId));
+  ConsumerState<OrderDetailScreen> createState() => _OrderDetailScreenState();
+}
+
+class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
+    with WidgetsBindingObserver {
+  Timer? _pollTimer;
+  bool _isBackgrounded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _startPolling();
+  }
+
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(const Duration(seconds: 12), (_) {
+      if (!_isBackgrounded && mounted) {
+        _silentPoll();
+      }
+    });
+  }
+
+  void _silentPoll() {
+    final order =
+        ref.read(customerOrderByIdProvider(widget.orderId)).valueOrNull;
+    if (order != null &&
+        (order.status == OrderStatus.delivered ||
+            order.status == OrderStatus.cancelled)) {
+      _pollTimer?.cancel();
+      return;
+    }
+    ref.invalidate(customerOrderByIdProvider(widget.orderId));
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _isBackgrounded = false;
+      _silentPoll();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _isBackgrounded = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final orderAsync = ref.watch(customerOrderByIdProvider(widget.orderId));
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -35,6 +91,19 @@ class OrderDetailScreen extends ConsumerWidget {
           onPressed: () => context.popOrGo('/account/orders'),
         ),
         title: const Text('Order Details'),
+        actions: [
+          IconButton(
+            icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedRefresh,
+              size: 20,
+              color: AppColors.grey,
+            ),
+            tooltip: 'Refresh order',
+            onPressed: () =>
+                ref.invalidate(customerOrderByIdProvider(widget.orderId)),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+        ],
       ),
       body: PopScope(
         canPop: context.canPopSafely,
@@ -46,7 +115,8 @@ class OrderDetailScreen extends ConsumerWidget {
           loading: () => const LoadingState(message: 'Loading order…'),
           error: (e, _) => ErrorState(
             message: 'Could not load order details.\n${e.toString()}',
-            onRetry: () => ref.invalidate(customerOrderByIdProvider(orderId)),
+            onRetry: () =>
+                ref.invalidate(customerOrderByIdProvider(widget.orderId)),
           ),
           data: (order) => _OrderDetailBody(order: order),
         ),
@@ -82,7 +152,10 @@ class _OrderDetailBody extends ConsumerWidget {
             const SizedBox(height: AppSpacing.md),
             OrderDetailPaymentSection(order: order),
             const SizedBox(height: AppSpacing.md),
-            OrderDetailAddressSection(address: order.shippingAddress),
+            OrderDetailAddressSection(
+              address: order.shippingAddress,
+              deliveryMethod: order.deliveryMethod,
+            ),
             const SizedBox(height: AppSpacing.xl),
           ],
         ),

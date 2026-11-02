@@ -123,6 +123,7 @@ class _OrdersEndpoints {
   String get createOrder => _base;
   String get list => '${ApiEndpoints.apiV1}/orders/mobile-app';
   String byId(String id) => '${ApiEndpoints.apiV1}/orders/mobile-app/$id';
+  String get cancel => '${ApiEndpoints.apiV1}/orders/mobile-app/cancel';
 }
 
 /// 9. Marketers Endpoints

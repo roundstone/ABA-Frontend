@@ -22,20 +22,25 @@ class OrderDetailItemsSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: AppSpacing.borderRadiusLG,
-        border: Border.all(
-          color: isDark ? Colors.white12 : AppColors.border,
-        ),
+        border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
-            child: Text(
-              'Items in Order',
-              style: AppTypography.bodyMedium.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Items in Order',
+                  style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  '${items.length} ${items.length == 1 ? 'item' : 'items'}',
+                  style: AppTypography.caption.copyWith(color: cs.onSurfaceVariant),
+                ),
+              ],
             ),
           ),
           const Divider(height: 1),
@@ -46,18 +51,19 @@ class OrderDetailItemsSection extends StatelessWidget {
             separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final item = items[index];
+              final totalPrice = item.totalPrice ?? (item.price * item.quantity);
               return Padding(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
-                        width: 56,
-                        height: 56,
+                        width: 60,
+                        height: 60,
                         color: cs.surfaceContainerHighest,
-                        child: item.imageUrl != null &&
-                                item.imageUrl!.isNotEmpty
+                        child: item.imageUrl != null && item.imageUrl!.isNotEmpty
                             ? CachedNetworkImage(
                                 imageUrl: item.imageUrl!,
                                 fit: BoxFit.cover,
@@ -79,37 +85,64 @@ class OrderDetailItemsSection extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            item.productName,
-                            style: AppTypography.bodyMedium.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  item.productName,
+                                  style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              _ItemStatusBadge(status: item.status, isDark: isDark),
+                            ],
                           ),
-                          if (item.variantName != null &&
-                              item.variantName!.isNotEmpty) ...[
+                          if (item.variantName != null && item.variantName!.isNotEmpty) ...[
                             const SizedBox(height: 2),
                             Text(
                               item.variantName!,
+                              style: AppTypography.caption.copyWith(color: cs.onSurfaceVariant),
+                            ),
+                          ],
+                          if (item.attributes != null && item.attributes!.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              item.attributes!.entries.map((e) => '${e.key}: ${e.value}').join(' • '),
                               style: AppTypography.caption.copyWith(
                                 color: cs.onSurfaceVariant,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                          if (item.sku != null && item.sku!.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              'SKU: ${item.sku}',
+                              style: AppTypography.caption.copyWith(
+                                color: cs.onSurfaceVariant,
+                                fontSize: 10,
+                                fontFamily: 'monospace',
                               ),
                             ),
                           ],
                           const SizedBox(height: 4),
-                          Text(
-                            'Qty: ${item.quantity}',
-                            style: AppTypography.caption,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Qty: ${item.quantity} × ₦${formatter.format(item.price / 100.0)}',
+                                style: AppTypography.caption.copyWith(color: cs.onSurfaceVariant),
+                              ),
+                              Text(
+                                '₦${formatter.format(totalPrice / 100.0)}',
+                                style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ],
                           ),
                         ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '₦${formatter.format(item.price / 100.0)}',
-                      style: AppTypography.bodyMedium.copyWith(
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
@@ -123,3 +156,49 @@ class OrderDetailItemsSection extends StatelessWidget {
   }
 }
 
+class _ItemStatusBadge extends StatelessWidget {
+  const _ItemStatusBadge({required this.status, required this.isDark});
+
+  final String status;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    Color bg;
+    Color fg;
+
+    switch (status.toLowerCase()) {
+      case 'delivered':
+        bg = isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7);
+        fg = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF15803D);
+        break;
+      case 'shipped':
+        bg = isDark ? const Color(0xFF0F2B2A) : const Color(0xFFE6E1D8);
+        fg = isDark ? const Color(0xFF5EEAD4) : const Color(0xFF172A1D);
+        break;
+      case 'processing':
+        bg = isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF);
+        fg = isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8);
+        break;
+      case 'cancelled':
+        bg = isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEF2F2);
+        fg = isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB42318);
+        break;
+      default:
+        bg = isDark ? const Color(0xFF4A2B0F) : const Color(0xFFFEF3C7);
+        fg = isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309);
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: fg),
+      ),
+    );
+  }
+}

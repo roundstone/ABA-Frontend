@@ -15,7 +15,42 @@ class OrderDetailTimeline extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    const isOrderPlaced = true;
+    if (order.status == OrderStatus.cancelled) {
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: cs.surface,
+          borderRadius: AppSpacing.borderRadiusLG,
+          border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Order Timeline',
+                style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: AppSpacing.md),
+            const _TimelineStep(
+              icon: HugeIcons.strokeRoundedPackage,
+              title: 'Order Placed',
+              description: 'Order was submitted.',
+              isActive: true,
+              isCompleted: true,
+              isLast: false,
+            ),
+            _TimelineStep(
+              icon: HugeIcons.strokeRoundedCancelCircle,
+              title: 'Order Cancelled',
+              description: order.cancellationReason ?? 'This order was cancelled.',
+              isActive: true,
+              isCompleted: true,
+              isError: true,
+              isLast: true,
+            ),
+          ],
+        ),
+      );
+    }
+
     final isProcessing = [
       OrderStatus.processing,
       OrderStatus.shipped,
@@ -32,19 +67,13 @@ class OrderDetailTimeline extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: AppSpacing.borderRadiusLG,
-        border: Border.all(
-          color: isDark ? Colors.white12 : AppColors.border,
-        ),
+        border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Delivery Status',
-            style: AppTypography.bodyMedium.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text('Delivery Status',
+              style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: AppSpacing.md),
           _TimelineStep(
             icon: HugeIcons.strokeRoundedPackage,
@@ -52,7 +81,7 @@ class OrderDetailTimeline extends StatelessWidget {
             description: order.isUnpaid
                 ? 'Order initiated. Awaiting payment confirmation.'
                 : 'Payment received. Order placed successfully.',
-            isActive: isOrderPlaced,
+            isActive: true,
             isCompleted: !order.isUnpaid,
             isLast: false,
           ),
@@ -67,8 +96,7 @@ class OrderDetailTimeline extends StatelessWidget {
           _TimelineStep(
             icon: HugeIcons.strokeRoundedDeliveryBox01,
             title: 'Shipped',
-            description:
-                'Your order has been handed over to the delivery partner.',
+            description: 'Your order has been handed over to the delivery partner.',
             isActive: isShipped,
             isCompleted: isShipped,
             isLast: false,
@@ -94,6 +122,7 @@ class _TimelineStep extends StatelessWidget {
     required this.description,
     required this.isActive,
     required this.isCompleted,
+    this.isError = false,
     required this.isLast,
   });
 
@@ -102,6 +131,7 @@ class _TimelineStep extends StatelessWidget {
   final String description;
   final bool isActive;
   final bool isCompleted;
+  final bool isError;
   final bool isLast;
 
   @override
@@ -109,12 +139,18 @@ class _TimelineStep extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final Color iconBgColor = isCompleted
-        ? (title == 'Delivered' || title == 'Order Placed'
-            ? AppColors.success
-            : AppColors.primary)
-        : cs.surfaceContainerHighest;
-    final Color iconColor = isCompleted ? Colors.white : cs.onSurfaceVariant;
+    Color iconBgColor;
+    if (isError) {
+      iconBgColor = AppColors.error;
+    } else if (isCompleted) {
+      iconBgColor = (title == 'Delivered' || title == 'Order Placed')
+          ? AppColors.success
+          : AppColors.primary;
+    } else {
+      iconBgColor = cs.surfaceContainerHighest;
+    }
+
+    final Color iconColor = (isCompleted || isError) ? Colors.white : cs.onSurfaceVariant;
 
     return IntrinsicHeight(
       child: Row(
@@ -154,19 +190,14 @@ class _TimelineStep extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: AppTypography.bodyMedium.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    Text(title,
+                        style: AppTypography.bodyMedium.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: isError ? AppColors.error : null,
+                        )),
                     const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: AppTypography.caption.copyWith(
-                        color: cs.onSurfaceVariant,
-                      ),
-                    ),
+                    Text(description,
+                        style: AppTypography.caption.copyWith(color: cs.onSurfaceVariant)),
                   ],
                 ),
               ),

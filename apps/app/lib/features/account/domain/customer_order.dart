@@ -30,10 +30,13 @@ class CustomerOrder {
   final OrderStatus status;
   final String paymentState;
   final int total;
+  final String deliveryMethod;
+  final String? cancellationReason;
   final String paymentMethod;
   final ShippingAddress shippingAddress;
   final List<OrderItem> items;
   final List<CustomerOrderPayment> payments;
+  final DateTime? updatedAt;
 
   CustomerOrder({
     required this.id,
@@ -42,13 +45,32 @@ class CustomerOrder {
     required this.status,
     this.paymentState = 'paid',
     required this.total,
+    this.deliveryMethod = 'standard',
+    this.cancellationReason,
     required this.paymentMethod,
     required this.shippingAddress,
     required this.items,
     this.payments = const [],
+    this.updatedAt,
   }) : orderNumber = orderNumber ?? id;
 
-  bool get isUnpaid => paymentState.toLowerCase() == 'unpaid';
+  bool get isPaid => payments.any(
+        (p) => p.status.toLowerCase() == 'success' || p.paidAt != null,
+      );
+
+  bool get isCancelled => status == OrderStatus.cancelled;
+
+  bool get isUnpaid =>
+      !isPaid &&
+      !isCancelled &&
+      (status == OrderStatus.pending ||
+          status == OrderStatus.unpaid ||
+          paymentState.toLowerCase() == 'unpaid');
+
+  bool get canBeCancelled =>
+      !isCancelled &&
+      status != OrderStatus.delivered &&
+      status != OrderStatus.shipped;
 
   factory CustomerOrder.fromJson(Map<String, dynamic> json) {
     int parsedTotal = 0;
@@ -69,16 +91,21 @@ class CustomerOrder {
       parsedDate =
           DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now();
     } else if (json['date'] != null) {
-      parsedDate =
-          DateTime.tryParse(json['date'].toString()) ?? DateTime.now();
+      parsedDate = DateTime.tryParse(json['date'].toString()) ?? DateTime.now();
     } else {
       parsedDate = DateTime.now();
     }
 
+    DateTime? parsedUpdated;
+    if (json['updatedAt'] != null) {
+      parsedUpdated = DateTime.tryParse(json['updatedAt'].toString());
+    }
+
     final payState = json['payment_state']?.toString() ?? 'paid';
+    final rawStatus = json['status']?.toString();
     OrderStatus parsedStatus;
-    if (json['status'] != null) {
-      parsedStatus = OrderStatus.fromString(json['status'].toString());
+    if (rawStatus != null && rawStatus.isNotEmpty) {
+      parsedStatus = OrderStatus.fromString(rawStatus);
     } else if (payState.toLowerCase() == 'unpaid') {
       parsedStatus = OrderStatus.unpaid;
     } else {
@@ -119,6 +146,12 @@ class CustomerOrder {
           .toList();
     }
 
+    final cancelReason =
+        (json['cancellation_reason'] ?? json['cancellationReason'])?.toString();
+    final delivMethod =
+        (json['delivery_method'] ?? json['deliveryMethod'])?.toString() ??
+            'standard';
+
     return CustomerOrder(
       id: json['id']?.toString() ?? '',
       orderNumber:
@@ -127,10 +160,13 @@ class CustomerOrder {
       status: parsedStatus,
       paymentState: payState,
       total: parsedTotal,
+      deliveryMethod: delivMethod,
+      cancellationReason: cancelReason,
       paymentMethod: method,
       shippingAddress: address,
       items: parsedItems,
       payments: parsedPayments,
+      updatedAt: parsedUpdated,
     );
   }
 }

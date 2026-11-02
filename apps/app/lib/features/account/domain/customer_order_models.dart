@@ -5,6 +5,7 @@ class ShippingAddress {
   final String zipCode;
   final String phone;
   final String state;
+  final String? label;
 
   ShippingAddress({
     required this.fullName,
@@ -13,16 +14,22 @@ class ShippingAddress {
     required this.zipCode,
     required this.phone,
     this.state = '',
+    this.label,
   });
 
   factory ShippingAddress.fromJson(Map<String, dynamic> json) {
     return ShippingAddress(
-      fullName: (json['name'] ?? json['fullName'] ?? 'Customer') as String,
+      fullName: (json['recipient_name'] ??
+              json['recipientName'] ??
+              json['fullName'] ??
+              json['name'] ??
+              'Customer') as String,
       street: (json['street'] ?? '') as String,
       city: (json['city'] ?? '') as String,
       zipCode: (json['zip'] ?? json['zipCode'] ?? '') as String,
       phone: (json['phone'] ?? '') as String,
       state: (json['state'] ?? '') as String,
+      label: json['name'] as String?,
     );
   }
 }
@@ -32,6 +39,9 @@ class OrderItem {
   final String productId;
   final String productName;
   final String? variantName;
+  final String? sku;
+  final Map<String, dynamic>? attributes;
+  final String status;
   final String? imageUrl;
   final int price;
   final int quantity;
@@ -42,6 +52,9 @@ class OrderItem {
     required this.productId,
     required this.productName,
     this.variantName,
+    this.sku,
+    this.attributes,
+    this.status = 'pending',
     this.imageUrl,
     required this.price,
     required this.quantity,
@@ -93,6 +106,14 @@ class OrderItem {
       parsedTotal = (d * 100).round();
     }
 
+    final rawAttrs = pv?['attributes'];
+    Map<String, dynamic>? attrs;
+    if (rawAttrs is Map<String, dynamic>) {
+      attrs = rawAttrs;
+    } else if (rawAttrs is Map) {
+      attrs = rawAttrs.map((k, v) => MapEntry(k.toString(), v));
+    }
+
     return OrderItem(
       id: json['id']?.toString() ?? '',
       productId: product?['id']?.toString() ??
@@ -101,6 +122,9 @@ class OrderItem {
           '',
       productName: name,
       variantName: pv?['name'] as String?,
+      sku: pv?['sku']?.toString(),
+      attributes: attrs,
+      status: (json['status']?.toString() ?? 'pending').toLowerCase(),
       imageUrl: img,
       price: parsedPrice,
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
@@ -116,6 +140,7 @@ class CustomerOrderPayment {
   final String currency;
   final String status;
   final String? paymentMethod;
+  final String? failureReason;
   final DateTime? paidAt;
   final DateTime? createdAt;
 
@@ -126,6 +151,7 @@ class CustomerOrderPayment {
     required this.currency,
     required this.status,
     this.paymentMethod,
+    this.failureReason,
     this.paidAt,
     this.createdAt,
   });
@@ -148,6 +174,7 @@ class CustomerOrderPayment {
       currency: json['currency']?.toString() ?? 'NGN',
       status: json['status']?.toString() ?? 'pending',
       paymentMethod: json['payment_method']?.toString(),
+      failureReason: json['failure_reason']?.toString(),
       paidAt: json['paid_at'] != null
           ? DateTime.tryParse(json['paid_at'].toString())
           : null,
@@ -157,4 +184,3 @@ class CustomerOrderPayment {
     );
   }
 }
-
