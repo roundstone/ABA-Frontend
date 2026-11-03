@@ -1,3 +1,4 @@
+import 'package:app/features/shop/presentation/widgets/home_cart_floating_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -62,30 +63,32 @@ class MerchantDetailScreen extends ConsumerWidget {
         onPopInvokedWithResult: (didPop, _) {
           if (!didPop) context.popOrGo('/merchants');
         },
-        child: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(merchantDetailProvider(merchantId));
-            ref.invalidate(merchantProductsProvider(merchantId));
-            await Future.wait([
-              ref.read(merchantDetailProvider(merchantId).future),
-              ref.read(merchantProductsProvider(merchantId).future),
-            ]);
-          },
-          child: merchantAsync.when(
-            loading: () => const LoadingState(message: 'Loading store details…'),
-            error: (err, _) => ErrorState(
-              message: err.toString(),
-              onRetry: () => ref.invalidate(merchantDetailProvider(merchantId)),
-            ),
-            data: (merchant) {
-              if (merchant == null) {
-                return ErrorState(
-                  message: 'Merchant not found',
-                  onRetry: () => ref.invalidate(merchantDetailProvider(merchantId)),
-                );
-              }
+        child: merchantAsync.when(
+          loading: () => const LoadingState(message: 'Loading store details…'),
+          error: (err, _) => ErrorState(
+            message: err.toString(),
+            onRetry: () => ref.invalidate(merchantDetailProvider(merchantId)),
+          ),
+          data: (merchant) {
+            if (merchant == null) {
+              return ErrorState(
+                message: 'Merchant not found',
+                onRetry: () =>
+                    ref.invalidate(merchantDetailProvider(merchantId)),
+              );
+            }
 
-              return CustomScrollView(
+            return RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(merchantDetailProvider(merchantId));
+                ref.invalidate(merchantProductsProvider(merchantId));
+                await Future.wait([
+                  ref.read(merchantDetailProvider(merchantId).future),
+                  ref.read(merchantProductsProvider(merchantId).future),
+                ]);
+              },
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   SliverPadding(
                     padding: const EdgeInsets.all(AppSpacing.md),
@@ -105,13 +108,18 @@ class MerchantDetailScreen extends ConsumerWidget {
                             'Products by this Store',
                             style: AppTypography.h5.copyWith(
                               fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppColors.onBackground,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppColors.onBackground,
                             ),
                           ),
                           const SizedBox(width: 8),
                           productsAsync.maybeWhen(
                             data: (items) => Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withAlpha(20),
                                 borderRadius: AppSpacing.borderRadiusSM,
@@ -138,7 +146,9 @@ class MerchantDetailScreen extends ConsumerWidget {
                             child: Padding(
                               padding: EdgeInsets.symmetric(vertical: 40),
                               child: Center(
-                                child: Text('No products currently listed by this store.'),
+                                child: Text(
+                                  'No products currently listed by this store.',
+                                ),
                               ),
                             ),
                           ),
@@ -148,14 +158,16 @@ class MerchantDetailScreen extends ConsumerWidget {
                         SliverPadding(
                           padding: const EdgeInsets.all(AppSpacing.md),
                           sliver: SliverGrid(
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 12,
-                              crossAxisSpacing: 12,
-                              childAspectRatio: 0.65,
-                            ),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  mainAxisSpacing: 12,
+                                  crossAxisSpacing: 12,
+                                  childAspectRatio: 0.65,
+                                ),
                             delegate: SliverChildBuilderDelegate(
-                              (context, index) => ProductCard(product: products[index]),
+                              (context, index) =>
+                                  ProductCard(product: products[index]),
                               childCount: products.length,
                             ),
                           ),
@@ -166,7 +178,9 @@ class MerchantDetailScreen extends ConsumerWidget {
                       const SliverToBoxAdapter(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 40),
-                          child: LoadingState(message: 'Loading store products…'),
+                          child: LoadingState(
+                            message: 'Loading store products…',
+                          ),
                         ),
                       ),
                     ],
@@ -176,7 +190,9 @@ class MerchantDetailScreen extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(vertical: 40),
                           child: ErrorState(
                             message: 'Failed to load store products',
-                            onRetry: () => ref.invalidate(merchantProductsProvider(merchantId)),
+                            onRetry: () => ref.invalidate(
+                              merchantProductsProvider(merchantId),
+                            ),
                           ),
                         ),
                       ),
@@ -184,11 +200,12 @@ class MerchantDetailScreen extends ConsumerWidget {
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: 60)),
                 ],
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
       ),
+      floatingActionButton: const HomeCartFloatingButton(bottomPadding: 20),
     );
   }
 }

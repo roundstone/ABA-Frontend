@@ -10,10 +10,12 @@ class ShopSearchBar extends StatefulWidget {
     super.key,
     required this.onChanged,
     this.initialValue = '',
+    this.focusNode,
   });
 
   final ValueChanged<String> onChanged;
   final String initialValue;
+  final FocusNode? focusNode;
 
   @override
   State<ShopSearchBar> createState() => _ShopSearchBarState();
@@ -26,6 +28,18 @@ class _ShopSearchBarState extends State<ShopSearchBar> {
   void initState() {
     super.initState();
     _ctrl = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void didUpdateWidget(covariant ShopSearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialValue != oldWidget.initialValue &&
+        widget.initialValue != _ctrl.text) {
+      _ctrl.text = widget.initialValue;
+      _ctrl.selection = TextSelection.fromPosition(
+        TextPosition(offset: _ctrl.text.length),
+      );
+    }
   }
 
   @override
@@ -47,6 +61,7 @@ class _ShopSearchBarState extends State<ShopSearchBar> {
       ),
       child: TextField(
         controller: _ctrl,
+        focusNode: widget.focusNode,
         onChanged: widget.onChanged,
         style: AppTypography.bodyMedium,
         decoration: InputDecoration(

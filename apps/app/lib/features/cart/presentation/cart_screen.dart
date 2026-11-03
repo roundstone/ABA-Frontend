@@ -77,10 +77,12 @@ class _CartBody extends ConsumerWidget {
                 AppSpacing.sm,
               ),
               itemCount: cart.items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.sm),
               itemBuilder: (context, i) => CartItemTile(
                 item: cart.items[i],
-                onRemove: () => notifier.removeFromCart(cart.items[i].effectiveId),
+                onRemove: () =>
+                    notifier.removeFromCart(cart.items[i].effectiveId),
                 onDecrease: () => notifier.updateQuantity(
                   cart.items[i].effectiveId,
                   cart.items[i].quantity - 1,
@@ -96,7 +98,17 @@ class _CartBody extends ConsumerWidget {
         CartOrderSummary(
           cart: cart,
           onCheckout: () => context.push('/checkout'),
-          onClear: () => notifier.clearCart(),
+          onClear: () => {
+            notifier
+                .clearCart()
+                .then(
+                  (onValue) =>
+                      AppSnackbar.success(context, 'Cart cleared successfully'),
+                )
+                .catchError(
+                  (onError) => AppSnackbar.error(context, onError.toString()),
+                ),
+          },
         ),
       ],
     );
@@ -122,11 +134,16 @@ class _EmptyCart extends StatelessWidget {
               color: cs.primary.withAlpha(80),
             ),
             const SizedBox(height: AppSpacing.md),
-            Text('Your cart is empty', style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              'Your cart is empty',
+              style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               'Add items from the shop to get started',
-              style: AppTypography.bodySmall.copyWith(color: cs.onSurface.withAlpha(153)),
+              style: AppTypography.bodySmall.copyWith(
+                color: cs.onSurface.withAlpha(153),
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),

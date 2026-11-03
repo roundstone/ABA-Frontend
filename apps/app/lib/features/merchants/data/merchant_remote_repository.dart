@@ -58,10 +58,17 @@ class MerchantRemoteRepository implements MerchantRepository {
       var list = ApiResponse.unwrapList(rawData);
       int total = list.length;
 
-      if (rawData is Map<String, dynamic> && rawData.containsKey('meta')) {
-        final meta = rawData['meta'] as Map<String, dynamic>?;
-        if (meta != null && meta['total'] is num) {
-          total = (meta['total'] as num).toInt();
+      if (rawData is Map<String, dynamic>) {
+        final innerData = rawData['data'];
+        final meta = (innerData is Map<String, dynamic> &&
+                innerData.containsKey('meta'))
+            ? innerData['meta'] as Map<String, dynamic>?
+            : (rawData.containsKey('meta')
+                ? rawData['meta'] as Map<String, dynamic>?
+                : null);
+        if (meta != null) {
+          final rawTotal = meta['total'] ?? meta['totalItems'];
+          if (rawTotal is num) total = rawTotal.toInt();
         }
       }
 

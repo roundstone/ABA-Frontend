@@ -1,19 +1,17 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:hugeicons/hugeicons.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../application/shop_providers.dart';
 import '../domain/shop_entities.dart';
 import 'widgets/category_chip_bar.dart';
-import 'widgets/product_card.dart';
-import 'widgets/shop_filter_sheet.dart';
+import 'widgets/popular_brands.dart';
+import 'widgets/related_searches.dart';
+import 'widgets/shop_ads_banner.dart';
+import 'widgets/shop_product_view_sliver.dart';
 import 'widgets/shop_search_bar.dart';
-import 'widgets/sort_bottom_sheet.dart';
+import 'widgets/shop_sliver_app_bar.dart';
+import 'widgets/shop_toolbar.dart';
 
 class ShopScreen extends ConsumerWidget {
   const ShopScreen({super.key});
@@ -38,11 +36,37 @@ class ShopScreen extends ConsumerWidget {
 
 // ─── Main shop body ───────────────────────────────────────────────────────
 
-class _ShopBody extends ConsumerWidget {
+class _ShopBody extends ConsumerStatefulWidget {
   const _ShopBody();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ShopBody> createState() => _ShopBodyState();
+}
+
+class _ShopBodyState extends ConsumerState<_ShopBody> {
+  final ScrollController _scrollController = ScrollController();
+  final FocusNode _searchFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _onSearchQuery(String query) {
+    ref.read(shopNotifierProvider.notifier).setSearch(query);
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final shopState = ref.watch(shopNotifierProvider);
     final paginatedState = ref.watch(paginatedProductsNotifierProvider);
     final products = paginatedState.items;
@@ -67,9 +91,10 @@ class _ShopBody extends ConsumerWidget {
               .read(paginatedProductsNotifierProvider.notifier)
               .fetchFirstPage(),
           child: CustomScrollView(
+            controller: _scrollController,
             slivers: [
               // ── App bar
-              _ShopSliverAppBar(cartCount: cartCount),
+              ShopSliverAppBar(cartCount: cartCount),
 
               // ── Search bar
               SliverPadding(
@@ -81,6 +106,7 @@ class _ShopBody extends ConsumerWidget {
                 ),
                 sliver: SliverToBoxAdapter(
                   child: ShopSearchBar(
+                    focusNode: _searchFocusNode,
                     initialValue: shopState.searchQuery,
                     onChanged: (q) =>
                         ref.read(shopNotifierProvider.notifier).setSearch(q),
@@ -106,7 +132,7 @@ class _ShopBody extends ConsumerWidget {
                   vertical: AppSpacing.xs,
                 ),
                 sliver: SliverToBoxAdapter(
-                  child: _ShopToolbar(
+                  child: ShopToolbar(
                     sort: shopState.sort,
                     viewMode: shopState.viewMode,
                     filterActive: shopState.filter.isActive,
@@ -125,73 +151,19 @@ class _ShopBody extends ConsumerWidget {
                   AppSpacing.md,
                   AppSpacing.sm,
                 ),
-                sliver: SliverToBoxAdapter(child: _AdsBanner()),
+                sliver: SliverToBoxAdapter(child: ShopAdsBanner()),
               ),
 
-              // ── Product grid / list
-              if (paginatedState.isInitialLoading)
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(AppSpacing.xxl),
-                    child: Center(child: CircularProgressIndicator.adaptive()),
-                  ),
-                )
-              else if (paginatedState.error != null && products.isEmpty)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: ErrorState(
-                    message: paginatedState.error.toString(),
-                    onRetry: () => ref
-                        .read(paginatedProductsNotifierProvider.notifier)
-                        .fetchFirstPage(),
-                  ),
-                )
-              else if (products.isEmpty)
-                const SliverFillRemaining(child: _EmptyProducts())
-              else if (shopState.viewMode == ViewMode.grid)
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    0,
-                    AppSpacing.md,
-                    AppSpacing.md,
-                  ),
-                  sliver: SliverGrid(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, i) => ProductCard(
-                        key: ValueKey('product_grid_${products[i].id}'),
-                        product: products[i],
-                      ),
-                      childCount: products.length,
-                    ),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: AppSpacing.sm,
-                      mainAxisSpacing: AppSpacing.sm,
-                      childAspectRatio: 0.68,
-                    ),
-                  ),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    0,
-                    AppSpacing.md,
-                    AppSpacing.md,
-                  ),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, i) => ProductCard(
-                        key: ValueKey('product_list_${products[i].id}'),
-                        product: products[i],
-                        listMode: true,
-                      ),
-                      childCount: products.length,
-                    ),
-                  ),
-                ),
+              // ── Product grid / list / states
+              ShopProductViewSliver(
+                products: products,
+                viewMode: shopState.viewMode,
+                isInitialLoading: paginatedState.isInitialLoading,
+                error: paginatedState.error,
+                onRetry: () => ref
+                    .read(paginatedProductsNotifierProvider.notifier)
+                    .fetchFirstPage(),
+              ),
 
               // ── Bottom Loading Indicator
               if (paginatedState.isLoadingMore)
@@ -216,7 +188,9 @@ class _ShopBody extends ConsumerWidget {
                     child: Center(
                       child: TextButton.icon(
                         icon: const Icon(Icons.refresh, size: 16),
-                        label: const Text('Failed to load more products. Tap to retry.'),
+                        label: const Text(
+                          'Failed to load more products. Tap to retry.',
+                        ),
                         onPressed: () => ref
                             .read(paginatedProductsNotifierProvider.notifier)
                             .loadMore(),
@@ -226,16 +200,16 @@ class _ShopBody extends ConsumerWidget {
                 ),
 
               // ── Bottom Sections
-              const SliverToBoxAdapter(
+              SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.only(top: AppSpacing.xl),
-                  child: _PopularBrands(),
+                  padding: const EdgeInsets.only(top: AppSpacing.xl),
+                  child: PopularBrands(onSelect: _onSearchQuery),
                 ),
               ),
-              const SliverToBoxAdapter(
+              SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
-                  child: _RelatedSearches(),
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                  child: RelatedSearches(onSelect: _onSearchQuery),
                 ),
               ),
               const SliverToBoxAdapter(
@@ -244,425 +218,6 @@ class _ShopBody extends ConsumerWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-// ─── Sliver app bar ───────────────────────────────────────────────────────
-
-class _ShopSliverAppBar extends StatelessWidget {
-  const _ShopSliverAppBar({required this.cartCount});
-  final int cartCount;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return SliverAppBar(
-      pinned: true,
-      backgroundColor: cs.primary,
-      title: Text(
-        'Shop',
-        style: AppTypography.h6.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      actions: [
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            IconButton(
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedShoppingCart01,
-                color: Colors.white,
-                size: AppSpacing.iconSizeMD,
-              ),
-              onPressed: () => context.push('/cart'),
-            ),
-            if (cartCount > 0)
-              Positioned(
-                top: 6,
-                right: 6,
-                child: Container(
-                  width: 16,
-                  height: 16,
-                  decoration: const BoxDecoration(
-                    color: AppColors.error,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      cartCount > 9 ? '9+' : '$cartCount',
-                      style: AppTypography.label.copyWith(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(width: AppSpacing.xs),
-      ],
-    );
-  }
-}
-
-// ─── Toolbar (sort + filter + view toggle) ─────────────────────────────────
-
-class _ShopToolbar extends ConsumerWidget {
-  const _ShopToolbar({
-    required this.sort,
-    required this.viewMode,
-    required this.filterActive,
-    required this.productCount,
-  });
-  final SortOrder sort;
-  final ViewMode viewMode;
-  final bool filterActive;
-  final int productCount;
-
-  String get _sortLabel {
-    switch (sort) {
-      case SortOrder.featured:
-        return 'Featured';
-      case SortOrder.nameAsc:
-        return 'A–Z';
-      case SortOrder.nameDesc:
-        return 'Z–A';
-      case SortOrder.priceLow:
-        return 'Price ↑';
-      case SortOrder.priceHigh:
-        return 'Price ↓';
-      case SortOrder.newest:
-        return 'Newest';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final cs = Theme.of(context).colorScheme;
-    final notifier = ref.read(shopNotifierProvider.notifier);
-
-    return Row(
-      children: [
-        Text(
-          '$productCount items',
-          style: AppTypography.bodySmall.copyWith(
-            color: cs.onSurface.withAlpha(153),
-          ),
-        ),
-        const Spacer(),
-
-        // Sort button
-        _ToolbarButton(
-          icon: HugeIcons.strokeRoundedSorting01,
-          label: _sortLabel,
-          onTap: () => showSortSheet(context, sort, (s) => notifier.setSort(s)),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-
-        // Filter button
-        _ToolbarButton(
-          icon: HugeIcons.strokeRoundedFilterHorizontal,
-          label: 'Filter',
-          active: filterActive,
-          onTap: () => showShopFilterSheet(context),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-
-        // Grid/List toggle
-        GestureDetector(
-          onTap: () => notifier.setViewMode(
-            viewMode == ViewMode.grid ? ViewMode.list : ViewMode.grid,
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(AppSpacing.xs),
-            decoration: BoxDecoration(
-              color: cs.surfaceContainerHighest,
-              borderRadius: AppSpacing.borderRadiusSM,
-            ),
-            child: HugeIcon(
-              icon: viewMode == ViewMode.grid
-                  ? HugeIcons.strokeRoundedGridView
-                  : HugeIcons.strokeRoundedListView,
-              size: AppSpacing.iconSizeSM,
-              color: cs.onSurface,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ToolbarButton extends StatelessWidget {
-  const _ToolbarButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.active = false,
-  });
-  final List<List<dynamic>> icon;
-  final String label;
-  final VoidCallback onTap;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? cs.secondary : cs.primary;
-    final color = active ? primaryColor : cs.onSurface;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs,
-        ),
-        decoration: BoxDecoration(
-          color: active
-              ? primaryColor.withAlpha(20)
-              : cs.surfaceContainerHighest,
-          borderRadius: AppSpacing.borderRadiusSM,
-          border: active
-              ? Border.all(color: primaryColor.withAlpha(80), width: 1)
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(icon: icon, size: 14, color: color),
-            const SizedBox(width: 4),
-            Text(label, style: AppTypography.label.copyWith(color: color)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Empty state ──────────────────────────────────────────────────────────
-
-class _EmptyProducts extends ConsumerWidget {
-  const _EmptyProducts();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const HugeIcon(
-            icon: HugeIcons.strokeRoundedSearchList01,
-            size: AppSpacing.iconSizeXXL,
-            color: AppColors.grey,
-          ),
-          AppSpacing.verticalSpaceMD,
-          Text(
-            'No products found',
-            style: AppTypography.h6.copyWith(color: AppColors.grey),
-          ),
-          AppSpacing.verticalSpaceXS,
-          Text(
-            'Try adjusting your filters',
-            style: AppTypography.bodySmall.copyWith(color: AppColors.grey),
-          ),
-          AppSpacing.verticalSpaceMD,
-          TextButton(
-            onPressed: () =>
-                ref.read(shopNotifierProvider.notifier).resetFilters(),
-            child: const Text('Clear filters'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AdsBanner extends StatefulWidget {
-  const _AdsBanner();
-
-  @override
-  State<_AdsBanner> createState() => _AdsBannerState();
-}
-
-class _AdsBannerState extends State<_AdsBanner> {
-  final PageController _controller = PageController();
-  Timer? _autoSlideTimer;
-  int _currentPage = 0;
-
-  final List<String> _banners = const [
-    'assets/images/banners/Aba Online_ Shop Local, Shop Aba.png',
-    'assets/images/banners/AbaOnline_ Shop Local, Grow Together.png',
-    'assets/images/banners/Shop Local, Support Aba.png',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _startAutoSlide();
-  }
-
-  void _startAutoSlide() {
-    _autoSlideTimer?.cancel();
-    _autoSlideTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (!mounted || !_controller.hasClients) return;
-      final nextPage = (_currentPage + 1) % _banners.length;
-      _controller.animateToPage(
-        nextPage,
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeInOutCubic,
-      );
-    });
-  }
-
-  @override
-  void dispose() {
-    _autoSlideTimer?.cancel();
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 140,
-          child: PageView.builder(
-            controller: _controller,
-            onPageChanged: (i) {
-              setState(() => _currentPage = i);
-              _startAutoSlide();
-            },
-            itemCount: _banners.length,
-            itemBuilder: (context, i) {
-              return ClipRRect(
-                borderRadius: AppSpacing.borderRadiusLG,
-                child: Image.asset(_banners[i], fit: BoxFit.cover),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            _banners.length,
-            (i) => AnimatedContainer(
-              duration: AppSpacing.animationFast,
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: _currentPage == i ? 16 : 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: _currentPage == i
-                    ? AppColors.primary
-                    : AppColors.grey.withAlpha(100),
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _PopularBrands extends ConsumerWidget {
-  const _PopularBrands();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final brandsAsync = ref.watch(popularBrandsProvider);
-    final brands = brandsAsync.valueOrNull?.map((b) => b.name).toList() ??
-        const ['Nike', 'Adidas', 'Gucci', 'Aba Artisans', 'Puma', 'Zara'];
-    if (brands.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: Text(
-            'Popular Brands',
-            style: AppTypography.h6.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        SizedBox(
-          height: 40,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            scrollDirection: Axis.horizontal,
-            itemCount: brands.length,
-            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
-            itemBuilder: (context, i) => ActionChip(
-              label: Text(brands[i]),
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest,
-              onPressed: () {
-                ref.read(shopNotifierProvider.notifier).setSearch(brands[i]);
-              },
-              side: BorderSide.none,
-              shape: const RoundedRectangleBorder(
-                borderRadius: AppSpacing.borderRadiusSM,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _RelatedSearches extends StatelessWidget {
-  const _RelatedSearches();
-
-  @override
-  Widget build(BuildContext context) {
-    final searches = [
-      'Leather bags',
-      'Men shoes',
-      'Traditional wear',
-      'Accessories',
-      'Wholesale fabrics',
-    ];
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Related Searches',
-            style: AppTypography.h6.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.xs,
-            children: searches
-                .map(
-                  (s) => ActionChip(
-                    label: Text(s),
-                    onPressed: () {},
-                    side: BorderSide(color: AppColors.outline.withAlpha(100)),
-                    backgroundColor: Colors.transparent,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: AppSpacing.borderRadiusSM,
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-        ],
       ),
     );
   }

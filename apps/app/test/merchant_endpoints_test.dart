@@ -60,6 +60,36 @@ void main() {
       expect(json['isVerified'], isTrue);
     });
 
+    test('Merchant.fromJson safely parses payload where avatar, banner and category are Map objects', () {
+      final jsonWithMediaMaps = {
+        "id": 1,
+        "business_name": "Demo Store Ltd",
+        "business_address": "1 Demo Avenue, Lagos",
+        "avatar": {
+          "id": 2,
+          "url": "https://s3.example.com/avatar.jpg",
+          "original_name": "avatar.jpg"
+        },
+        "banner": {
+          "id": 3,
+          "url": "https://s3.example.com/banner.jpg",
+          "original_name": "banner.jpg"
+        },
+        "category": {
+          "name": "Leather Crafts"
+        },
+        "website": "https://demostore.test"
+      };
+
+      final merchant = Merchant.fromJson(jsonWithMediaMaps);
+      expect(merchant.id, '1');
+      expect(merchant.name, 'Demo Store Ltd');
+      expect(merchant.logoUrl, 'https://s3.example.com/avatar.jpg');
+      expect(merchant.bannerImage, 'https://s3.example.com/banner.jpg');
+      expect(merchant.category, 'Leather Crafts');
+      expect(merchant.website, 'https://demostore.test');
+    });
+
     testWidgets('MerchantDetailScreen renders profile and products from provider', (tester) async {
       final sampleMerchant = Merchant.fromJson(backendMerchantJson);
       const sampleProduct = Product(

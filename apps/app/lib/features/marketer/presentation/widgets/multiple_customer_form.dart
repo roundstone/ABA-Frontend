@@ -117,6 +117,14 @@ class MultipleCustomerFormState extends ConsumerState<MultipleCustomerForm> {
                 'Customers to Onboard (${_rows.length})',
                 style: AppTypography.h4.copyWith(fontWeight: FontWeight.w700),
               ),
+              TextButton.icon(
+                onPressed: addRow,
+                icon: const Icon(Icons.add_rounded, size: 18),
+                label: const Text('Add Another'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),

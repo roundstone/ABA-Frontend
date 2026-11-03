@@ -160,6 +160,14 @@ class _MarketerAddCustomerScreenState
             'Customers to Onboard ($_customerCount)',
             style: AppTypography.h4.copyWith(fontWeight: FontWeight.w700),
           ),
+          TextButton.icon(
+            onPressed: _onAddAnother,
+            icon: const Icon(Icons.add_rounded, size: 18),
+            label: const Text('Add Another'),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.primary,
+            ),
+          ),
         ],
       ),
     );

@@ -5,11 +5,14 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_widgets.dart';
+import '../../cart/domain/entities/cart_entities.dart';
 import '../../shop/application/shop_providers.dart';
+import '../application/checkout_notifier.dart';
 import '../application/checkout_providers.dart';
+import '../application/checkout_state.dart';
 import 'checkout_order_handler.dart';
+import 'widgets/checkout_empty_view.dart';
 import 'widgets/checkout_progress_bar.dart';
 import 'widgets/checkout_referral_section.dart';
 import 'widgets/checkout_summary_card.dart';
@@ -19,7 +22,9 @@ import 'widgets/step_payment_method.dart';
 import 'widgets/step_review_order.dart';
 
 class CheckoutScreen extends ConsumerWidget {
-  const CheckoutScreen({super.key});
+  const CheckoutScreen({super.key, this.directCart});
+
+  final Cart? directCart;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,142 +50,132 @@ class CheckoutScreen extends ConsumerWidget {
           },
         ),
       ),
-      body: cartAsync.when(
-        loading: () => const LoadingState(message: 'Loading cart…'),
-        error: (e, _) => ErrorState(
-          message: e.toString(),
-          onRetry: () => ref.invalidate(cartProvider),
-        ),
-        data: (cart) {
-          if (cart.isEmpty && checkoutState.createdOrderResult == null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const HugeIcon(
-                      icon: HugeIcons.strokeRoundedShoppingCart01,
-                      color: AppColors.grey,
-                      size: 56,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(
-                      'Your cart is empty',
-                      style: AppTypography.h5.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      'Add items to your cart before proceeding to checkout.',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.grey,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    AppButton.primary(
-                      label: 'Explore Shop',
-                      isFullWidth: false,
-                      onPressed: () => context.go('/shop'),
-                    ),
-                  ],
-                ),
+      body: directCart != null
+          ? _buildCartBody(
+              context,
+              checkoutState,
+              notifier,
+              directCart!,
+              ref,
+              isDirectBuy: true,
+            )
+          : cartAsync.when(
+              loading: () => const LoadingState(message: 'Loading cart…'),
+              error: (e, _) => ErrorState(
+                message: e.toString(),
+                onRetry: () => ref.invalidate(cartProvider),
               ),
-            );
-          }
+              data: (cart) => _buildCartBody(
+                context,
+                checkoutState,
+                notifier,
+                cart,
+                ref,
+                isDirectBuy: false,
+              ),
+            ),
+    );
+  }
 
-          if (checkoutState.isLoadingInit) {
-            return const LoadingState(message: 'Preparing checkout…');
-          }
+  Widget _buildCartBody(
+    BuildContext context,
+    CheckoutState checkoutState,
+    CheckoutNotifier notifier,
+    Cart cart,
+    WidgetRef ref, {
+    required bool isDirectBuy,
+  }) {
+    if (cart.isEmpty && checkoutState.createdOrderResult == null) {
+      return const CheckoutEmptyView();
+    }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 40),
+    if (checkoutState.isLoadingInit) {
+      return const LoadingState(message: 'Preparing checkout…');
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CheckoutProgressBar(
+            currentStep: checkoutState.step,
+            onStepTapped: notifier.goToStep,
+          ),
+          if (checkoutState.errorMessage != null)
+            Container(
+              margin: const EdgeInsets.all(AppSpacing.md),
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: AppColors.error.withAlpha(20),
+                borderRadius: AppSpacing.borderRadiusMD,
+                border: Border.all(color: AppColors.error),
+              ),
+              child: Row(
+                children: [
+                  const HugeIcon(
+                    icon: HugeIcons.strokeRoundedAlertCircle,
+                    color: AppColors.error,
+                    size: 20,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      checkoutState.errorMessage!,
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.error,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                CheckoutProgressBar(
-                  currentStep: checkoutState.step,
-                  onStepTapped: notifier.goToStep,
+                _buildCurrentStep(
+                  context,
+                  checkoutState,
+                  notifier,
+                  cart,
+                  ref,
+                  isDirectBuy: isDirectBuy,
                 ),
-                if (checkoutState.errorMessage != null)
-                  Container(
-                    margin: const EdgeInsets.all(AppSpacing.md),
-                    padding: const EdgeInsets.all(AppSpacing.sm),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withAlpha(20),
-                      borderRadius: AppSpacing.borderRadiusMD,
-                      border: Border.all(color: AppColors.error),
-                    ),
-                    child: Row(
-                      children: [
-                        const HugeIcon(
-                          icon: HugeIcons.strokeRoundedAlertCircle,
-                          color: AppColors.error,
-                          size: 20,
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            checkoutState.errorMessage!,
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.error,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                const SizedBox(height: AppSpacing.md),
+                if (checkoutState.step < 5) ...[
+                  CheckoutReferralSection(
+                    appliedReferral: checkoutState.appliedReferral,
+                    searchQuery: checkoutState.referralQuery,
+                    searchResults: checkoutState.referralSearchResults,
+                    isSearching: checkoutState.isSearchingReferral,
+                    onQueryChanged: notifier.searchReferrals,
+                    onApplyCandidate: notifier.applyReferral,
+                    onRemove: notifier.removeReferral,
                   ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                  ),
-                  child: Column(
-                    children: [
-                      _buildCurrentStep(
-                        context,
-                        checkoutState,
-                        notifier,
-                        cart,
-                        ref,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      if (checkoutState.step < 5) ...[
-                        CheckoutReferralSection(
-                          appliedReferral: checkoutState.appliedReferral,
-                          searchQuery: checkoutState.referralQuery,
-                          searchResults: checkoutState.referralSearchResults,
-                          isSearching: checkoutState.isSearchingReferral,
-                          onQueryChanged: notifier.searchReferrals,
-                          onApplyCandidate: notifier.applyReferral,
-                          onRemove: notifier.removeReferral,
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                      ],
-                      CheckoutSummaryCard(
-                        cart: cart,
-                        deliveryMethod: checkoutState.selectedDeliveryMethod,
-                      ),
-                    ],
-                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                CheckoutSummaryCard(
+                  cart: cart,
+                  deliveryMethod: checkoutState.selectedDeliveryMethod,
                 ),
               ],
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildCurrentStep(
     BuildContext context,
-    checkoutState,
-    notifier,
-    cart,
-    WidgetRef ref,
-  ) {
+    CheckoutState checkoutState,
+    CheckoutNotifier notifier,
+    Cart cart,
+    WidgetRef ref, {
+    required bool isDirectBuy,
+  }) {
     switch (checkoutState.step) {
       case 1:
         return StepDeliveryAddress(
@@ -222,6 +217,7 @@ class CheckoutScreen extends ConsumerWidget {
             checkoutState: checkoutState,
             notifier: notifier,
             cart: cart,
+            isDirectBuy: isDirectBuy,
           ),
         );
     }

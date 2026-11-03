@@ -13,6 +13,9 @@ class AppButton extends StatelessWidget {
   final bool isLoading;
   final bool isFullWidth;
   final EdgeInsetsGeometry? padding;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final BorderSide? borderSide;
 
   const AppButton({
     super.key,
@@ -23,6 +26,9 @@ class AppButton extends StatelessWidget {
     this.isLoading = false,
     this.isFullWidth = true,
     this.padding,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.borderSide,
   });
 
   const AppButton.primary({
@@ -33,6 +39,9 @@ class AppButton extends StatelessWidget {
     this.isLoading = false,
     this.isFullWidth = true,
     this.padding,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.borderSide,
   }) : type = AppButtonType.primary;
 
   const AppButton.secondary({
@@ -43,6 +52,9 @@ class AppButton extends StatelessWidget {
     this.isLoading = false,
     this.isFullWidth = true,
     this.padding,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.borderSide,
   }) : type = AppButtonType.secondary;
 
   const AppButton.outlined({
@@ -53,6 +65,9 @@ class AppButton extends StatelessWidget {
     this.isLoading = false,
     this.isFullWidth = true,
     this.padding,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.borderSide,
   }) : type = AppButtonType.outlined;
 
   const AppButton.text({
@@ -63,6 +78,9 @@ class AppButton extends StatelessWidget {
     this.isLoading = false,
     this.isFullWidth = false,
     this.padding,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.borderSide,
   }) : type = AppButtonType.text;
 
   const AppButton.destructive({
@@ -73,6 +91,9 @@ class AppButton extends StatelessWidget {
     this.isLoading = false,
     this.isFullWidth = true,
     this.padding,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.borderSide,
   }) : type = AppButtonType.destructive;
 
   @override
@@ -90,9 +111,12 @@ class AppButton extends StatelessWidget {
             height: 16,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: type == AppButtonType.primary || type == AppButtonType.secondary || type == AppButtonType.destructive
-                  ? Colors.white
-                  : cs.primary,
+              color: foregroundColor ??
+                  (type == AppButtonType.primary ||
+                          type == AppButtonType.secondary ||
+                          type == AppButtonType.destructive
+                      ? Colors.white
+                      : cs.primary),
             ),
           ),
           const SizedBox(width: AppSpacing.xs),
@@ -107,6 +131,7 @@ class AppButton extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: AppTypography.label.copyWith(
               fontWeight: FontWeight.w600,
+              color: foregroundColor,
             ),
           ),
         ),
@@ -119,10 +144,11 @@ class AppButton extends StatelessWidget {
         button = ElevatedButton(
           onPressed: isLoading ? null : onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
+            backgroundColor: backgroundColor ?? AppColors.primary,
+            foregroundColor: foregroundColor ?? Colors.white,
             elevation: 0,
-            padding: padding ?? const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            padding: padding ??
+                const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             shape: const RoundedRectangleBorder(
               borderRadius: AppSpacing.borderRadiusLG,
             ),
@@ -134,10 +160,12 @@ class AppButton extends StatelessWidget {
         button = ElevatedButton(
           onPressed: isLoading ? null : onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: isDark ? const Color(0xFF333333) : const Color(0xFFE0E0E0),
-            foregroundColor: cs.onSurface,
+            backgroundColor: backgroundColor ??
+                (isDark ? const Color(0xFF333333) : const Color(0xFFE0E0E0)),
+            foregroundColor: foregroundColor ?? cs.onSurface,
             elevation: 0,
-            padding: padding ?? const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            padding: padding ??
+                const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             shape: const RoundedRectangleBorder(
               borderRadius: AppSpacing.borderRadiusLG,
             ),
@@ -149,11 +177,12 @@ class AppButton extends StatelessWidget {
         button = ElevatedButton(
           onPressed: isLoading ? null : onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.error,
-            foregroundColor: Colors.white,
+            backgroundColor: backgroundColor ?? AppColors.error,
+            foregroundColor: foregroundColor ?? Colors.white,
             disabledBackgroundColor: AppColors.error.withAlpha(128),
             elevation: 0,
-            padding: padding ?? const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            padding: padding ??
+                const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             shape: const RoundedRectangleBorder(
               borderRadius: AppSpacing.borderRadiusLG,
             ),
@@ -165,9 +194,12 @@ class AppButton extends StatelessWidget {
         button = OutlinedButton(
           onPressed: isLoading ? null : onPressed,
           style: OutlinedButton.styleFrom(
-            foregroundColor: cs.onSurface,
-            side: BorderSide(color: isDark ? Colors.white24 : AppColors.border),
-            padding: padding ?? const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            foregroundColor: foregroundColor ?? cs.onSurface,
+            backgroundColor: backgroundColor,
+            side: borderSide ??
+                BorderSide(color: isDark ? Colors.white24 : AppColors.border),
+            padding: padding ??
+                const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             shape: const RoundedRectangleBorder(
               borderRadius: AppSpacing.borderRadiusLG,
             ),
@@ -179,8 +211,10 @@ class AppButton extends StatelessWidget {
         button = TextButton(
           onPressed: isLoading ? null : onPressed,
           style: TextButton.styleFrom(
-            foregroundColor: cs.primary,
-            padding: padding ?? const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            foregroundColor: foregroundColor ?? cs.primary,
+            backgroundColor: backgroundColor,
+            padding: padding ??
+                const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             shape: const RoundedRectangleBorder(
               borderRadius: AppSpacing.borderRadiusMD,
             ),

@@ -81,4 +81,41 @@ void main() {
     expect(find.byType(FloatingActionButton), findsOneWidget);
     expect(find.text('4'), findsOneWidget);
   });
+
+  testWidgets(
+      'Multiple screens with HomeCartFloatingButton render without hero tag conflicts',
+      (tester) async {
+    const cartWithItems = Cart(
+      items: [
+        CartItem(
+          product: testProduct,
+          quantity: 2,
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          cartProvider.overrideWith(
+            () => _FakeCartNotifier(cartWithItems),
+          ),
+        ],
+        child: const MaterialApp(
+          home: Stack(
+            children: [
+              Scaffold(floatingActionButton: HomeCartFloatingButton()),
+              Scaffold(
+                floatingActionButton:
+                    HomeCartFloatingButton(bottomPadding: 20),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FloatingActionButton), findsNWidgets(2));
+  });
 }

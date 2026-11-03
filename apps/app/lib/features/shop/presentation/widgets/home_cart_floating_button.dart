@@ -8,7 +8,14 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../cart/application/cart_providers.dart';
 
 class HomeCartFloatingButton extends ConsumerWidget {
-  const HomeCartFloatingButton({super.key});
+  final double? bottomPadding;
+  final Object? heroTag;
+
+  const HomeCartFloatingButton({
+    super.key,
+    this.bottomPadding,
+    this.heroTag,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,13 +25,13 @@ class HomeCartFloatingButton extends ConsumerWidget {
     if (cartCount == 0) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 120),
+      padding: EdgeInsets.only(bottom: bottomPadding ?? 120),
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
           FloatingActionButton(
-            heroTag: 'home_cart_floating_button',
+            heroTag: heroTag,
             backgroundColor: isDark ? AppColors.secondary : AppColors.primary,
             elevation: 4,
             tooltip: 'Shopping Cart',

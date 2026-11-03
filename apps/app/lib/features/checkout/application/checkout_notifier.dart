@@ -157,6 +157,7 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
     Cart cart, {
     String? paymentReference,
     bool clearCartOnSuccess = true,
+    bool isDirectBuy = false,
   }) async {
     if (state.selectedAddress == null || state.selectedDeliveryMethod == null) {
       state = state.copyWith(
@@ -167,20 +168,22 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
 
     state = state.copyWith(isSubmitting: true, clearError: true);
 
-    // 1. Check availability via GET /api/v1/cart/mobile-app/availability
-    try {
-      final avail = await ref.read(cartProvider.notifier).checkAvailability();
-      AppLogger.d('Cart availability: ${avail.isAvailable}');
-      if (!avail.isAvailable) {
-        state = state.copyWith(
-          isSubmitting: false,
-          errorMessage:
-              avail.message ??
-              'Some items in your cart are no longer available in the requested quantity.',
-        );
-        return null;
-      }
-    } catch (_) {}
+    // 1. Check availability via GET /api/v1/cart/mobile-app/availability (only for full cart checkout)
+    if (!isDirectBuy) {
+      try {
+        final avail = await ref.read(cartProvider.notifier).checkAvailability();
+        AppLogger.d('Cart availability: ${avail.isAvailable}');
+        if (!avail.isAvailable) {
+          state = state.copyWith(
+            isSubmitting: false,
+            errorMessage:
+                avail.message ??
+                'Some items in your cart are no longer available in the requested quantity.',
+          );
+          return null;
+        }
+      } catch (_) {}
+    }
 
     // 2. Verify payment reference via GET /api/v1/payments/mobile-app/paystack/{reference}/verify
     if (paymentReference != null && paymentReference.isNotEmpty) {
@@ -208,7 +211,7 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
       );
 
       // Clear the user's cart if immediate settlement is desired
-      if (clearCartOnSuccess) {
+      if (clearCartOnSuccess && !isDirectBuy) {
         await ref.read(cartProvider.notifier).clearCart();
       }
 

@@ -21,13 +21,15 @@ class CheckoutOrderHandler {
     required CheckoutState checkoutState,
     required CheckoutNotifier notifier,
     required Cart cart,
+    bool isDirectBuy = false,
   }) async {
     final isOnline = checkoutState.paymentType == CheckoutPaymentType.paystack ||
         checkoutState.paymentType == CheckoutPaymentType.card;
 
     final res = await notifier.submitOrder(
       cart,
-      clearCartOnSuccess: !isOnline,
+      clearCartOnSuccess: !isOnline && !isDirectBuy,
+      isDirectBuy: isDirectBuy,
     );
     if (res == null || !context.mounted) return;
 
@@ -74,7 +76,9 @@ class CheckoutOrderHandler {
               reference: paymentRef,
             );
             if (ok) {
-              await ref.read(cartProvider.notifier).clearCart();
+              if (!isDirectBuy) {
+                await ref.read(cartProvider.notifier).clearCart();
+              }
               if (context.mounted) {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -88,7 +92,9 @@ class CheckoutOrderHandler {
         return;
       }
 
-      await ref.read(cartProvider.notifier).clearCart();
+      if (!isDirectBuy) {
+        await ref.read(cartProvider.notifier).clearCart();
+      }
     }
 
     if (context.mounted) {

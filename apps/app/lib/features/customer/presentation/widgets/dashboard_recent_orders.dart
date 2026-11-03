@@ -28,9 +28,7 @@ class DashboardRecentOrders extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: AppSpacing.borderRadiusLG,
-        border: Border.all(
-          color: isDark ? Colors.white12 : AppColors.border,
-        ),
+        border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(isDark ? 30 : 6),
@@ -67,7 +65,9 @@ class DashboardRecentOrders extends StatelessWidget {
                     const SizedBox(width: AppSpacing.sm),
                     Text(
                       'Recent Orders',
-                      style: AppTypography.h5.copyWith(fontWeight: FontWeight.bold),
+                      style: AppTypography.h5.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -84,10 +84,7 @@ class DashboardRecentOrders extends StatelessWidget {
               ],
             ),
           ),
-          Divider(
-            height: 1,
-            color: isDark ? Colors.white10 : AppColors.border,
-          ),
+          Divider(height: 1, color: isDark ? Colors.white10 : AppColors.border),
           if (isLoading)
             const Padding(
               padding: EdgeInsets.all(AppSpacing.xl),
@@ -134,10 +131,12 @@ class DashboardRecentOrders extends StatelessWidget {
               ),
               itemBuilder: (context, i) {
                 final order = orders[i];
-                final firstItem =
-                    order.items.isNotEmpty ? order.items.first : null;
-                final formattedDate =
-                    DateFormat('dd MMM yyyy').format(order.date);
+                final firstItem = order.items.isNotEmpty
+                    ? order.items.first
+                    : null;
+                final formattedDate = DateFormat(
+                  'dd MMM yyyy',
+                ).format(order.date);
 
                 return Material(
                   color: Colors.transparent,

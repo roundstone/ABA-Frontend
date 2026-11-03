@@ -16,19 +16,19 @@ class MerchantRemoteRepository implements MerchantRepository {
   MerchantRemoteRepository({
     required this.dio,
     MerchantMockRepository? mockFallback,
-  })  : _mock = mockFallback ?? MerchantMockRepository(),
-        _catalogService = MerchantCatalogRemoteService(
-          dio,
-          mockFallback ?? MerchantMockRepository(),
-        ),
-        _productsService = MerchantProductsRemoteService(
-          dio,
-          mockFallback ?? MerchantMockRepository(),
-        ),
-        _ordersService = MerchantOrdersRemoteService(
-          dio,
-          mockFallback ?? MerchantMockRepository(),
-        );
+  }) : _mock = mockFallback ?? MerchantMockRepository(),
+       _catalogService = MerchantCatalogRemoteService(
+         dio,
+         mockFallback ?? MerchantMockRepository(),
+       ),
+       _productsService = MerchantProductsRemoteService(
+         dio,
+         mockFallback ?? MerchantMockRepository(),
+       ),
+       _ordersService = MerchantOrdersRemoteService(
+         dio,
+         mockFallback ?? MerchantMockRepository(),
+       );
 
   final Dio dio;
   final MerchantMockRepository _mock;
@@ -37,7 +37,9 @@ class MerchantRemoteRepository implements MerchantRepository {
   final MerchantOrdersRemoteService _ordersService;
 
   @override
-  Future<MerchantDashboardMetrics> getDashboardMetrics(String merchantId) async {
+  Future<MerchantDashboardMetrics> getDashboardMetrics(
+    String merchantId,
+  ) async {
     try {
       final response = await dio.get<Map<String, dynamic>>(
         '/api/v1/merchants/$merchantId/dashboard',
@@ -66,7 +68,9 @@ class MerchantRemoteRepository implements MerchantRepository {
       );
     } on DioException catch (e) {
       if (AppConfig.isMockMode) {
-        AppLogger.w('MerchantRemoteRepository.getDashboardMetrics fallback: $e');
+        AppLogger.w(
+          'MerchantRemoteRepository.getDashboardMetrics fallback: $e',
+        );
         return _mock.getDashboardMetrics(merchantId);
       }
       throw ApiError.fromDio(e);
@@ -84,29 +88,26 @@ class MerchantRemoteRepository implements MerchantRepository {
     int? categoryId,
     int? subcategoryId,
     String? stockFilter,
-  }) =>
-      _productsService.getProducts(
-        merchantId,
-        query: query,
-        category: category,
-        categoryId: categoryId,
-        subcategoryId: subcategoryId,
-        stockFilter: stockFilter,
-      );
+  }) => _productsService.getProducts(
+    merchantId,
+    query: query,
+    category: category,
+    categoryId: categoryId,
+    subcategoryId: subcategoryId,
+    stockFilter: stockFilter,
+  );
 
   @override
   Future<MerchantProduct> addProduct(
     String merchantId,
     MerchantProduct product,
-  ) =>
-      _productsService.addProduct(merchantId, product);
+  ) => _productsService.addProduct(merchantId, product);
 
   @override
   Future<MerchantProduct> updateProduct(
     String merchantId,
     MerchantProduct product,
-  ) =>
-      _productsService.updateProduct(merchantId, product);
+  ) => _productsService.updateProduct(merchantId, product);
 
   @override
   Future<void> deleteProduct(String merchantId, String productId) =>
@@ -118,8 +119,7 @@ class MerchantRemoteRepository implements MerchantRepository {
     String productId,
     int adjustment,
     String reason,
-  ) =>
-      _productsService.adjustStock(merchantId, productId, adjustment, reason);
+  ) => _productsService.adjustStock(merchantId, productId, adjustment, reason);
 
   @override
   Future<List<ShopCategory>> getCategories() => _catalogService.getCategories();
@@ -136,8 +136,7 @@ class MerchantRemoteRepository implements MerchantRepository {
     String merchantId, {
     MerchantOrderStatus? status,
     String? query,
-  }) =>
-      _ordersService.getOrders(merchantId, status: status, query: query);
+  }) => _ordersService.getOrders(merchantId, status: status, query: query);
 
   @override
   Future<MerchantOrder> getOrderById(String merchantId, String orderId) =>
@@ -148,13 +147,9 @@ class MerchantRemoteRepository implements MerchantRepository {
     String merchantId,
     String orderId,
     MerchantOrderStatus newStatus,
-  ) =>
-      _ordersService.updateOrderStatus(merchantId, orderId, newStatus);
+  ) => _ordersService.updateOrderStatus(merchantId, orderId, newStatus);
 
   @override
-  Future<MerchantOrder> recordOrder(
-    String merchantId,
-    MerchantOrder order,
-  ) =>
+  Future<MerchantOrder> recordOrder(String merchantId, MerchantOrder order) =>
       _ordersService.recordOrder(merchantId, order);
 }

@@ -123,10 +123,30 @@ class _MoreMenuSheet extends ConsumerWidget {
 
 // ─── Grid tile ───────────────────────────────────────────────────────────
 
-class _MoreMenuTile extends StatelessWidget {
+class _MoreMenuTile extends StatefulWidget {
   const _MoreMenuTile({required this.item, this.parentContext});
   final MoreMenuItem item;
   final BuildContext? parentContext;
+
+  @override
+  State<_MoreMenuTile> createState() => _MoreMenuTileState();
+}
+
+class _MoreMenuTileState extends State<_MoreMenuTile> {
+  bool _tapped = false;
+
+  void _handleTap() {
+    if (_tapped) return;
+    _tapped = true;
+    Navigator.of(context).pop();
+    final target =
+        widget.parentContext ?? rootNavigatorKey.currentContext ?? context;
+    if (widget.item.route != null) {
+      target.push(widget.item.route!);
+    } else if (widget.item.onTap != null) {
+      widget.item.onTap!(target);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,15 +154,7 @@ class _MoreMenuTile extends StatelessWidget {
     final tileBg = isDark ? const Color(0xFF2A2A2A) : Colors.white;
 
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).pop();
-        final target = parentContext ?? rootNavigatorKey.currentContext ?? context;
-        if (item.route != null) {
-          target.push(item.route!);
-        } else if (item.onTap != null) {
-          item.onTap!(target);
-        }
-      },
+      onTap: _handleTap,
       child: Container(
         decoration: BoxDecoration(
           color: tileBg,
@@ -155,20 +167,20 @@ class _MoreMenuTile extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: item.color.withAlpha(isDark ? 40 : 20),
+                color: widget.item.color.withAlpha(isDark ? 40 : 20),
                 borderRadius: AppSpacing.borderRadiusMD,
               ),
               child: Center(
                 child: HugeIcon(
-                  icon: item.icon,
-                  color: item.color,
+                  icon: widget.item.icon,
+                  color: widget.item.color,
                   size: AppSpacing.iconSizeMD,
                 ),
               ),
             ),
             const SizedBox(height: AppSpacing.xs + 2),
             Text(
-              item.label,
+              widget.item.label,
               style: AppTypography.caption.copyWith(
                 fontWeight: FontWeight.w600,
                 color: isDark

@@ -1,11 +1,26 @@
-enum MerchantSort {
-  recommended('Recommended'),
-  rating('Highest Rated'),
-  orders('Most Orders'),
-  newest('Newest First');
+export 'merchant_directory_result.dart';
+export 'merchant_filter_params.dart';
 
-  const MerchantSort(this.label);
-  final String label;
+String _extractString(dynamic value) {
+  if (value == null) return '';
+  if (value is String) return value;
+  if (value is Map) {
+    final url = value['url'];
+    if (url != null) return url.toString();
+    final name = value['name'];
+    if (name != null) return name.toString();
+    final title = value['title'];
+    if (title != null) return title.toString();
+    final address = value['address'];
+    if (address != null) return address.toString();
+  }
+  return value.toString();
+}
+
+String? _extractOptionalString(dynamic value) {
+  if (value == null) return null;
+  final str = _extractString(value);
+  return str.isEmpty ? null : str;
 }
 
 class Merchant {
@@ -76,25 +91,47 @@ class Merchant {
   factory Merchant.fromJson(Map<String, dynamic> json) {
     final rawId = json['id'];
     final idStr = rawId?.toString() ?? '';
-    final businessName = json['business_name'] as String? ??
-        json['businessName'] as String? ??
-        json['name'] as String? ??
-        '';
-    final owner = json['business_owner_name'] as String? ?? json['ownerName'] as String? ?? '';
-    final phone = json['business_owner_phone_number'] as String? ?? json['phone'] as String? ?? '';
-    final email = json['business_owner_email'] as String? ?? json['email'] as String? ?? '';
-    final address = json['business_address'] as String? ?? json['address'] as String? ?? '';
-    final rcTax = json['rc_tax_id'] as String? ?? json['rcTaxId'] as String? ?? json['merchantNo'] as String? ?? '';
-    final bioText = json['bio'] as String? ?? json['description'] as String? ?? '';
+    final businessName = _extractString(
+      json['business_name'] ?? json['businessName'] ?? json['name'],
+    );
+    final owner = _extractString(
+      json['business_owner_name'] ?? json['ownerName'] ?? json['owner'],
+    );
+    final phone = _extractString(
+      json['business_owner_phone_number'] ??
+          json['phone'] ??
+          json['phoneNumber'],
+    );
+    final email = _extractString(
+      json['business_owner_email'] ?? json['email'],
+    );
+    final address = _extractString(
+      json['business_address'] ?? json['address'],
+    );
+    final rcTax = _extractString(
+      json['rc_tax_id'] ??
+          json['rcTaxId'] ??
+          json['rcNumber'] ??
+          json['merchantNo'],
+    );
+    final bioText = _extractString(
+      json['bio'] ?? json['description'],
+    );
     final statusVal = (json['status'] as num?)?.toInt();
-    final verifiedAt = json['verified_at'] != null ? DateTime.tryParse(json['verified_at'].toString()) : null;
-    final isVerified = verifiedAt != null || statusVal == 2 || json['isVerified'] == true;
+    final verifiedAt = json['verified_at'] != null
+        ? DateTime.tryParse(json['verified_at'].toString())
+        : null;
+    final isVerified =
+        verifiedAt != null || statusVal == 2 || json['isVerified'] == true;
     final createdAt = json['createdAt'] != null
         ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
-        : (json['onboardedAt'] != null ? DateTime.tryParse(json['onboardedAt'].toString()) ?? DateTime.now() : DateTime.now());
+        : (json['onboardedAt'] != null
+            ? DateTime.tryParse(json['onboardedAt'].toString()) ??
+                DateTime.now()
+            : DateTime.now());
 
-    String state = json['state'] as String? ?? '';
-    String city = json['city'] as String? ?? '';
+    String state = _extractString(json['state']);
+    String city = _extractString(json['city']);
     if (state.isEmpty && address.isNotEmpty) {
       final parts = address.split(',');
       if (parts.length > 1) {
@@ -105,14 +142,21 @@ class Merchant {
     if (state.isEmpty) state = 'Lagos';
     if (city.isEmpty) city = state;
 
-    final logo = json['logoUrl'] as String? ??
-        json['logo_url'] as String? ??
-        json['logo'] as String? ??
-        '';
-    final banner = json['bannerImage'] as String? ??
-        json['banner_image'] as String? ??
-        json['banner'] as String? ??
-        '';
+    final logo = _extractString(
+      json['logoUrl'] ??
+          json['logo_url'] ??
+          json['logo'] ??
+          json['avatarUrl'] ??
+          json['avatar_url'] ??
+          json['avatar'],
+    );
+    final banner = _extractString(
+      json['bannerImage'] ??
+          json['banner_image'] ??
+          json['bannerUrl'] ??
+          json['banner_url'] ??
+          json['banner'],
+    );
     final rawPc = json['productCount'] ?? json['product_count'];
     final productCount = rawPc is num
         ? rawPc.toInt()
@@ -120,9 +164,13 @@ class Merchant {
 
     return Merchant(
       id: idStr,
-      merchantNo: rcTax.isNotEmpty ? rcTax : (idStr.isNotEmpty ? 'MRC-$idStr' : ''),
+      merchantNo: rcTax.isNotEmpty
+          ? rcTax
+          : (idStr.isNotEmpty ? 'MRC-$idStr' : ''),
       name: businessName,
-      legalName: json['legalName'] as String? ?? businessName,
+      legalName: _extractString(json['legalName']).isNotEmpty
+          ? _extractString(json['legalName'])
+          : businessName,
       logoUrl: logo,
       bannerImage: banner,
       description: bioText,
@@ -132,7 +180,9 @@ class Merchant {
       address: address,
       city: city,
       state: state,
-      category: json['category'] as String? ?? 'General',
+      category: _extractString(json['category']).isNotEmpty
+          ? _extractString(json['category'])
+          : 'General',
       rating: (json['rating'] as num?)?.toDouble() ?? 4.8,
       reviewCount: (json['reviewCount'] as num?)?.toInt() ?? 0,
       ordersCount: (json['ordersCount'] as num?)?.toInt() ?? 0,
@@ -140,14 +190,17 @@ class Merchant {
       isVerified: isVerified,
       isFeatured: json['isFeatured'] as bool? ?? false,
       onboardedAt: createdAt,
-      userId: (json['user_id'] as num?)?.toInt() ?? (json['userId'] as num?)?.toInt(),
-      website: json['website'] as String?,
-      rcTaxId: rcTax,
+      userId: (json['user_id'] as num?)?.toInt() ??
+          (json['userId'] as num?)?.toInt(),
+      website: _extractOptionalString(json['website']),
+      rcTaxId: rcTax.isNotEmpty ? rcTax : null,
       merchantType: (json['merchant_type'] as num?)?.toInt(),
       status: statusVal,
-      bio: bioText,
+      bio: bioText.isNotEmpty ? bioText : null,
       verifiedAt: verifiedAt,
-      user: json['user'] is Map ? Map<String, dynamic>.from(json['user'] as Map) : null,
+      user: json['user'] is Map
+          ? Map<String, dynamic>.from(json['user'] as Map)
+          : null,
     );
   }
 
@@ -181,63 +234,4 @@ class Merchant {
     if (verifiedAt != null) 'verified_at': verifiedAt!.toIso8601String(),
     if (user != null) 'user': user,
   };
-}
-
-class MerchantFilterParams {
-  const MerchantFilterParams({
-    this.query = '',
-    this.category = '',
-    this.state = '',
-    this.minRating,
-    this.verifiedOnly = false,
-    this.sort = MerchantSort.recommended,
-  });
-
-  final String query;
-  final String category;
-  final String state;
-  final double? minRating;
-  final bool verifiedOnly;
-  final MerchantSort sort;
-
-  bool get hasActiveFilters =>
-      query.isNotEmpty ||
-      category.isNotEmpty ||
-      state.isNotEmpty ||
-      minRating != null ||
-      verifiedOnly ||
-      sort != MerchantSort.recommended;
-
-  MerchantFilterParams copyWith({
-    String? query,
-    String? category,
-    String? state,
-    double? minRating,
-    bool clearRating = false,
-    bool? verifiedOnly,
-    MerchantSort? sort,
-  }) {
-    return MerchantFilterParams(
-      query: query ?? this.query,
-      category: category ?? this.category,
-      state: state ?? this.state,
-      minRating: clearRating ? null : (minRating ?? this.minRating),
-      verifiedOnly: verifiedOnly ?? this.verifiedOnly,
-      sort: sort ?? this.sort,
-    );
-  }
-}
-
-class MerchantDirectoryResult {
-  const MerchantDirectoryResult({
-    required this.merchants,
-    required this.totalCount,
-    required this.availableStates,
-    required this.availableCategories,
-  });
-
-  final List<Merchant> merchants;
-  final int totalCount;
-  final List<String> availableStates;
-  final List<String> availableCategories;
 }

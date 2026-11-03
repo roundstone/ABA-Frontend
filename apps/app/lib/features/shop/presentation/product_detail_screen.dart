@@ -7,11 +7,13 @@ import '../../../core/router/safe_navigation.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../application/shop_providers.dart';
 import '../domain/shop_entities.dart';
+import '../../wishlist/application/wishlist_providers.dart';
 import '../../wishlist/presentation/widgets/wishlist_button.dart';
-import 'widgets/product_reviews_section.dart';
+import 'widgets/about_seller_tab.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   const ProductDetailScreen({
@@ -186,6 +188,7 @@ class _ProductDetailBody extends ConsumerWidget {
     final cartNotifier = ref.read(cartProvider.notifier);
     final cart = ref.watch(cartProvider).valueOrNull ?? const Cart();
     final inCart = cart.containsProduct(product);
+    final isWishlisted = ref.watch(isProductInWishlistProvider(product.id));
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -496,53 +499,81 @@ class _ProductDetailBody extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.xl),
 
                   // Actions
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: FilledButton(
-                      onPressed: () {},
-                      style: FilledButton.styleFrom(
-                        backgroundColor: isDark
-                            ? AppColors.secondary
-                            : cs.primary,
-                        foregroundColor: isDark ? cs.onPrimary : Colors.white,
-                      ),
-                      child: const Text(
-                        'Buy It Now',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
+                  AppButton.primary(
+                    label: 'Buy It Now',
+                    onPressed: product.inStock
+                        ? () {
+                            int? variantId;
+                            if (product.variants.isNotEmpty) {
+                              for (final v in product.variants) {
+                                final matchesColor = selectedColor == null ||
+                                    v.color == selectedColor;
+                                final matchesSize = selectedSize == null ||
+                                    v.size == selectedSize;
+                                if (matchesColor && matchesSize) {
+                                  variantId = v.id;
+                                  break;
+                                }
+                              }
+                            }
+                            final directItem = CartItem(
+                              product: product,
+                              quantity: quantity,
+                              selectedColor: selectedColor,
+                              selectedSize: selectedSize,
+                              productVariantId: variantId,
+                            );
+                            final directCart = Cart(items: [directItem]);
+                            context.push('/checkout', extra: directCart);
+                          }
+                        : null,
+                    backgroundColor: isDark ? AppColors.secondary : cs.primary,
+                    foregroundColor: isDark ? cs.onPrimary : Colors.white,
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: OutlinedButton.icon(
-                      onPressed: () {},
-                      icon: HugeIcon(
-                        icon: HugeIcons.strokeRoundedFavourite,
-                        size: 20,
-                        color: isDark ? AppColors.secondary : cs.primary,
-                      ),
-                      label: Text(
-                        'Add to Watchlist',
-                        style: TextStyle(
-                          color: isDark ? AppColors.secondary : cs.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(
-                          color: (isDark ? AppColors.secondary : cs.primary)
-                              .withAlpha(50),
-                        ),
-                        backgroundColor:
-                            (isDark ? AppColors.secondary : cs.primary)
-                                .withAlpha(10),
-                      ),
+                  AppButton.outlined(
+                    label: isWishlisted
+                        ? 'Saved in Watchlist'
+                        : 'Add to Watchlist',
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedFavourite,
+                      size: 20,
+                      color: isWishlisted
+                          ? AppColors.error
+                          : (isDark ? AppColors.secondary : cs.primary),
+                    ),
+                    onPressed: () async {
+                      try {
+                        final nowAdded = await ref
+                            .read(wishlistNotifierProvider.notifier)
+                            .toggleWishlist(product);
+                        if (context.mounted) {
+                          AppSnackbar.show(
+                            context,
+                            message: nowAdded
+                                ? '${product.name} saved to watchlist'
+                                : '${product.name} removed from watchlist',
+                            type: nowAdded
+                                ? AppSnackbarType.success
+                                : AppSnackbarType.info,
+                          );
+                        }
+                      } catch (_) {
+                        if (context.mounted) {
+                          AppSnackbar.error(
+                            context,
+                            'Failed to update watchlist. Please try again.',
+                          );
+                        }
+                      }
+                    },
+                    foregroundColor: isDark ? AppColors.secondary : cs.primary,
+                    backgroundColor:
+                        (isDark ? AppColors.secondary : cs.primary)
+                            .withAlpha(10),
+                    borderSide: BorderSide(
+                      color: (isDark ? AppColors.secondary : cs.primary)
+                          .withAlpha(50),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
@@ -956,10 +987,11 @@ class _ProductDetailBody extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  _AboutSellerTab(
+                  AboutSellerTab(
                     key: aboutSellerKey,
                     reviewsKey: reviewsKey,
                     merchantName: product.brand,
+                    merchantId: (product.merchantId ?? product.vendorId)?.toString(),
                     productId: product.id,
                   ),
                 ],
@@ -1413,331 +1445,6 @@ class _RelatedProductsRail extends ConsumerWidget {
         );
       },
       orElse: () => const SizedBox.shrink(),
-    );
-  }
-}
-
-// ─── About Seller Tab ───────────────────────────────────────────────────────
-
-class _AboutSellerTab extends StatelessWidget {
-  const _AboutSellerTab({
-    super.key,
-    required this.merchantName,
-    required this.productId,
-    this.reviewsKey,
-  });
-
-  final String merchantName;
-  final String productId;
-  final Key? reviewsKey;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color = isDark ? AppColors.secondary : cs.primary;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Seller Info
-        Row(
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: cs.surfaceContainerHighest,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Center(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedStore01,
-                  size: 28,
-                  color: cs.onSurfaceVariant,
-                ),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    merchantName,
-                    style: AppTypography.h6.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '99.9% positive feedback • 5.7K items sold',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: cs.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.md),
-
-        // Joined Date
-        Row(
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedCalendar01,
-              size: 16,
-              color: cs.onSurfaceVariant,
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            Text(
-              'Joined Oct 2025',
-              style: AppTypography.bodySmall.copyWith(
-                color: cs.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.lg),
-
-        // Actions
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            onPressed: () {},
-            style: FilledButton.styleFrom(
-              backgroundColor: color,
-              foregroundColor: isDark ? cs.onPrimary : Colors.white,
-            ),
-            child: const Text('Visit store'),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () {},
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedMessage01,
-              size: 18,
-              color: color,
-            ),
-            label: Text('Message seller', style: TextStyle(color: color)),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: color.withAlpha(50)),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () {},
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedFavourite,
-              size: 18,
-              color: color,
-            ),
-            label: Text('Save seller', style: TextStyle(color: color)),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: color.withAlpha(50)),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-        const Divider(),
-        const SizedBox(height: AppSpacing.xl),
-
-        // Detailed seller ratings
-        Text(
-          'Detailed seller ratings',
-          style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        const _SellerRatingBar(
-          label: 'Accurate description',
-          score: 4.6,
-          percentage: 92,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        const _SellerRatingBar(
-          label: 'Reasonable shipping cost',
-          score: 4.4,
-          percentage: 88,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        const _SellerRatingBar(
-          label: 'Shipping speed',
-          score: 4.9,
-          percentage: 98,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        const _SellerRatingBar(
-          label: 'Communication',
-          score: 4.9,
-          percentage: 98,
-        ),
-
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          'Average for the last 12 months',
-          style: AppTypography.label.copyWith(color: cs.onSurfaceVariant),
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-        const Divider(),
-        const SizedBox(height: AppSpacing.xl),
-
-        // Popular categories
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              'Popular categories',
-              style: AppTypography.bodyMedium.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Text(
-              'See all',
-              style: AppTypography.label.copyWith(
-                color: color,
-                decoration: TextDecoration.underline,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Wrap(
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xs,
-          children: [
-            Chip(
-              label: const Text('Consumer Electronics'),
-              labelStyle: AppTypography.label,
-              backgroundColor: cs.surfaceContainerHighest.withAlpha(100),
-              side: const BorderSide(color: AppColors.border),
-            ),
-            Chip(
-              label: const Text('Fashion & Apparel'),
-              labelStyle: AppTypography.label,
-              backgroundColor: cs.surfaceContainerHighest.withAlpha(100),
-              side: const BorderSide(color: AppColors.border),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-        const Divider(),
-        const SizedBox(height: AppSpacing.xl),
-
-        // Referral Network
-        Text(
-          'Referral Network',
-          style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: color.withAlpha(20),
-            borderRadius: AppSpacing.borderRadiusLG,
-            border: Border.all(color: color.withAlpha(50)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'This merchant is part of the Aba Online referral network. You can earn commissions by referring their products!',
-                style: AppTypography.bodySmall.copyWith(color: color),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: color,
-                    side: BorderSide(color: color.withAlpha(100)),
-                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                  ),
-                  child: const Text('Join their network'),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-        const Divider(),
-        const SizedBox(height: AppSpacing.xl),
-        ProductReviewsSection(key: reviewsKey, productId: productId),
-      ],
-    );
-  }
-}
-
-class _SellerRatingBar extends StatelessWidget {
-  const _SellerRatingBar({
-    required this.label,
-    required this.score,
-    required this.percentage,
-  });
-
-  final String label;
-  final double score;
-  final int percentage;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: AppTypography.bodySmall.copyWith(color: cs.onSurfaceVariant),
-          ),
-        ),
-        Row(
-          children: [
-            SizedBox(
-              width: 100,
-              height: 4,
-              child: ClipRRect(
-                borderRadius: AppSpacing.borderRadiusXS,
-                child: LinearProgressIndicator(
-                  value: percentage / 100,
-                  backgroundColor: cs.surfaceContainerHighest,
-                  valueColor: AlwaysStoppedAnimation<Color>(cs.onSurface),
-                ),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            SizedBox(
-              width: 24,
-              child: Text(
-                score.toStringAsFixed(1),
-                style: AppTypography.bodySmall.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: cs.onSurface,
-                ),
-                textAlign: TextAlign.right,
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }
