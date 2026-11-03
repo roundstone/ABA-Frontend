@@ -9,11 +9,13 @@ export function OrderItemsTab({ order }: OrderItemsTabProps) {
   return (
     <div className="bg-surface rounded-xl border border-border overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left whitespace-nowrap min-w-[800px]">
+        <table className="w-full text-sm text-left whitespace-nowrap min-w-[850px]">
           <thead className="bg-surface-2 text-text-muted">
             <tr>
               <th className="px-6 py-3 font-medium">Product / SKU</th>
-              <th className="px-6 py-3 font-medium text-center">Qty</th>
+              <th className="px-4 py-3 font-medium text-center">Qty</th>
+              <th className="px-4 py-3 font-medium text-center">Fulfilled</th>
+              <th className="px-4 py-3 font-medium text-center">Returned</th>
               <th className="px-6 py-3 font-medium text-right">Unit Price</th>
               <th className="px-6 py-3 font-medium text-right">Discount</th>
               <th className="px-6 py-3 font-medium text-right">Tax</th>
@@ -22,28 +24,57 @@ export function OrderItemsTab({ order }: OrderItemsTabProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {order.lines.map(line => (
-              <tr key={line.id}>
-                <td className="px-6 py-4">
-                  <p className="font-medium text-text">{line.productName}</p>
-                  <p className="text-xs text-text-muted font-mono mt-0.5">{line.sku}</p>
-                </td>
-                <td className="px-6 py-4 text-center font-medium">{line.quantity}</td>
-                <td className="px-6 py-4 text-right"><AmountText amountInKobo={line.unitPrice} /></td>
-                <td className="px-6 py-4 text-right"><AmountText amountInKobo={line.discount} /></td>
-                <td className="px-6 py-4 text-right"><AmountText amountInKobo={line.tax} /></td>
-                <td className="px-6 py-4 text-right font-medium"><AmountText amountInKobo={line.lineTotal} /></td>
-                <td className="px-6 py-4 text-center">
-                  <span className={`px-2 py-0.5 rounded text-xs font-medium border ${
-                    line.status === 'Fulfilled' ? 'bg-success/10 text-success border-success/20' :
-                    line.status === 'Returned' ? 'bg-error/10 text-error border-error/20' :
-                    'bg-surface-2 text-text-muted border-border'
-                  }`}>
-                    {line.status || 'Pending'}
-                  </span>
-                </td>
-              </tr>
-            ))}
+            {order.lines.map((line) => {
+              const lineStatus =
+                line.fulfilledQty >= line.quantity
+                  ? 'Fulfilled'
+                  : line.fulfilledQty > 0
+                  ? 'Partially Fulfilled'
+                  : line.status || 'Pending';
+
+              return (
+                <tr key={line.id}>
+                  <td className="px-6 py-4">
+                    <p className="font-medium text-text">{line.productName}</p>
+                    <p className="text-xs text-text-muted font-mono mt-0.5">{line.sku}</p>
+                  </td>
+                  <td className="px-4 py-4 text-center font-medium">{line.quantity}</td>
+                  <td className="px-4 py-4 text-center font-medium text-success">
+                    {line.fulfilledQty}
+                  </td>
+                  <td className="px-4 py-4 text-center text-text-muted">
+                    {line.returnedQty ?? 0}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <AmountText amountInKobo={line.unitPrice} />
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <AmountText amountInKobo={line.discount} />
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <AmountText amountInKobo={line.tax} />
+                  </td>
+                  <td className="px-6 py-4 text-right font-medium">
+                    <AmountText amountInKobo={line.lineTotal} />
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span
+                      className={`px-2 py-0.5 rounded text-xs font-medium border ${
+                        lineStatus === 'Fulfilled'
+                          ? 'bg-success/10 text-success border-success/20'
+                          : lineStatus === 'Partially Fulfilled'
+                          ? 'bg-warning-bg text-warning-dark border-warning-border'
+                          : lineStatus === 'Returned'
+                          ? 'bg-error/10 text-error border-error/20'
+                          : 'bg-surface-2 text-text-muted border-border'
+                      }`}
+                    >
+                      {lineStatus}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

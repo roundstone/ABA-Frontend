@@ -10,6 +10,7 @@ import { KpiCard } from '@/components/patterns/KpiCard';
 import { AmountText } from '@/components/patterns/AmountText';
 import { getProductOverview, getProducts, ProductOverview } from '@/features/products/api/products.api';
 import { Product } from '@/features/products/types';
+import { AdjustStockDrawer } from '@/features/inventory/components/AdjustStockDrawer';
 import { toast } from 'sonner';
 
 export default function ProductsListPage() {
@@ -17,6 +18,7 @@ export default function ProductsListPage() {
   const [overview, setOverview] = useState<ProductOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [selectedProductForAdjust, setSelectedProductForAdjust] = useState<Product | null>(null);
 
   const fetchProducts = async () => {
     setIsLoading(true);
@@ -27,7 +29,7 @@ export default function ProductsListPage() {
       ]);
       setProducts(productsResponse.data);
       setOverview(overviewResponse);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load products');
     } finally {
       setIsLoading(false);
@@ -140,7 +142,13 @@ export default function ProductsListPage() {
         const p = info.row.original as Product;
         return (
           <div className="flex justify-end gap-1">
-            <Button variant="ghost" size="sm">Edit</Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedProductForAdjust(p)}
+            >
+              Adjust
+            </Button>
             <Link href={`/erp/products/${p.id}`}>
               <Button variant="ghost" size="sm">View</Button>
             </Link>
@@ -204,6 +212,15 @@ export default function ProductsListPage() {
           emptyMessage="No products found."
         />
       </div>
+
+      {selectedProductForAdjust && (
+        <AdjustStockDrawer
+          open={!!selectedProductForAdjust}
+          onOpenChange={(open) => !open && setSelectedProductForAdjust(null)}
+          product={selectedProductForAdjust}
+          onSuccess={fetchProducts}
+        />
+      )}
     </div>
   );
 }

@@ -16,11 +16,23 @@ export const createTransferSchema = z.object({
 
 export type CreateTransferInput = z.infer<typeof createTransferSchema>;
 
-
 export const createAdjustmentSchema = z.object({
   locationId: z.string().min(1, 'Warehouse is required'),
   type: z.enum(['Addition', 'Deduction']),
-  reason: z.enum(['Damaged', 'Found', 'Expired', 'Written off', 'Stock count correction', 'Other']),
+  reason: z.enum([
+    'Damage',
+    'Damaged',
+    'Expiry',
+    'Expired',
+    'Theft/Loss',
+    'Found stock',
+    'Found',
+    'Opening balance',
+    'Written off',
+    'Stock count correction',
+    'Count correction',
+    'Other'
+  ]),
   notes: z.string().optional(),
   items: z.array(z.object({
     productId: z.string().min(1, 'Product is required'),
@@ -29,3 +41,26 @@ export const createAdjustmentSchema = z.object({
 });
 
 export type CreateAdjustmentInput = z.infer<typeof createAdjustmentSchema>;
+
+export const quickAdjustSchema = z.object({
+  productId: z.string().min(1, 'Product is required'),
+  variantId: z.string().optional(),
+  locationId: z.string().min(1, 'Warehouse location is required'),
+  mode: z.enum(['delta', 'absolute']),
+  deltaQty: z.coerce.number(),
+  newQty: z.coerce.number().min(0, 'Target quantity cannot be negative'),
+  reason: z.enum([
+    'Damage',
+    'Expiry',
+    'Theft/Loss',
+    'Count correction',
+    'Found stock',
+    'Opening balance',
+    'Other',
+  ]),
+  unitCost: z.coerce.number().min(0, 'Unit cost cannot be negative'),
+  date: z.string().min(1, 'Date is required'),
+  notes: z.string().optional(),
+});
+
+export type QuickAdjustInput = z.infer<typeof quickAdjustSchema>;

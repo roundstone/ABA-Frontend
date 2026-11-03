@@ -14,6 +14,8 @@ import { OrderPaymentsTab } from '@/features/sales/components/OrderPaymentsTab';
 import { OrderFulfilmentTab } from '@/features/sales/components/OrderFulfilmentTab';
 import { OrderReturnsTab } from '@/features/sales/components/OrderReturnsTab';
 import { OrderTimelineTab } from '@/features/sales/components/OrderTimelineTab';
+import { FulfilOrderDrawer } from '@/features/sales/components/FulfilOrderDrawer';
+
 const TABS = ['Overview', 'Items', 'Payments', 'Fulfilment', 'Returns', 'Timeline'];
 
 export default function OrderDetailPage() {
@@ -24,6 +26,7 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Overview');
+  const [isFulfilOpen, setIsFulfilOpen] = useState(false);
 
   useEffect(() => {
     getOrderById(id)
@@ -34,6 +37,10 @@ export default function OrderDetailPage() {
       })
       .finally(() => setIsLoading(false));
   }, [id, router]);
+
+  const refreshOrder = () => {
+    getOrderById(id).then(setOrder).catch(() => {});
+  };
 
   if (isLoading) return <div className="p-8 text-center text-text-muted">Loading Order...</div>;
   if (!order) return null;
@@ -61,7 +68,13 @@ export default function OrderDetailPage() {
         <div className="flex flex-wrap gap-2">
           <Button variant="outline">Print Invoice</Button>
           <Button variant="outline">Record Payment</Button>
-          <Button>Fulfil Order</Button>
+          <Button
+            onClick={() => setIsFulfilOpen(true)}
+            disabled={order.fulfilmentStatus === 'Fulfilled' || order.status === 'Cancelled'}
+            variant={order.fulfilmentStatus === 'Fulfilled' ? 'outline' : 'primary'}
+          >
+            {order.fulfilmentStatus === 'Fulfilled' ? 'Fulfilled' : 'Fulfil Order'}
+          </Button>
         </div>
       </div>
 
@@ -131,10 +144,19 @@ export default function OrderDetailPage() {
         {activeTab === 'Overview' && <OrderOverviewTab order={order} />}
         {activeTab === 'Items' && <OrderItemsTab order={order} />}
         {activeTab === 'Payments' && <OrderPaymentsTab order={order} />}
-        {activeTab === 'Fulfilment' && <OrderFulfilmentTab order={order} />}
+        {activeTab === 'Fulfilment' && (
+          <OrderFulfilmentTab order={order} onFulfil={() => setIsFulfilOpen(true)} />
+        )}
         {activeTab === 'Returns' && <OrderReturnsTab order={order} />}
         {activeTab === 'Timeline' && <OrderTimelineTab order={order} />}
       </div>
+
+      <FulfilOrderDrawer
+        open={isFulfilOpen}
+        onOpenChange={setIsFulfilOpen}
+        order={order}
+        onSuccess={refreshOrder}
+      />
 
     </div>
   );

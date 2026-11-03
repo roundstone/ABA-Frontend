@@ -9,19 +9,31 @@ import { Input } from '@/components/ui/input';
 import { AmountText } from '@/components/patterns/AmountText';
 import { getStockLevels } from '@/features/inventory/api/inventory.api';
 import { StockLevel } from '@/features/inventory/types';
+import { AdjustStockDrawer } from '@/features/inventory/components/AdjustStockDrawer';
 import { toast } from 'sonner';
+
+interface ProductForAdjust {
+  id: string;
+  name: string;
+  sku: string;
+  categoryName: string;
+  unitOfMeasure: string;
+  price: number;
+  totalStock: number;
+}
 
 export default function StockLevelsPage() {
   const [stocks, setStocks] = useState<StockLevel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<ProductForAdjust | null>(null);
 
   const fetchStock = async () => {
     setIsLoading(true);
     try {
       const data = await getStockLevels();
       setStocks(data);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load stock levels');
     } finally {
       setIsLoading(false);
@@ -32,8 +44,8 @@ export default function StockLevelsPage() {
     fetchStock();
   }, []);
 
-  const filtered = stocks.filter(s => 
-    s.productName.toLowerCase().includes(search.toLowerCase()) || 
+  const filtered = stocks.filter((s) =>
+    s.productName.toLowerCase().includes(search.toLowerCase()) ||
     s.sku.toLowerCase().includes(search.toLowerCase()) ||
     s.locationName.toLowerCase().includes(search.toLowerCase())
   );
@@ -115,10 +127,30 @@ export default function StockLevelsPage() {
       id: 'actions',
       header: '',
       cell: (info: any) => {
+        const s = info.row.original as StockLevel;
         return (
           <div className="flex justify-end gap-1">
-            <Button variant="ghost" size="sm" className="text-xs">Adjust</Button>
-            <Button variant="ghost" size="sm" className="text-xs">Movements</Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+              onClick={() =>
+                setSelectedProduct({
+                  id: s.productId,
+                  name: s.productName,
+                  sku: s.sku,
+                  categoryName: s.category,
+                  unitOfMeasure: 'unit',
+                  price: s.unitCost,
+                  totalStock: s.onHand,
+                })
+              }
+            >
+              Adjust
+            </Button>
+            <Link href="/erp/inventory/movements">
+              <Button variant="ghost" size="sm" className="text-xs">Movements</Button>
+            </Link>
           </div>
         );
       }
@@ -161,6 +193,15 @@ export default function StockLevelsPage() {
           emptyMessage="No stock records found."
         />
       </div>
+
+      {selectedProduct && (
+        <AdjustStockDrawer
+          open={!!selectedProduct}
+          onOpenChange={(open) => !open && setSelectedProduct(null)}
+          product={selectedProduct}
+          onSuccess={fetchStock}
+        />
+      )}
     </div>
   );
 }

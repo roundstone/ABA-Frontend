@@ -18,6 +18,28 @@ export interface OrderLine {
   status?: string;
 }
 
+export interface FulfilmentRecordItem {
+  lineId: string;
+  productId: string;
+  productName: string;
+  sku: string;
+  quantity: number;
+}
+
+export interface FulfilmentRecord {
+  id: string;
+  fulfilmentNo: string;
+  orderId: string;
+  createdAt: string;
+  warehouseId: string;
+  warehouseName: string;
+  packedBy: string;
+  carrier?: string;
+  trackingNumber?: string;
+  notes?: string;
+  items: FulfilmentRecordItem[];
+}
+
 export interface Order {
   id: string;
   orderNumber: string;
@@ -36,6 +58,7 @@ export interface Order {
   fulfilmentStatus: FulfilmentStatus;
   
   lines: OrderLine[];
+  fulfilments?: FulfilmentRecord[];
   
   subtotal: number;
   discountTotal: number;
@@ -55,4 +78,21 @@ export interface Order {
   notes?: string;
   
   referrerId?: string; // Links to commission
+}
+
+export interface FulfilOrderLineInput {
+  lineId: string;
+  productId: string;
+  quantityToFulfil: number;
+}
+
+export interface FulfilOrderInput {
+  orderId: string;
+  warehouseId: string;
+  packedBy: string;
+  date?: string;
+  carrier?: string;
+  trackingNumber?: string;
+  notes?: string;
+  items: FulfilOrderLineInput[];
 }

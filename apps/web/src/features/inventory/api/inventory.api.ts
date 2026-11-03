@@ -1,137 +1,183 @@
-import { StockLevel, StockMovement, Warehouse } from '../types';
+import { API_MODE, fetchApi } from '@/lib/api';
+import { mockShopProducts } from '@/features/shop/mocks';
+import {
+  AdjustStockResult,
+  QuickAdjustParams,
+  StockLevel,
+  StockMovement,
+  Warehouse,
+} from '../types';
+import { MOCK_WAREHOUSES, MOCK_STOCK_LEVELS, MOCK_MOVEMENTS } from '../mocks';
 
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
-
-const MOCK_WAREHOUSES: Warehouse[] = [
-  { id: 'wh-1', name: 'Central Warehouse (Ikeja)', type: 'Central', address: 'Plot 4, Industrial Estate, Ikeja', isActive: true },
-  { id: 'wh-2', name: 'Production Floor A', type: 'Production', address: 'Plot 4, Industrial Estate, Ikeja', isActive: true },
-  { id: 'wh-3', name: 'Ikeja Flagship Store', type: 'Shop', address: '123 Retail Avenue, Ikeja', isActive: true },
-  { id: 'wh-4', name: 'Quarantine Zone', type: 'Quarantine', address: 'Plot 4, Industrial Estate, Ikeja', isActive: true },
-];
-
-const MOCK_STOCK_LEVELS: StockLevel[] = [
-  {
-    id: 'stock-1',
-    productId: 'prod-1',
-    productName: 'Premium Cotton T-Shirt',
-    sku: 'APP-TS-001',
-    category: 'Apparel',
-    type: 'Finished good',
-    locationId: 'wh-1',
-    locationName: 'Central Warehouse (Ikeja)',
-    onHand: 1500,
-    reserved: 200,
-    available: 1300,
-    inTransit: 0,
-    onOrder: 500,
-    reorderLevel: 500,
-    unitCost: 800000, // 8,000 NGN
-    totalValue: 1200000000, // 12m NGN
-    status: 'In Stock'
-  },
-  {
-    id: 'stock-2',
-    productId: 'prod-2',
-    productName: 'Raw Cotton 100%',
-    sku: 'RAW-COT-01',
-    category: 'Fabric',
-    type: 'Raw material',
-    locationId: 'wh-1',
-    locationName: 'Central Warehouse (Ikeja)',
-    onHand: 40,
-    reserved: 10,
-    available: 30,
-    inTransit: 100,
-    onOrder: 200,
-    reorderLevel: 100,
-    unitCost: 150000, // 1,500 NGN per kg
-    totalValue: 6000000,
-    status: 'Low Stock'
-  },
-  {
-    id: 'stock-3',
-    productId: 'prod-1',
-    productName: 'Premium Cotton T-Shirt',
-    sku: 'APP-TS-001',
-    category: 'Apparel',
-    type: 'Finished good',
-    locationId: 'wh-3',
-    locationName: 'Ikeja Flagship Store',
-    onHand: 0,
-    reserved: 0,
-    available: 0,
-    inTransit: 50,
-    onOrder: 0,
-    reorderLevel: 20,
-    unitCost: 800000,
-    totalValue: 0,
-    status: 'Out of Stock'
-  }
-];
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 export const getStockLevels = async (): Promise<StockLevel[]> => {
-  await delay(800);
+  await delay(400);
   return MOCK_STOCK_LEVELS;
 };
 
 export const getWarehouses = async (): Promise<Warehouse[]> => {
-  await delay(500);
+  await delay(250);
   return MOCK_WAREHOUSES;
 };
 
-const MOCK_MOVEMENTS: StockMovement[] = [
-  {
-    id: 'mov-1',
-    movementNo: 'TRF-0010',
-    date: '2026-09-30T10:30:00Z',
-    type: 'transfer_out',
-    productId: 'prod-1',
-    productName: 'Premium Cotton T-Shirt',
-    fromLocationId: 'wh-1',
-    toLocationId: 'wh-3',
-    quantity: -50,
-    unitCost: 800000,
-    totalValue: -40000000,
-    balanceAfter: 1500,
-    sourceDocument: { type: 'Transfer', id: 'trf-1', ref: 'TRF-1042' },
-    userId: 'user-1',
-    userName: 'Admin User'
-  },
-  {
-    id: 'mov-2',
-    movementNo: 'GRN-0310',
-    date: '2026-09-29T14:15:00Z',
-    type: 'receipt',
-    productId: 'prod-2',
-    productName: 'Raw Cotton 100%',
-    toLocationId: 'wh-1',
-    quantity: 40,
-    unitCost: 150000,
-    totalValue: 6000000,
-    balanceAfter: 40,
-    sourceDocument: { type: 'PO', id: 'po-1', ref: 'PO-2041' },
-    userId: 'user-2',
-    userName: 'Warehouse Manager'
-  },
-  {
-    id: 'mov-3',
-    movementNo: 'ADJ-004',
-    date: '2026-09-28T09:00:00Z',
-    type: 'adjustment_down',
-    productId: 'prod-1',
-    productName: 'Premium Cotton T-Shirt',
-    fromLocationId: 'wh-1',
-    quantity: -5,
-    unitCost: 800000,
-    totalValue: -4000000,
-    balanceAfter: 1550,
-    sourceDocument: { type: 'Adjustment', id: 'adj-1', ref: 'ADJ-109' },
-    userId: 'user-2',
-    userName: 'Warehouse Manager'
-  }
-];
-
 export const getStockMovements = async (): Promise<StockMovement[]> => {
-  await delay(800);
+  await delay(400);
   return MOCK_MOVEMENTS;
+};
+
+export const getStockByProductId = async (productId: string): Promise<StockLevel[]> => {
+  await delay(300);
+  const found = MOCK_STOCK_LEVELS.filter((s) => s.productId === productId);
+  if (found.length > 0) return found;
+
+  const product = mockShopProducts.find((p) => p.id === productId);
+  if (!product) return [];
+
+  return [
+    {
+      id: `stock-${productId}-wh1`,
+      productId: product.id,
+      productName: product.name,
+      sku: product.sku,
+      category: product.categoryName,
+      type: product.type === 'Raw material' ? 'Raw material' : 'Finished good',
+      locationId: 'wh-1',
+      locationName: 'Central Warehouse (Ikeja)',
+      onHand: product.totalStock,
+      reserved: 0,
+      available: product.totalStock,
+      inTransit: 0,
+      onOrder: 0,
+      reorderLevel: product.reorderLevel,
+      unitCost: product.price,
+      totalValue: product.totalStock * product.price,
+      status: product.totalStock === 0 ? 'Out of Stock' : product.totalStock <= product.reorderLevel ? 'Low Stock' : 'In Stock',
+    },
+  ];
+};
+
+export const getMovementsByProductId = async (productId: string): Promise<StockMovement[]> => {
+  await delay(300);
+  return MOCK_MOVEMENTS.filter((m) => m.productId === productId);
+};
+
+export const adjustProductStock = async (params: QuickAdjustParams): Promise<AdjustStockResult> => {
+  if (API_MODE !== 'mock') {
+    return fetchApi<AdjustStockResult>('/api/v1/inventory/adjustments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+  }
+
+  await delay(600);
+
+  const product = mockShopProducts.find((p) => p.id === params.productId);
+  const currentTotal = product?.totalStock ?? 0;
+  let currentTargetStock = currentTotal;
+
+  if (params.variantId && product?.variants?.length) {
+    const variant = product.variants.find((v) => v.id === params.variantId);
+    if (variant) currentTargetStock = variant.stockCount ?? 0;
+  }
+
+  const delta = params.mode === 'absolute' ? params.newQty - currentTargetStock : params.deltaQty;
+  const newTargetStock = Math.max(0, currentTargetStock + delta);
+  const valueImpact = delta * params.unitCost;
+
+  // Threshold: adjustments with value exceeding 5,000,000 kobo (NGN 50,000) require approval
+  const APPROVAL_THRESHOLD = 5000000;
+  const status = Math.abs(valueImpact) > APPROVAL_THRESHOLD ? 'Awaiting Approval' : 'Posted';
+
+  let newTotalStock = currentTotal;
+
+  if (status === 'Posted' && product) {
+    if (params.variantId && product.variants?.length) {
+      const variant = product.variants.find((v) => v.id === params.variantId);
+      if (variant) {
+        variant.stockCount = newTargetStock;
+      }
+      product.totalStock = product.variants.reduce((acc, v) => acc + (v.stockCount ?? 0), 0);
+      newTotalStock = product.totalStock;
+    } else {
+      product.totalStock = newTargetStock;
+      newTotalStock = newTargetStock;
+    }
+
+    const warehouse = MOCK_WAREHOUSES.find((w) => w.id === params.locationId);
+    const existingStock = MOCK_STOCK_LEVELS.find(
+      (s) => s.productId === params.productId && s.locationId === params.locationId,
+    );
+
+    if (existingStock) {
+      existingStock.onHand = Math.max(0, existingStock.onHand + delta);
+      existingStock.available = Math.max(0, existingStock.onHand - existingStock.reserved);
+      existingStock.totalValue = existingStock.onHand * existingStock.unitCost;
+      existingStock.status = existingStock.onHand === 0 ? 'Out of Stock' : existingStock.onHand <= existingStock.reorderLevel ? 'Low Stock' : 'In Stock';
+    } else if (warehouse) {
+      MOCK_STOCK_LEVELS.unshift({
+        id: `stock-${Date.now()}`,
+        productId: product.id,
+        productName: product.name,
+        sku: product.sku,
+        category: product.categoryName,
+        type: product.type === 'Raw material' ? 'Raw material' : 'Finished good',
+        locationId: warehouse.id,
+        locationName: warehouse.name,
+        onHand: Math.max(0, delta),
+        reserved: 0,
+        available: Math.max(0, delta),
+        inTransit: 0,
+        onOrder: 0,
+        reorderLevel: product.reorderLevel,
+        unitCost: params.unitCost,
+        totalValue: Math.max(0, delta) * params.unitCost,
+        status: delta <= 0 ? 'Out of Stock' : 'In Stock',
+      });
+    }
+
+    const newMovement: StockMovement = {
+      id: `mov-${Date.now()}`,
+      movementNo: `ADJ-${Math.floor(1000 + Math.random() * 9000)}`,
+      date: params.date || new Date().toISOString(),
+      type: delta >= 0 ? 'adjustment_up' : 'adjustment_down',
+      productId: params.productId,
+      productName: product.name,
+      fromLocationId: delta < 0 ? params.locationId : undefined,
+      toLocationId: delta > 0 ? params.locationId : undefined,
+      quantity: delta,
+      unitCost: params.unitCost,
+      totalValue: Math.abs(valueImpact),
+      balanceAfter: newTotalStock,
+      sourceDocument: {
+        type: 'Adjustment',
+        id: `adj-${Date.now()}`,
+        ref: `ADJ-${Math.floor(1000 + Math.random() * 9000)}`,
+      },
+      userId: 'usr-1',
+      userName: 'Current User',
+    };
+
+    MOCK_MOVEMENTS.unshift(newMovement);
+
+    return {
+      success: true,
+      status,
+      deltaQty: delta,
+      newStock: newTotalStock,
+      valueImpact,
+      movement: newMovement,
+      message: 'Adjustment posted to inventory ledger.',
+    };
+  }
+
+  return {
+    success: true,
+    status,
+    deltaQty: delta,
+    newStock: currentTotal,
+    valueImpact,
+    message: 'Adjustment submitted for manager approval (value exceeds ₦50,000 threshold).',
+  };
 };

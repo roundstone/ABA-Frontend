@@ -7,12 +7,12 @@ This document tracks the implementation progress of the ABA Online ERP requireme
 | Foundation | 0 | 652 | 60 | 60 | 0 | 0 | Group A: PASS, 2026-09-30 |
 | Auth & Users | 1 | 176 | 51 | 0 | 0 | 0 | - |
 | Customers | 1 | 98 | 10 | 0 | 0 | 0 | - |
-| Products | 1 | 90 | 15 | 0 | 0 | 0 | - |
+| Products | 1 | 90 | 17 | 0 | 0 | 0 | - |
 | Merchants | 1 | 76 | 10 | 0 | 0 | 0 | - |
 | Suppliers | 1 | 67 | 10 | 0 | 0 | 0 | - |
-| Inventory | 2 | 120 | 35 | 0 | 0 | 0 | - |
+| Inventory | 2 | 120 | 37 | 0 | 0 | 0 | - |
 | Procurement | 2 | 151 | 45 | 0 | 0 | 0 | - |
-| Orders & Sales | 3 | 160 | 60 | 0 | 0 | 0 | - |
+| Orders & Sales | 3 | 160 | 63 | 0 | 0 | 0 | - |
 | Payments | 3 | 89 | 89 | 0 | 0 | 0 | - |
 | Merchant POS | 3 | 125 | 125 | 0 | 0 | 0 | - |
 | Referrals | 4 | 85 | 70 | 0 | 0 | 0 | - |

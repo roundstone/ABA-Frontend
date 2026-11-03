@@ -30,3 +30,20 @@ export const createOrderSchema = z.object({
 });
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+
+export const fulfilOrderSchema = z.object({
+  orderId: z.string().min(1, 'Order ID is required'),
+  warehouseId: z.string().min(1, 'Warehouse is required'),
+  packedBy: z.string().min(2, 'Packed by name must be at least 2 characters'),
+  date: z.string().min(1, 'Fulfilment date is required'),
+  carrier: z.string().optional(),
+  trackingNumber: z.string().optional(),
+  notes: z.string().optional(),
+  items: z.array(z.object({
+    lineId: z.string().min(1),
+    productId: z.string().min(1),
+    quantityToFulfil: z.coerce.number().min(0, 'Quantity cannot be negative'),
+  })).min(1, 'At least one item is required'),
+});
+
+export type FulfilOrderFormInput = z.infer<typeof fulfilOrderSchema>;

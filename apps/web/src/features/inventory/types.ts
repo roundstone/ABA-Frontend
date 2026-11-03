@@ -53,3 +53,37 @@ export interface StockMovement {
   userId: string;
   userName: string;
 }
+
+export type AdjustmentReason =
+  | 'Damage'
+  | 'Expiry'
+  | 'Theft/Loss'
+  | 'Count correction'
+  | 'Found stock'
+  | 'Opening balance'
+  | 'Other';
+
+export type AdjustmentStatus = 'Draft' | 'Awaiting Approval' | 'Posted' | 'Rejected';
+
+export interface QuickAdjustParams {
+  productId: string;
+  variantId?: string;
+  locationId: string;
+  mode: 'delta' | 'absolute';
+  deltaQty: number;
+  newQty: number;
+  reason: AdjustmentReason;
+  unitCost: number;
+  date: string;
+  notes?: string;
+}
+
+export interface AdjustStockResult {
+  success: boolean;
+  status: AdjustmentStatus;
+  deltaQty: number;
+  newStock: number;
+  valueImpact: number;
+  movement?: StockMovement;
+  message?: string;
+}

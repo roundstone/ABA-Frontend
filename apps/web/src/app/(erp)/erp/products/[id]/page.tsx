@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getProductById } from '@/features/products/api/products.api';
 import { Product } from '@/features/products/types';
-import { PageHeader } from '@/components/patterns/PageHeader';
 import { Button } from '@/components/ui/button';
 import { KpiCard } from '@/components/patterns/KpiCard';
 import { AmountText } from '@/components/patterns/AmountText';
 import { DataTable } from '@/components/patterns/DataTable';
+import { AdjustStockDrawer } from '@/features/inventory/components/AdjustStockDrawer';
+import { ProductInventoryTab } from '@/features/inventory/components/ProductInventoryTab';
 import { toast } from 'sonner';
 
 const TABS = ['Overview', 'Variants', 'Pricing', 'Inventory', 'Suppliers', 'BOM', 'History'];
@@ -21,16 +22,21 @@ export default function ProductDetailsPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Overview');
+  const [isAdjustOpen, setIsAdjustOpen] = useState(false);
 
   useEffect(() => {
     getProductById(id)
       .then(setProduct)
       .catch(() => {
         toast.error('Product not found');
-        router.push('/products');
+        router.push('/erp/products');
       })
       .finally(() => setIsLoading(false));
   }, [id, router]);
+
+  const handleAdjustSuccess = () => {
+    getProductById(id).then(setProduct).catch(() => {});
+  };
 
   if (isLoading) {
     return <div className="p-8 text-center text-text-muted">Loading product details...</div>;
@@ -94,7 +100,7 @@ export default function ProductDetailsPage() {
 
         <div className="flex gap-2">
           <Button variant="outline">Duplicate</Button>
-          <Button variant="outline">Adjust Stock</Button>
+          <Button variant="outline" onClick={() => setIsAdjustOpen(true)}>Adjust Stock</Button>
           <Button>Edit</Button>
         </div>
       </div>
@@ -127,7 +133,6 @@ export default function ProductDetailsPage() {
 
       {/* Tab Content */}
       <div className="pt-2">
-        
         {activeTab === 'Overview' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-surface p-6 rounded-xl border border-border">
@@ -196,13 +201,27 @@ export default function ProductDetailsPage() {
           </div>
         )}
 
-        {activeTab !== 'Overview' && activeTab !== 'Variants' && (
+        {activeTab === 'Inventory' && (
+          <ProductInventoryTab
+            product={product}
+            onAdjustStock={() => setIsAdjustOpen(true)}
+          />
+        )}
+
+        {activeTab !== 'Overview' && activeTab !== 'Variants' && activeTab !== 'Inventory' && (
           <div className="bg-surface p-12 text-center rounded-xl border border-border">
             <h3 className="font-medium text-lg mb-1">{activeTab}</h3>
             <p className="text-text-muted text-sm mb-4">This section is not yet implemented.</p>
           </div>
         )}
       </div>
+
+      <AdjustStockDrawer
+        open={isAdjustOpen}
+        onOpenChange={setIsAdjustOpen}
+        product={product}
+        onSuccess={handleAdjustSuccess}
+      />
 
     </div>
   );

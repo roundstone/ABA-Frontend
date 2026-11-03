@@ -9,19 +9,21 @@ import { Input } from '@/components/ui/input';
 import { AmountText } from '@/components/patterns/AmountText';
 import { getOrders } from '@/features/sales/api/sales.api';
 import { Order } from '@/features/sales/types';
+import { FulfilOrderDrawer } from '@/features/sales/components/FulfilOrderDrawer';
 import { toast } from 'sonner';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [orderToFulfil, setOrderToFulfil] = useState<Order | null>(null);
 
   const fetchOrders = async () => {
     setIsLoading(true);
     try {
       const data = await getOrders();
       setOrders(data);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load orders');
     } finally {
       setIsLoading(false);
@@ -32,8 +34,8 @@ export default function OrdersPage() {
     fetchOrders();
   }, []);
 
-  const filtered = orders.filter(o => 
-    o.orderNumber.toLowerCase().includes(search.toLowerCase()) || 
+  const filtered = orders.filter((o) =>
+    o.orderNumber.toLowerCase().includes(search.toLowerCase()) ||
     o.customerName.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -42,28 +44,36 @@ export default function OrdersPage() {
       accessorKey: 'orderNumber', 
       header: 'Order #',
       cell: (info: any) => (
-        <Link href={`/erp/orders/${info.getValue()}`} className="font-mono font-medium text-sm text-primary hover:underline">
-          {info.getValue()}
-        </Link>
+        <div>
+          <Link href={`/erp/orders/${info.getValue()}`} className="font-mono font-medium text-primary hover:underline">
+            {info.getValue()}
+          </Link>
+          <div className="text-text-muted text-xs">{new Date(info.row.original.createdAt).toLocaleDateString()}</div>
+        </div>
       )
-    },
-    { 
-      accessorKey: 'createdAt', 
-      header: 'Date',
-      cell: (info: any) => {
-        const d = new Date(info.getValue());
-        return <span className="text-sm">{d.toLocaleDateString()}</span>;
-      }
     },
     { 
       accessorKey: 'customerName', 
       header: 'Customer',
-      cell: (info: any) => <span className="font-medium text-sm">{info.getValue()}</span>
+      cell: (info: any) => <span className="text-sm font-medium">{info.getValue()}</span>
     },
     { 
       accessorKey: 'channel', 
       header: 'Channel',
-      cell: (info: any) => <span className="text-sm text-text-muted">{info.getValue()}</span>
+      cell: (info: any) => (
+        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-surface-2 text-text-muted border border-border">
+          {info.getValue()}
+        </span>
+      )
+    },
+    { 
+      accessorKey: 'items', 
+      header: 'Items',
+      cell: (info: any) => {
+        const order = info.row.original as Order;
+        const totalItems = order.lines.reduce((acc, l) => acc + l.quantity, 0);
+        return <span className="text-sm">{totalItems} items</span>;
+      }
     },
     { 
       accessorKey: 'totalAmount', 
@@ -77,8 +87,8 @@ export default function OrdersPage() {
         const status = info.getValue() as string;
         let color = 'bg-surface-2 text-text-muted border-border';
         if (status === 'Paid') color = 'bg-success-bg text-success border-success-border';
-        if (status === 'Unpaid') color = 'bg-error-bg text-error border-error-border';
         if (status === 'Partially Paid') color = 'bg-warning-bg text-warning-dark border-warning-border';
+        if (status === 'Unpaid') color = 'bg-error-bg text-error border-error-border';
         return <span className={`px-2 py-0.5 rounded text-[11px] font-medium border ${color}`}>{status}</span>;
       }
     },
@@ -89,6 +99,7 @@ export default function OrdersPage() {
         const status = info.getValue() as string;
         let color = 'bg-surface-2 text-text-muted border-border';
         if (status === 'Fulfilled') color = 'bg-success-bg text-success border-success-border';
+        if (status === 'Partially Fulfilled') color = 'bg-warning-bg text-warning-dark border-warning-border';
         if (status === 'Unfulfilled') color = 'bg-warning-bg text-warning-dark border-warning-border';
         return <span className={`px-2 py-0.5 rounded text-[11px] font-medium border ${color}`}>{status}</span>;
       }
@@ -110,9 +121,21 @@ export default function OrdersPage() {
       id: 'actions',
       header: '',
       cell: (info: any) => {
+        const o = info.row.original as Order;
+        const canFulfil = o.fulfilmentStatus !== 'Fulfilled' && o.status !== 'Cancelled';
         return (
           <div className="flex justify-end gap-1">
-            <Link href={`/erp/orders/${info.row.original.orderNumber}`}>
+            {canFulfil && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-primary"
+                onClick={() => setOrderToFulfil(o)}
+              >
+                Fulfil
+              </Button>
+            )}
+            <Link href={`/erp/orders/${o.orderNumber}`}>
               <Button variant="ghost" size="sm" className="text-xs">View</Button>
             </Link>
           </div>
@@ -157,6 +180,15 @@ export default function OrdersPage() {
           emptyMessage="No orders found."
         />
       </div>
+
+      {orderToFulfil && (
+        <FulfilOrderDrawer
+          open={!!orderToFulfil}
+          onOpenChange={(open) => !open && setOrderToFulfil(null)}
+          order={orderToFulfil}
+          onSuccess={fetchOrders}
+        />
+      )}
     </div>
   );
 }
