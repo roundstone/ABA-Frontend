@@ -6,6 +6,12 @@ import '../domain/checkout_entities.dart';
 import '../domain/checkout_repository.dart';
 
 class CheckoutMockRepository implements CheckoutRepository {
+  /// Toggleable VAT configuration. Currently disabled: prices already include VAT.
+  static const bool enableVat = false;
+
+  /// Toggleable shipping configuration. Option 2: Free / ₦0 Delivery everywhere.
+  static const bool enableShipping = false;
+
   static const List<ReferralCandidate> _candidates = [
     ReferralCandidate(
       id: '1',
@@ -74,13 +80,13 @@ class CheckoutMockRepository implements CheckoutRepository {
       id: 'dm_standard',
       name: 'Standard Delivery',
       duration: '3-5 Business Days',
-      cost: 2500.0,
+      cost: 0.0,
     ),
     DeliveryMethod(
       id: 'dm_express',
       name: 'Express Delivery',
       duration: '1-2 Business Days',
-      cost: 5000.0,
+      cost: 0.0,
     ),
   ];
 
@@ -126,7 +132,9 @@ class CheckoutMockRepository implements CheckoutRepository {
   }) async {
     await Future.delayed(const Duration(milliseconds: 1000));
 
-    final grandTotal = cart.subtotal + deliveryMethod.cost + cart.tax;
+    final deliveryCost = enableShipping ? deliveryMethod.cost : 0.0;
+    final grandTotal =
+        cart.subtotal + deliveryCost + (enableVat ? cart.tax : 0.0);
     final totalInKobo = (grandTotal * 100).round();
 
     if (paymentType == CheckoutPaymentType.wallet) {

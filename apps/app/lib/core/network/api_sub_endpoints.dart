@@ -137,3 +137,19 @@ class InvoicesEndpoints {
   String byOrderId(dynamic orderId) => '$_base/$orderId';
   String downloadByOrderId(dynamic orderId) => '$_base/$orderId/download';
 }
+
+/// 30. Shopping Credits Endpoints
+class ShoppingCreditsEndpoints {
+  const ShoppingCreditsEndpoints();
+  static const String _base = '${ApiEndpoints.apiV1}/shopping-credits';
+  String get base => _base;
+  String get me => '$_base/me';
+}
+
+/// 31. Commissions Endpoints
+class CommissionsEndpoints {
+  const CommissionsEndpoints();
+  static const String _base = '${ApiEndpoints.apiV1}/commissions/mobile-app';
+  String get base => _base;
+  String get overview => '$_base/overview';
+}

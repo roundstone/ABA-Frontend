@@ -9,7 +9,9 @@ class WalletBalanceCard extends StatelessWidget {
   const WalletBalanceCard({
     super.key,
     this.info,
+    this.credits,
     this.isLoading = false,
+    this.isCreditsLoading = false,
     this.errorMessage,
     this.onRetry,
     required this.onFund,
@@ -17,7 +19,9 @@ class WalletBalanceCard extends StatelessWidget {
   });
 
   final WalletInfo? info;
+  final ShoppingCreditInfo? credits;
   final bool isLoading;
+  final bool isCreditsLoading;
   final String? errorMessage;
   final VoidCallback? onRetry;
   final VoidCallback onFund;
@@ -68,21 +72,48 @@ class WalletBalanceCard extends StatelessWidget {
           AppSpacing.verticalSpaceXS,
           Row(
             children: [
-              const Icon(
-                Icons.access_time_rounded,
+              const HugeIcon(
+                icon: HugeIcons.strokeRoundedShoppingBag01,
                 color: Color(0xFFFBBF24),
                 size: 14,
               ),
               const SizedBox(width: 4),
               Text(
-                'Pending Settlement: ',
+                'Credits: ',
                 style: AppTypography.caption.copyWith(color: Colors.white70),
               ),
-              Text(
-                formatNaira(0.00),
-                style: AppTypography.caption.copyWith(
-                  color: const Color(0xFFFBBF24),
-                  fontWeight: FontWeight.w700,
+              if (isCreditsLoading && credits == null)
+                const SizedBox(
+                  width: 10,
+                  height: 10,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFBBF24)),
+                  ),
+                )
+              else
+                Text(
+                  formatNaira(credits?.balance ?? 0.00),
+                  style: AppTypography.caption.copyWith(
+                    color: const Color(0xFFFBBF24),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFBBF24).withAlpha(45),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'NON-WITHDRAWABLE',
+                  style: TextStyle(
+                    color: Color(0xFFFBBF24),
+                    fontSize: 8,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
+                  ),
                 ),
               ),
             ],
@@ -97,11 +128,7 @@ class WalletBalanceCard extends StatelessWidget {
                     backgroundColor: Colors.white,
                     foregroundColor: cs.primary,
                   ),
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedPlusSign,
-                    color: cs.primary,
-                    size: AppSpacing.iconSizeSM,
-                  ),
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedPlusSign, color: cs.primary, size: AppSpacing.iconSizeSM),
                   label: const Text('Fund Wallet'),
                 ),
               ),
@@ -113,11 +140,7 @@ class WalletBalanceCard extends StatelessWidget {
                     foregroundColor: Colors.white,
                     side: const BorderSide(color: Colors.white),
                   ),
-                  icon: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowDownRight01,
-                    color: Colors.white,
-                    size: AppSpacing.iconSizeSM,
-                  ),
+                  icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowDownRight01, color: Colors.white, size: AppSpacing.iconSizeSM),
                   label: const Text('Withdraw'),
                 ),
               ),
@@ -153,11 +176,7 @@ class WalletBalanceCard extends StatelessWidget {
               SizedBox(width: 8),
               Text(
                 'Loading...',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -171,10 +190,7 @@ class WalletBalanceCard extends StatelessWidget {
         children: [
           Text(
             formatNaira(info!.balance),
-            style: AppTypography.h3.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTypography.h3.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           const SizedBox(width: 8),
           const SizedBox(
@@ -207,17 +223,10 @@ class WalletBalanceCard extends StatelessWidget {
               children: [
                 Text(
                   'Failed to load',
-                  style: AppTypography.bodySmall.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTypography.bodySmall.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(width: 6),
-                const HugeIcon(
-                  icon: HugeIcons.strokeRoundedReload,
-                  color: Colors.white,
-                  size: 14,
-                ),
+                const HugeIcon(icon: HugeIcons.strokeRoundedReload, color: Colors.white, size: 14),
               ],
             ),
           ),
@@ -227,10 +236,7 @@ class WalletBalanceCard extends StatelessWidget {
 
     return Text(
       formatNaira(info?.balance ?? 0.0),
-      style: AppTypography.h3.copyWith(
-        color: Colors.white,
-        fontWeight: FontWeight.bold,
-      ),
+      style: AppTypography.h3.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
     );
   }
 }

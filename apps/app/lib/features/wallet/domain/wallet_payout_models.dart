@@ -205,3 +205,41 @@ class WalletPayout {
   }
 }
 
+class ShoppingCreditInfo {
+  const ShoppingCreditInfo({
+    this.id,
+    this.userId,
+    required this.balance,
+    this.isActivated = false,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  final int? id, userId;
+  final double balance;
+  final bool isActivated;
+  final DateTime? createdAt, updatedAt;
+
+  factory ShoppingCreditInfo.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] is Map<String, dynamic>
+        ? json['data'] as Map<String, dynamic>
+        : json;
+    final rawBalance = data['balance'];
+    final parsedBalance = rawBalance is num
+        ? rawBalance.toDouble()
+        : (double.tryParse(rawBalance?.toString() ?? '0') ?? 0.0);
+    final rawId = data['id'];
+    final rawUserId = data['user_id'] ?? data['userId'];
+
+    return ShoppingCreditInfo(
+      id: rawId is int ? rawId : int.tryParse(rawId?.toString() ?? ''),
+      userId: rawUserId is int ? rawUserId : int.tryParse(rawUserId?.toString() ?? ''),
+      balance: parsedBalance,
+      isActivated: (data['is_activated'] ?? data['isActivated']) as bool? ?? false,
+      createdAt: data['createdAt'] != null ? DateTime.tryParse(data['createdAt'].toString()) : null,
+      updatedAt: data['updatedAt'] != null ? DateTime.tryParse(data['updatedAt'].toString()) : null,
+    );
+  }
+}
+
+

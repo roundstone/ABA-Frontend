@@ -5,6 +5,7 @@ import 'package:app/features/wallet/presentation/wallet_screen.dart';
 import 'package:app/features/wallet/presentation/widgets/transaction_detail_sheet.dart';
 import 'package:app/features/wallet/presentation/widgets/transaction_tile.dart';
 import 'package:app/features/wallet/presentation/widgets/wallet_balance_card.dart';
+import 'package:app/features/wallet/presentation/widgets/wallet_credits_banner.dart';
 import 'package:app/features/wallet/presentation/widgets/wallet_filter_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +20,7 @@ void main() {
         ProviderScope(
           overrides: [
             walletInfoProvider.overrideWith((ref) => walletCompleter.future),
+            shoppingCreditsProvider.overrideWith((ref) => Future.value(const ShoppingCreditInfo(balance: 0.0))),
             walletTransactionsProvider.overrideWith((ref) => Future.value([])),
           ],
           child: const MaterialApp(
@@ -84,6 +86,7 @@ void main() {
         ProviderScope(
           overrides: [
             walletInfoProvider.overrideWith((ref) => Future.value(testWallet)),
+            shoppingCreditsProvider.overrideWith((ref) => Future.value(const ShoppingCreditInfo(balance: 5000.0, isActivated: true))),
             walletTransactionsProvider.overrideWith((ref) => Future.value(testTransactions)),
           ],
           child: const MaterialApp(
@@ -97,10 +100,17 @@ void main() {
       expect(find.text('My Wallet'), findsOneWidget);
       expect(find.byType(WalletBalanceCard), findsOneWidget);
       expect(find.text('Total Balance'), findsOneWidget);
+      expect(find.byType(WalletCreditsBanner), findsOneWidget);
+      expect(find.text('Credits'), findsWidgets);
+      expect(find.text('NON-WITHDRAWABLE'), findsWidgets);
+      expect(find.text('Credited from referral activation fee. Valid for purchasing all BuyNaija marketplace products.'), findsOneWidget);
+      expect(find.text('Automatically applied at checkout'), findsOneWidget);
       expect(find.text('Recent Transactions'), findsOneWidget);
       expect(find.byType(WalletFilterBar), findsOneWidget);
       expect(find.text('Deposits'), findsOneWidget);
       expect(find.text('Payments'), findsOneWidget);
+      await tester.drag(find.byType(ListView).first, const Offset(0, -250));
+      await tester.pumpAndSettle();
       expect(find.byType(TransactionTile), findsOneWidget);
       expect(find.text('Demo Paystack wallet deposit'), findsOneWidget);
     });
@@ -132,6 +142,7 @@ void main() {
         ProviderScope(
           overrides: [
             walletInfoProvider.overrideWith((ref) => Future.value(testWallet)),
+            shoppingCreditsProvider.overrideWith((ref) => Future.value(const ShoppingCreditInfo(balance: 5000.0))),
             walletTransactionsProvider.overrideWith((ref) => Future.value(testTransactions)),
           ],
           child: const MaterialApp(
@@ -140,6 +151,10 @@ void main() {
         ),
       );
 
+      await tester.pumpAndSettle();
+
+      // Scroll list down so TransactionTile is in view
+      await tester.drag(find.byType(ListView).first, const Offset(0, -250));
       await tester.pumpAndSettle();
 
       // Tap transaction tile

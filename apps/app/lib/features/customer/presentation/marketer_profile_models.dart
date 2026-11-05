@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/application/auth_providers.dart';
+import '../application/referrals_network_providers.dart';
 import 'widgets/network_tree.dart';
 
 class LevelStat {
@@ -37,70 +39,51 @@ class MarketerProfileData {
 
 final marketerProfileProvider =
     FutureProvider.autoDispose<MarketerProfileData>((ref) async {
-  await Future.delayed(const Duration(milliseconds: 400));
+  final user = ref.watch(currentUserProvider);
+  final displayName = user?.name.trim().isNotEmpty == true
+      ? user!.name.trim()
+      : (user?.referralCode?.trim().isNotEmpty == true
+          ? user!.referralCode!.trim()
+          : 'You');
+  final userCode = user?.referralCode ?? 'YOU';
+  final joined = user?.createdAt ?? DateTime.now();
+
+  // Load actual downline members for real team size
+  List<ReferralNetworkMember> downline = const [];
+  try {
+    downline = await ref.watch(referralDownlineProvider(1).future);
+  } catch (_) {}
+
+  final teamSize = downline.length;
+
   return MarketerProfileData(
-    alias: 'Chima Obi',
-    level: 4,
-    joinedDate: DateTime(2023, 5, 10),
-    performancePercentile: 5,
-    networkSales: 45000000,
-    personalSales: 1200000,
-    totalTeamSize: 142,
-    activeMembers: 85,
+    alias: displayName,
+    level: 1,
+    joinedDate: joined,
+    performancePercentile: null,
+    networkSales: 0,
+    personalSales: 0,
+    totalTeamSize: teamSize,
+    activeMembers: teamSize,
     networkData: NetworkNode(
       id: 'root',
-      name: 'Chima Obi',
-      code: 'CHIMA001',
-      level: 4,
-      sales: 45000000,
-      personalSales: 1200000,
+      name: displayName,
+      code: userCode,
+      level: 0,
+      sales: 0,
+      personalSales: 0,
       active: true,
-      performancePercentile: 5,
-      joinedDate: DateTime(2023, 5, 10),
-      children: [
-        NetworkNode(
-          id: 'child1',
-          name: 'Aisha Bello',
-          code: 'AISHA001',
-          level: 3,
-          sales: 12000000,
-          personalSales: 500000,
-          active: true,
-          performancePercentile: 15,
-          children: [
-            NetworkNode(
-              id: 'grandchild1',
-              name: 'Samuel O.',
-              code: 'SAM001',
-              level: 2,
-              sales: 3000000,
-              personalSales: 100000,
-              active: false,
-              performancePercentile: 60,
-            ),
-          ],
-        ),
-        NetworkNode(
-          id: 'child2',
-          name: 'Ibrahim M.',
-          code: 'IBR001',
-          level: 2,
-          sales: 5000000,
-          personalSales: 200000,
-          active: true,
-          performancePercentile: 45,
-        ),
-      ],
+      children: const [],
     ),
     teamSizeByLevel: [
-      LevelStat('Level 1', 20),
-      LevelStat('Level 2', 45),
-      LevelStat('Level 3', 77),
+      LevelStat('Level 1', teamSize),
+      LevelStat('Level 2', 0),
+      LevelStat('Level 3', 0),
     ],
     salesByLevel: [
-      LevelStat('Level 1', 12000000),
-      LevelStat('Level 2', 15000000),
-      LevelStat('Level 3', 18000000),
+      LevelStat('Level 1', 0),
+      LevelStat('Level 2', 0),
+      LevelStat('Level 3', 0),
     ],
   );
 });

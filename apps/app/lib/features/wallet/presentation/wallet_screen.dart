@@ -13,6 +13,7 @@ import 'widgets/fund_wallet_sheet.dart';
 import 'widgets/manage_bank_accounts_sheet.dart';
 import 'widgets/payouts_history_sheet.dart';
 import 'widgets/wallet_balance_card.dart';
+import 'widgets/wallet_credits_banner.dart';
 import 'widgets/wallet_filter_bar.dart';
 import 'widgets/wallet_transactions_list.dart';
 import 'widgets/withdraw_wallet_sheet.dart';
@@ -23,6 +24,7 @@ class WalletScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final walletInfoAsync = ref.watch(walletInfoProvider);
+    final shoppingCreditsAsync = ref.watch(shoppingCreditsProvider);
     final filter = ref.watch(walletFilterProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -84,6 +86,7 @@ class WalletScreen extends ConsumerWidget {
           child: RefreshIndicator(
             onRefresh: () async {
               ref.invalidate(walletInfoProvider);
+              ref.invalidate(shoppingCreditsProvider);
               ref.invalidate(walletTransactionsProvider);
               ref.invalidate(userBankAccountsProvider);
               ref.invalidate(myPayoutsProvider);
@@ -95,19 +98,31 @@ class WalletScreen extends ConsumerWidget {
                 // Balance Card (card always renders; only amount section loads)
                 WalletBalanceCard(
                   info: walletInfoAsync.valueOrNull,
+                  credits: shoppingCreditsAsync.valueOrNull,
                   isLoading: walletInfoAsync.isLoading,
+                  isCreditsLoading: shoppingCreditsAsync.isLoading,
                   errorMessage:
                       walletInfoAsync.hasError &&
                           walletInfoAsync.valueOrNull == null
                       ? ApiError.toUserFriendlyMessage(walletInfoAsync.error)
                       : null,
-                  onRetry: () => ref.invalidate(walletInfoProvider),
+                  onRetry: () {
+                    ref.invalidate(walletInfoProvider);
+                    ref.invalidate(shoppingCreditsProvider);
+                  },
                   onFund: () => FundWalletSheet.show(context),
                   onWithdraw: () => WithdrawWalletSheet.show(
                     context,
                     availableBalance:
                         walletInfoAsync.valueOrNull?.balance ?? 0.0,
                   ),
+                ),
+                AppSpacing.verticalSpaceSM,
+                // Shopping Credits Card (Non-Withdrawable)
+                WalletCreditsBanner(
+                  credits: shoppingCreditsAsync.valueOrNull,
+                  isLoading: shoppingCreditsAsync.isLoading,
+                  onRetry: () => ref.invalidate(shoppingCreditsProvider),
                 ),
                 AppSpacing.verticalSpaceMD,
 

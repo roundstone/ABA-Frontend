@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/network/api_error.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -16,7 +17,7 @@ class FundWalletSheet extends ConsumerStatefulWidget {
 
   static Future<bool?> show(BuildContext context) {
     return showModalBottomSheet<bool>(
-      context: context,
+      context: rootNavigatorKey.currentContext ?? context,
       useRootNavigator: true,
       useSafeArea: true,
       isScrollControlled: true,
@@ -116,17 +117,18 @@ class _FundWalletSheetState extends ConsumerState<FundWalletSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(bottom: mq.viewInsets.bottom),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(
+        padding: EdgeInsets.fromLTRB(
           AppSpacing.md,
           AppSpacing.md,
           AppSpacing.md,
-          AppSpacing.lg,
+          AppSpacing.lg + mq.padding.bottom,
         ),
         decoration: BoxDecoration(
           color: cs.surface,
@@ -134,6 +136,7 @@ class _FundWalletSheetState extends ConsumerState<FundWalletSheet> {
         ),
         child: SafeArea(
           top: false,
+          bottom: true,
           child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,

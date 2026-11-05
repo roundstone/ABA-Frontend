@@ -5,6 +5,15 @@ class WalletMockData {
 
   static double mockBalance = 145000.50;
 
+  static final ShoppingCreditInfo mockShoppingCredits = ShoppingCreditInfo(
+    id: 2,
+    userId: 10,
+    balance: 0.0,
+    isActivated: false,
+    createdAt: DateTime.now().subtract(const Duration(days: 5)),
+    updatedAt: DateTime.now().subtract(const Duration(days: 5)),
+  );
+
   static final List<BankOption> mockBanks = [
     const BankOption(name: '5TT MFB', code: '51455', active: true),
     const BankOption(

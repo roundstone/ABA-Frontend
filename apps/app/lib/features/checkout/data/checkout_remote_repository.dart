@@ -159,6 +159,9 @@ class CheckoutRemoteRepository implements CheckoutRepository {
       'deliveryAddressId': addressId,
       'items': itemsPayload,
       'referralCode': referral?.code,
+      'deliveryFee': 0,
+      'shippingFee': 0,
+      'deliveryAmount': 0,
     };
 
     try {

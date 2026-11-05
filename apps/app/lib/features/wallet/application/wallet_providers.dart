@@ -125,3 +125,10 @@ final payoutByIdProvider =
   final repo = ref.watch(walletRepositoryProvider);
   return repo.getPayoutById(id);
 });
+
+final shoppingCreditsProvider =
+    FutureProvider.autoDispose<ShoppingCreditInfo>((ref) async {
+  ref.cacheFor(const Duration(minutes: 2));
+  final repo = ref.watch(walletRepositoryProvider);
+  return repo.getShoppingCredits();
+});

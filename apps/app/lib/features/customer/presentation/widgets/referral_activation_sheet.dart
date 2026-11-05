@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/api_error.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../checkout/presentation/widgets/paystack_payment_sheet.dart';
@@ -13,16 +14,14 @@ import 'referral_activation_steps.dart';
 class ReferralActivationSheet extends ConsumerStatefulWidget {
   const ReferralActivationSheet({super.key});
 
-  static Future<void> show(BuildContext context) {
-    return showModalBottomSheet(
-      context: context,
-      useRootNavigator: true,
-      useSafeArea: true,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const ReferralActivationSheet(),
-    );
-  }
+  static Future<void> show(BuildContext context) => showModalBottomSheet(
+        context: rootNavigatorKey.currentContext ?? context,
+        useRootNavigator: true,
+        useSafeArea: true,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => const ReferralActivationSheet(),
+      );
 
   @override
   ConsumerState<ReferralActivationSheet> createState() =>
@@ -41,12 +40,10 @@ class _ReferralActivationSheetState
   final _lgaController = TextEditingController(text: 'Eti Osa');
 
   String _idType = 'National Identity Number (NIN)';
-  bool _idUploaded = true;
-  bool _addressUploaded = true;
+  bool _idUploaded = true, _addressUploaded = true;
   String _idFileName = 'nin_slip_verified.png';
   String _addressFileName = 'utility_bill.png';
-  bool _isSubmittingKyc = false;
-  bool _isProcessingPayment = false;
+  bool _isSubmittingKyc = false, _isProcessingPayment = false;
 
   @override
   void initState() {
@@ -60,31 +57,15 @@ class _ReferralActivationSheetState
       final docs = await ref.read(kycDocumentsProvider.future);
       if (!mounted) return;
       setState(() {
-        if (profile.dateOfBirth != null && profile.dateOfBirth!.isNotEmpty) {
-          _dobController.text = profile.dateOfBirth!;
-        }
-        if (profile.nationality != null && profile.nationality!.isNotEmpty) {
-          _nationalityController.text = profile.nationality!;
-        }
-        if (profile.residentialAddress != null &&
-            profile.residentialAddress!.isNotEmpty) {
-          _addressController.text = profile.residentialAddress!;
-        }
-        if (profile.city != null && profile.city!.isNotEmpty) {
-          _cityController.text = profile.city!;
-        }
-        if (profile.state != null && profile.state!.isNotEmpty) {
-          _stateController.text = profile.state!;
-        }
-        if (profile.lga != null && profile.lga!.isNotEmpty) {
-          _lgaController.text = profile.lga!;
-        }
+        if (profile.dateOfBirth?.isNotEmpty == true) _dobController.text = profile.dateOfBirth!;
+        if (profile.nationality?.isNotEmpty == true) _nationalityController.text = profile.nationality!;
+        if (profile.residentialAddress?.isNotEmpty == true) _addressController.text = profile.residentialAddress!;
+        if (profile.city?.isNotEmpty == true) _cityController.text = profile.city!;
+        if (profile.state?.isNotEmpty == true) _stateController.text = profile.state!;
+        if (profile.lga?.isNotEmpty == true) _lgaController.text = profile.lga!;
         for (final doc in docs) {
-          if (doc.documentReference != null &&
-              doc.documentReference!.isNotEmpty) {
-            _ninController.text = doc.documentReference!;
-          }
-          if (doc.originalName != null && doc.originalName!.isNotEmpty) {
+          if (doc.documentReference?.isNotEmpty == true) _ninController.text = doc.documentReference!;
+          if (doc.originalName?.isNotEmpty == true) {
             if (doc.documentType == 4) {
               _addressFileName = doc.originalName!;
               _addressUploaded = true;
@@ -100,13 +81,17 @@ class _ReferralActivationSheetState
 
   @override
   void dispose() {
-    _ninController.dispose();
-    _dobController.dispose();
-    _nationalityController.dispose();
-    _addressController.dispose();
-    _cityController.dispose();
-    _stateController.dispose();
-    _lgaController.dispose();
+    for (final c in [
+      _ninController,
+      _dobController,
+      _nationalityController,
+      _addressController,
+      _cityController,
+      _stateController,
+      _lgaController,
+    ]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -169,13 +154,11 @@ class _ReferralActivationSheetState
       await notifier.completeActivationPayment(refToVerify);
 
       ref.invalidate(walletInfoProvider);
+      ref.invalidate(shoppingCreditsProvider);
       ref.invalidate(walletTransactionsProvider);
 
       if (!mounted) return;
-      setState(() {
-        _isProcessingPayment = false;
-        _step = 2;
-      });
+      setState(() { _isProcessingPayment = false; _step = 2; });
     } catch (e) {
       if (!mounted) return;
       setState(() => _isProcessingPayment = false);
@@ -200,8 +183,14 @@ class _ReferralActivationSheetState
           ),
           child: SafeArea(
             top: false,
+            bottom: true,
             child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.xl,
+                AppSpacing.xl,
+                AppSpacing.xl + mq.padding.bottom,
+              ),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -235,8 +224,7 @@ class _ReferralActivationSheetState
                         isSubmitting: _isSubmittingKyc,
                         onIdTypeChanged: (v) => setState(() => _idType = v),
                         onUploadId: () => setState(() => _idUploaded = true),
-                        onUploadAddress: () =>
-                            setState(() => _addressUploaded = true),
+                        onUploadAddress: () => setState(() => _addressUploaded = true),
                         onSubmit: _submitKyc,
                       ),
                     if (_step == 1)
@@ -246,9 +234,7 @@ class _ReferralActivationSheetState
                         onBack: () => setState(() => _step = 0),
                       ),
                     if (_step == 2)
-                      ReferralSuccessStepView(
-                        onClose: () => Navigator.of(context).pop(),
-                      ),
+                      ReferralSuccessStepView(onClose: () => Navigator.of(context).pop()),
                   ],
                 ),
               ),

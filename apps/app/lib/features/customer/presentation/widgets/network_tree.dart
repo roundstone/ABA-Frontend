@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_widgets.dart';
+import '../../../auth/application/auth_providers.dart';
 import '../../application/referrals_network_providers.dart';
 import '../marketer_profile_models.dart';
 import 'network_member_tile.dart';
@@ -98,8 +99,17 @@ class _NetworkTreeWidgetState extends ConsumerState<NetworkTreeWidget> {
     List<ReferralNetworkMember> members,
     ReferralNetworkViewMode mode,
   ) {
+    final user = ref.watch(currentUserProvider);
+    final userDisplayName = user?.name.trim().isNotEmpty == true
+        ? user!.name.trim()
+        : 'You';
+    final rootName = (widget.profile?.alias.trim().isNotEmpty == true &&
+            widget.profile?.alias.trim() != 'Chima Obi')
+        ? widget.profile!.alias.trim()
+        : userDisplayName;
+
     final rootNode = NetworkTreeBuilder.buildTree(
-      rootName: widget.profile?.alias ?? 'You',
+      rootName: rootName,
       members: members,
       isDownline: mode == ReferralNetworkViewMode.downline,
     );

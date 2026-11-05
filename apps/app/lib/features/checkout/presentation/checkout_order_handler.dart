@@ -28,13 +28,21 @@ class CheckoutOrderHandler {
 
     final res = await notifier.submitOrder(
       cart,
-      clearCartOnSuccess: !isOnline && !isDirectBuy,
+      clearCartOnSuccess: !isDirectBuy,
       isDirectBuy: isDirectBuy,
     );
     if (res == null || !context.mounted) return;
 
+    // Order has been officially placed; clear cart so items are not left behind
+    if (!isDirectBuy) {
+      await ref.read(cartProvider.notifier).clearCart();
+      ref.invalidate(cartProvider);
+    }
+
     if (isOnline) {
-      final amountToPay = res.totalAmount > 0 ? res.totalAmount : cart.total;
+      // Option 2: Free Delivery / ₦0 Delivery everywhere.
+      // Charge the exact order subtotal (₦25,800.00).
+      final amountToPay = cart.subtotal > 0 ? cart.subtotal : res.totalAmount;
       final email = checkoutState.customerInfo.email.isNotEmpty
           ? checkoutState.customerInfo.email
           : 'customer@aba.ng';
@@ -43,6 +51,7 @@ class CheckoutOrderHandler {
           .read(paymentGatewayRegistryProvider)
           .getGateway(PaymentGatewayType.paystack);
 
+      if (!context.mounted) return;
       final paymentRef = await PaystackPaymentSheet.show(
         context,
         amount: amountToPay,
@@ -94,6 +103,7 @@ class CheckoutOrderHandler {
 
       if (!isDirectBuy) {
         await ref.read(cartProvider.notifier).clearCart();
+        ref.invalidate(cartProvider);
       }
     }
 

@@ -56,4 +56,7 @@ abstract class WalletRepository {
     bool? isPrimary,
   });
   Future<void> deleteBankAccount(int id);
+
+  // Shopping Credits
+  Future<ShoppingCreditInfo> getShoppingCredits();
 }

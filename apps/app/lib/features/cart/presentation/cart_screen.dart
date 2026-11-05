@@ -98,16 +98,20 @@ class _CartBody extends ConsumerWidget {
         CartOrderSummary(
           cart: cart,
           onCheckout: () => context.push('/checkout'),
-          onClear: () => {
-            notifier
-                .clearCart()
-                .then(
-                  (onValue) =>
-                      AppSnackbar.success(context, 'Cart cleared successfully'),
-                )
-                .catchError(
-                  (onError) => AppSnackbar.error(context, onError.toString()),
-                ),
+          onClear: () {
+            notifier.clearCart().then(
+              (_) {
+                if (context.mounted) {
+                  AppSnackbar.success(context, 'Cart cleared successfully');
+                }
+              },
+            ).catchError(
+              (onError) {
+                if (context.mounted) {
+                  AppSnackbar.error(context, onError.toString());
+                }
+              },
+            );
           },
         ),
       ],

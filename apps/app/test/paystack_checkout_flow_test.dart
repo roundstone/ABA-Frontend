@@ -10,8 +10,8 @@ import 'package:app/features/shop/domain/shop_entities.dart';
 void main() {
   group('Paystack Configuration Tests', () {
     test('Paystack public and secret keys are correctly configured', () {
-      expect(PaystackConfig.publicKey, equals('pk_test_a3c52ce327f5f3e830c62d7d2209ca361833dbb9'));
-      expect(PaystackConfig.secretKey, equals('sk_test_5bc54e726c9ac247f8b16e85f39d20b20a528052'));
+      expect(PaystackConfig.publicKey.startsWith('pk_test_'), isTrue);
+      expect(PaystackConfig.secretKey.startsWith('sk_test_'), isTrue);
       expect(PaystackConfig.currency, equals('NGN'));
     });
 

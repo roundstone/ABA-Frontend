@@ -32,9 +32,7 @@ class WalletRemoteRepository implements WalletRepository {
       final rawData = body is Map<String, dynamic> ? (body['data'] ?? body) : body;
 
       if (rawData is List) {
-        if (rawData.isEmpty) {
-          return const WalletInfo(balance: 0.0, currency: 'NGN');
-        }
+        if (rawData.isEmpty) return const WalletInfo(balance: 0.0, currency: 'NGN');
         Map<String, dynamic>? target;
         for (final item in rawData) {
           if (item is Map) {
@@ -46,21 +44,16 @@ class WalletRemoteRepository implements WalletRepository {
             target ??= map;
           }
         }
-        if (target != null) {
-          return WalletInfo.fromJson(target);
-        }
+        if (target != null) return WalletInfo.fromJson(target);
       } else if (rawData is Map) {
         return WalletInfo.fromJson(Map<String, dynamic>.from(rawData));
       }
 
       return const WalletInfo(balance: 0.0, currency: 'NGN');
-    } on DioException catch (e) {
+    } catch (e) {
       AppLogger.e('Failed to fetch wallet info', error: e);
       if (AppConfig.isMockMode) return _mock.getWalletInfo();
-      throw ApiError.fromDio(e);
-    } catch (e) {
-      AppLogger.e('Unexpected error fetching wallet info', error: e);
-      if (AppConfig.isMockMode) return _mock.getWalletInfo();
+      if (e is DioException) throw ApiError.fromDio(e);
       rethrow;
     }
   }
@@ -79,15 +72,9 @@ class WalletRemoteRepository implements WalletRepository {
   }) async {
     if (AppConfig.isMockMode) {
       return _mock.getPaginatedTransactions(
-        page: page,
-        limit: limit,
-        search: search,
-        startDate: startDate,
-        endDate: endDate,
-        orderBy: orderBy,
-        walletId: walletId,
-        transactionType: transactionType,
-        status: status,
+        page: page, limit: limit, search: search, startDate: startDate,
+        endDate: endDate, orderBy: orderBy, walletId: walletId,
+        transactionType: transactionType, status: status,
       );
     }
 
@@ -128,8 +115,7 @@ class WalletRemoteRepository implements WalletRepository {
           .toList();
 
       final totalItems = meta?['totalItems'] as int? ?? transactions.length;
-      final totalPages = meta?['totalPages'] as int? ??
-          (totalItems / limit).ceil().clamp(1, 999);
+      final totalPages = meta?['totalPages'] as int? ?? (totalItems / limit).ceil().clamp(1, 999);
       final currentPage = meta?['currentPage'] as int? ?? page;
 
       return PaginatedWalletTransactionsResult(
@@ -139,37 +125,16 @@ class WalletRemoteRepository implements WalletRepository {
         currentPage: currentPage,
         hasNext: currentPage < totalPages,
       );
-    } on DioException catch (e) {
+    } catch (e) {
       AppLogger.e('Failed to fetch wallet transactions', error: e);
       if (AppConfig.isMockMode) {
         return _mock.getPaginatedTransactions(
-          page: page,
-          limit: limit,
-          search: search,
-          startDate: startDate,
-          endDate: endDate,
-          orderBy: orderBy,
-          walletId: walletId,
-          transactionType: transactionType,
-          status: status,
+          page: page, limit: limit, search: search, startDate: startDate,
+          endDate: endDate, orderBy: orderBy, walletId: walletId,
+          transactionType: transactionType, status: status,
         );
       }
-      throw ApiError.fromDio(e);
-    } catch (e) {
-      AppLogger.e('Unexpected error fetching wallet transactions', error: e);
-      if (AppConfig.isMockMode) {
-        return _mock.getPaginatedTransactions(
-          page: page,
-          limit: limit,
-          search: search,
-          startDate: startDate,
-          endDate: endDate,
-          orderBy: orderBy,
-          walletId: walletId,
-          transactionType: transactionType,
-          status: status,
-        );
-      }
+      if (e is DioException) throw ApiError.fromDio(e);
       rethrow;
     }
   }
@@ -185,20 +150,19 @@ class WalletRemoteRepository implements WalletRepository {
     int? walletId,
     int? transactionType,
     int? status,
-  }) async {
-    final res = await getPaginatedTransactions(
-      page: page,
-      limit: limit,
-      search: search,
-      startDate: startDate,
-      endDate: endDate,
-      orderBy: orderBy,
-      walletId: walletId,
-      transactionType: transactionType,
-      status: status,
-    );
-    return res.transactions;
-  }
+  }) async =>
+      (await getPaginatedTransactions(
+        page: page,
+        limit: limit,
+        search: search,
+        startDate: startDate,
+        endDate: endDate,
+        orderBy: orderBy,
+        walletId: walletId,
+        transactionType: transactionType,
+        status: status,
+      ))
+          .transactions;
 
   @override
   Future<WalletFundInitResult> initializeFundWallet(double amount) =>
@@ -212,8 +176,7 @@ class WalletRemoteRepository implements WalletRepository {
   Future<WalletPayout> createWithdrawal({
     required double amount,
     required int bankAccountId,
-  }) =>
-      _payoutService.createWithdrawal(
+  }) => _payoutService.createWithdrawal(
         amount: amount,
         bankAccountId: bankAccountId,
       );
@@ -239,8 +202,7 @@ class WalletRemoteRepository implements WalletRepository {
     required String bankCode,
     required String accountNumber,
     bool isPrimary = false,
-  }) =>
-      _payoutService.addBankAccount(
+  }) => _payoutService.addBankAccount(
         bankName: bankName,
         bankCode: bankCode,
         accountNumber: accountNumber,
@@ -254,8 +216,7 @@ class WalletRemoteRepository implements WalletRepository {
     String? bankCode,
     String? accountNumber,
     bool? isPrimary,
-  }) =>
-      _payoutService.updateBankAccount(
+  }) => _payoutService.updateBankAccount(
         id,
         bankName: bankName,
         bankCode: bankCode,
@@ -266,4 +227,23 @@ class WalletRemoteRepository implements WalletRepository {
   @override
   Future<void> deleteBankAccount(int id) =>
       _payoutService.deleteBankAccount(id);
+
+  @override
+  Future<ShoppingCreditInfo> getShoppingCredits() async {
+    if (AppConfig.isMockMode) return _mock.getShoppingCredits();
+    try {
+      AppLogger.d('GET ${ApiEndpoints.shoppingCredits.me}');
+      final response = await dio.get(ApiEndpoints.shoppingCredits.me);
+      final body = response.data;
+      if (body is Map<String, dynamic> && body['data'] is Map<String, dynamic>) {
+        return ShoppingCreditInfo.fromJson(body['data'] as Map<String, dynamic>);
+      }
+      return const ShoppingCreditInfo(balance: 0.0);
+    } catch (e) {
+      AppLogger.e('Failed to fetch shopping credits', error: e);
+      if (AppConfig.isMockMode) return _mock.getShoppingCredits();
+      if (e is DioException) throw ApiError.fromDio(e);
+      rethrow;
+    }
+  }
 }

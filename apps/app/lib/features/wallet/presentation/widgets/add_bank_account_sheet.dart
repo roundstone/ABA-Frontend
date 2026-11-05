@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/network/api_error.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -21,7 +22,7 @@ class AddBankAccountSheet extends ConsumerStatefulWidget {
     UserBankAccount? existingAccount,
   }) {
     return showModalBottomSheet<UserBankAccount>(
-      context: context,
+      context: rootNavigatorKey.currentContext ?? context,
       useRootNavigator: true,
       useSafeArea: true,
       isScrollControlled: true,
@@ -141,12 +142,13 @@ class _AddBankAccountSheetState extends ConsumerState<AddBankAccountSheet> {
           ),
           child: SafeArea(
             top: false,
+            bottom: true,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(
+              padding: EdgeInsets.fromLTRB(
                 AppSpacing.md,
                 AppSpacing.md,
                 AppSpacing.md,
-                AppSpacing.md,
+                AppSpacing.md + mq.padding.bottom,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,

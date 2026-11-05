@@ -29,11 +29,19 @@ class StepReviewOrder extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback onPlaceOrder;
 
+  /// Toggleable VAT configuration. Currently disabled: prices already include VAT.
+  static const bool enableVat = false;
+
+  /// Toggleable shipping configuration. Option 2: Free / ₦0 Delivery everywhere.
+  static const bool enableShipping = false;
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final deliveryCost = state.selectedDeliveryMethod?.cost ?? 0.0;
-    final grandTotal = cart.subtotal + deliveryCost + cart.tax;
+    final deliveryCost =
+        enableShipping ? (state.selectedDeliveryMethod?.cost ?? 0.0) : 0.0;
+    final vatAmount = enableVat ? cart.tax : 0.0;
+    final grandTotal = cart.subtotal + deliveryCost + vatAmount;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -105,9 +113,19 @@ class StepReviewOrder extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Shipping: ${state.selectedDeliveryMethod?.name ?? 'Standard Delivery'} (${state.selectedDeliveryMethod?.duration ?? ''})',
+                  enableShipping
+                      ? 'Shipping: ${state.selectedDeliveryMethod?.name ?? 'Standard Delivery'} (${state.selectedDeliveryMethod?.duration ?? ''})'
+                      : 'Shipping: ${state.selectedDeliveryMethod?.name ?? 'Standard Delivery'} (Free Delivery)',
                   style: AppTypography.caption.copyWith(
                     color: AppColors.grey,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Prices include VAT.',
+                  style: AppTypography.caption.copyWith(
+                    color: isDark ? Colors.white60 : AppColors.grey,
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
               ],

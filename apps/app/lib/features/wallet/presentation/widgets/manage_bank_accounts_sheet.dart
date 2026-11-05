@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/network/api_error.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -15,7 +16,7 @@ class ManageBankAccountsSheet extends ConsumerStatefulWidget {
 
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet<void>(
-      context: context,
+      context: rootNavigatorKey.currentContext ?? context,
       useRootNavigator: true,
       useSafeArea: true,
       isScrollControlled: true,
@@ -87,17 +88,25 @@ class _ManageBankAccountsSheetState
 
   @override
   Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accountsAsync = ref.watch(userBankAccountsProvider);
 
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md + mq.padding.bottom,
+      ),
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
+        top: false,
+        bottom: true,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,

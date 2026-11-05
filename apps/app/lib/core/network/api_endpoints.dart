@@ -42,9 +42,11 @@ abstract final class ApiEndpoints {
   static const payouts = PayoutsEndpoints();
   static const userBankAccounts = UserBankAccountsEndpoints();
   static const invoices = InvoicesEndpoints();
+  static const shoppingCredits = ShoppingCreditsEndpoints();
   static const kyc = KycEndpoints();
   static const referrals = _ReferralsEndpoints();
   static const wishlists = WishlistsEndpoints();
+  static const commissions = CommissionsEndpoints();
 }
 
 /// 1. Auth Endpoints

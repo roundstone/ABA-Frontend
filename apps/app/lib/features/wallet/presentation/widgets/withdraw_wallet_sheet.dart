@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/network/api_error.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -23,7 +24,7 @@ class WithdrawWalletSheet extends ConsumerStatefulWidget {
     double availableBalance = 0.0,
   }) {
     return showModalBottomSheet<WalletPayout>(
-      context: context,
+      context: rootNavigatorKey.currentContext ?? context,
       useRootNavigator: true,
       useSafeArea: true,
       isScrollControlled: true,
@@ -134,8 +135,14 @@ class _WithdrawWalletSheetState extends ConsumerState<WithdrawWalletSheet> {
           ),
           child: SafeArea(
             top: false,
+            bottom: true,
             child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md + mq.padding.bottom,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -85,7 +85,7 @@ void main() {
       );
 
       expect(result.orderId, startsWith('ORD-2026-X'));
-      expect(result.status, equals('Processing'));
+      expect(result.status, equals('Pending'));
       expect(result.order.items.length, equals(1));
       expect(result.order.shippingAddress.fullName, equals('Jane Doe'));
     });

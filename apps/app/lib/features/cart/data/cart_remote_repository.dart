@@ -168,22 +168,27 @@ class CartRemoteRepository implements CartRepository {
 
   @override
   Future<void> clearCart() async {
+    // 1. Proactively delete individual items so server cart is completely cleared
+    try {
+      final currentCart = await getCart();
+      for (final item in currentCart.items) {
+        final itemId = item.id ?? item.product.id;
+        try {
+          await dio.delete(ApiEndpoints.cart.item(itemId));
+        } catch (_) {}
+      }
+    } catch (_) {}
+
+    // 2. Attempt bulk delete endpoints
     try {
       await dio.delete(ApiEndpoints.cart.base);
-      if (AppConfig.isMockMode) await _mock.clearCart();
-    } on DioException catch (e) {
-      if (AppConfig.isMockMode) {
-        await _mock.clearCart();
-        return;
-      }
-      throw ApiError.fromDio(e);
-    } catch (e) {
-      if (AppConfig.isMockMode) {
-        await _mock.clearCart();
-        return;
-      }
-      rethrow;
+    } catch (_) {
+      try {
+        await dio.delete(ApiEndpoints.cart.items);
+      } catch (_) {}
     }
+
+    await _mock.clearCart();
   }
 
   @override

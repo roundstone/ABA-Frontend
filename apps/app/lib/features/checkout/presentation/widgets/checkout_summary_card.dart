@@ -11,11 +11,19 @@ class CheckoutSummaryCard extends StatefulWidget {
   const CheckoutSummaryCard({
     super.key,
     required this.cart,
-    required this.deliveryMethod,
+    this.deliveryMethod,
   });
 
   final Cart cart;
   final DeliveryMethod? deliveryMethod;
+
+  /// Toggleable VAT configuration. Currently disabled: prices already include VAT.
+  /// Preserved for future tax system integration.
+  static const bool enableVat = false;
+
+  /// Toggleable shipping configuration for this card. Delivery method is selected
+  /// during checkout step 2, so shipping is hidden from this generic summary.
+  static const bool enableShipping = false;
 
   @override
   State<CheckoutSummaryCard> createState() => _CheckoutSummaryCardState();
@@ -27,8 +35,13 @@ class _CheckoutSummaryCardState extends State<CheckoutSummaryCard> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final deliveryFee = widget.deliveryMethod?.cost ?? 2500.0;
-    final grandTotal = widget.cart.subtotal + deliveryFee + widget.cart.tax;
+    final deliveryFee = widget.deliveryMethod?.cost ?? 0.0;
+    final shippingAmount = (CheckoutSummaryCard.enableShipping &&
+            widget.deliveryMethod != null)
+        ? deliveryFee
+        : 0.0;
+    final vatAmount = CheckoutSummaryCard.enableVat ? widget.cart.tax : 0.0;
+    final grandTotal = widget.cart.subtotal + shippingAmount + vatAmount;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -142,15 +155,38 @@ class _CheckoutSummaryCardState extends State<CheckoutSummaryCard> {
             label: 'Subtotal',
             value: formatNaira(widget.cart.subtotal),
           ),
-          const SizedBox(height: 4),
-          _SummaryRow(
-            label: 'Delivery Fee',
-            value: formatNaira(deliveryFee),
-          ),
-          const SizedBox(height: 4),
-          _SummaryRow(
-            label: 'Estimated VAT (7.5%)',
-            value: formatNaira(widget.cart.tax),
+          if (CheckoutSummaryCard.enableShipping &&
+              widget.deliveryMethod != null) ...[
+            const SizedBox(height: 4),
+            _SummaryRow(
+              label: 'Delivery Fee',
+              value: formatNaira(deliveryFee),
+            ),
+          ],
+          if (CheckoutSummaryCard.enableVat) ...[
+            const SizedBox(height: 4),
+            _SummaryRow(
+              label: 'Estimated VAT (7.5%)',
+              value: formatNaira(widget.cart.tax),
+            ),
+          ],
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedInformationCircle,
+                size: 14,
+                color: isDark ? Colors.white54 : AppColors.grey,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'Prices include VAT.',
+                style: AppTypography.caption.copyWith(
+                  color: isDark ? Colors.white60 : AppColors.grey,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: AppSpacing.xs),
           Divider(color: isDark ? Colors.white10 : AppColors.border),

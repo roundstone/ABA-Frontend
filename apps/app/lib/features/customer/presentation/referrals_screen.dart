@@ -59,7 +59,7 @@ final referralDataProvider = FutureProvider.autoDispose<ReferralData>((
     ),
     stats: [
       ReferralStat(
-        referredUserName: 'Chima Obi',
+        referredUserName: 'Chinedu Okafor',
         joinedDate: DateTime.now().subtract(const Duration(days: 12)),
         status: 'Active',
         earnings: 450000,
@@ -72,6 +72,7 @@ final referralDataProvider = FutureProvider.autoDispose<ReferralData>((
       ),
     ],
   );
+
 });
 
 // ─── Screen ───────────────────────────────────────────────────────────────
@@ -608,7 +609,7 @@ class _LeaderboardSection extends StatelessWidget {
               children: [
                 _LeaderboardTile(
                   rank: 1,
-                  name: 'Chima Obi',
+                  name: 'Chinedu Okafor',
                   earnings: 15400000,
                 ),
                 Divider(height: 1, color: Colors.white24),

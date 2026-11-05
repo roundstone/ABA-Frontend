@@ -195,6 +195,47 @@ void main() {
       expect(res.totalItems, equals(1));
       expect(res.hasNext, isFalse);
     });
+
+    test('getShoppingCredits parses backend response from /api/v1/shopping-credits/me', () async {
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            if (options.path.contains('/shopping-credits/me')) {
+              return handler.resolve(
+                Response(
+                  requestOptions: options,
+                  statusCode: 200,
+                  data: {
+                    "success": true,
+                    "statusCode": 200,
+                    "message": "Request completed successfully",
+                    "data": {
+                      "id": 2,
+                      "user_id": 10,
+                      "balance": "12500.00",
+                      "createdAt": "2026-11-05T00:21:46.765Z",
+                      "updatedAt": "2026-11-05T00:21:46.765Z",
+                      "is_activated": true
+                    },
+                    "timestamp": "2026-11-05T00:21:46.780Z"
+                  },
+                ),
+              );
+            }
+            return handler.next(options);
+          },
+        ),
+      );
+
+      final repo = WalletRemoteRepository(dio: dio);
+      final credits = await repo.getShoppingCredits();
+
+      expect(credits.id, equals(2));
+      expect(credits.userId, equals(10));
+      expect(credits.balance, equals(12500.00));
+      expect(credits.isActivated, isTrue);
+    });
   });
 }
 

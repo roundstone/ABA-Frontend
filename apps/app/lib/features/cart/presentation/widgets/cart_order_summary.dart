@@ -18,10 +18,19 @@ class CartOrderSummary extends StatelessWidget {
   final VoidCallback onCheckout;
   final VoidCallback onClear;
 
+  /// Toggleable VAT configuration. Currently disabled: prices already include VAT.
+  static const bool enableVat = false;
+
+  /// Toggleable shipping configuration. Shipping method is selected during checkout.
+  static const bool enableShipping = false;
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final shippingAmount = enableShipping ? cart.shipping : 0.0;
+    final vatAmount = enableVat ? cart.tax : 0.0;
+    final total = cart.subtotal + shippingAmount + vatAmount;
 
     Widget row(String label, double value, {bool bold = false}) => Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
@@ -65,21 +74,45 @@ class CartOrderSummary extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           row('Subtotal (${cart.itemCount} items)', cart.subtotal),
-          row('Shipping', cart.shipping),
-          if (cart.shipping == 0)
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                'Free!',
-                style: AppTypography.label.copyWith(
-                  color: const Color(0xFF10B981),
-                  fontWeight: FontWeight.w700,
+          if (enableShipping) ...[
+            row('Shipping', cart.shipping),
+            if (cart.shipping == 0)
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Free!',
+                  style: AppTypography.label.copyWith(
+                    color: const Color(0xFF10B981),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
+          ],
+          if (enableVat)
+            row('VAT (7.5%)', cart.tax)
+          else
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedInformationCircle,
+                    size: 14,
+                    color: isDark ? Colors.white54 : AppColors.grey,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Prices include VAT.',
+                    style: AppTypography.caption.copyWith(
+                      color: isDark ? Colors.white60 : AppColors.grey,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          row('VAT (7.5%)', cart.tax),
           const Divider(height: AppSpacing.md),
-          row('Total', cart.total, bold: true),
+          row('Total', total, bold: true),
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
