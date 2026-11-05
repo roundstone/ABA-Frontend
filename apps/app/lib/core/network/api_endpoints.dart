@@ -239,4 +239,5 @@ class _ReferralsEndpoints {
   static const String _base = '${ApiEndpoints.apiV1}/referrals/mobile-app/me';
   String get upline => '$_base/upline';
   String get downline => '$_base/downline';
+  String get summary => '${ApiEndpoints.apiV1}/referrals/me/summary';
 }

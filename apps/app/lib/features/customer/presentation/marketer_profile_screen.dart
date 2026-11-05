@@ -8,9 +8,9 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../auth/application/auth_providers.dart';
 import 'marketer_profile_models.dart';
-import 'widgets/marketer_performance_charts.dart';
+// import 'widgets/marketer_performance_charts.dart';
 import 'widgets/marketer_profile_header.dart';
-import 'widgets/marketer_profile_kpis.dart';
+// import 'widgets/marketer_profile_kpis.dart';
 import 'widgets/network_tree.dart';
 
 export 'marketer_profile_models.dart';
@@ -47,7 +47,7 @@ class _MarketerProfileScreenState extends ConsumerState<MarketerProfileScreen> {
             context.popOrGo(fallback);
           },
         ),
-        title: const Text('Marketer Profile'),
+        title: const Text('Network Tree'),
       ),
       body: PopScope(
         canPop: context.canPopSafely,
@@ -83,9 +83,9 @@ class _MarketerProfileScreenState extends ConsumerState<MarketerProfileScreen> {
                         ),
                         const SizedBox(height: AppSpacing.xl),
 
-                        // 2. Profile KPIs
-                        MarketerProfileKpis(profile: profile),
-                        const SizedBox(height: AppSpacing.xl),
+                        // 2. Profile KPIs -> Not needed now; leave commented for future reference
+                        // MarketerProfileKpis(profile: profile),
+                        // const SizedBox(height: AppSpacing.xl),
 
                         // 3. Network Visualisation (Tree & List view with Upline/Downline & Depth)
                         Text(
@@ -101,16 +101,16 @@ class _MarketerProfileScreenState extends ConsumerState<MarketerProfileScreen> {
                         ),
                         const SizedBox(height: AppSpacing.xl),
 
-                        // 4. Performance Metrics
-                        Text(
-                          'Performance Metrics',
-                          style: AppTypography.h6.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        MarketerPerformanceCharts(profile: profile),
-                        const SizedBox(height: AppSpacing.xxl),
+                        // 4. Performance Metrics -> Not needed now; leave commented for future reference
+                        // Text(
+                        //   'Performance Metrics',
+                        //   style: AppTypography.h6.copyWith(
+                        //     fontWeight: FontWeight.w700,
+                        //   ),
+                        // ),
+                        // const SizedBox(height: AppSpacing.md),
+                        // MarketerPerformanceCharts(profile: profile),
+                        // const SizedBox(height: AppSpacing.xxl),
                       ],
                     ),
                   ),
