@@ -1,7 +1,7 @@
 import 'package:app/features/customer/application/referral_activation_provider.dart';
+import 'package:app/features/customer/data/kyc_service.dart';
 import 'package:app/features/customer/domain/referral_activation_model.dart';
 import 'package:app/features/customer/presentation/widgets/referral_activation_card.dart';
-import 'package:app/features/customer/presentation/widgets/referral_active_code_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -73,11 +73,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('COMMISSION INACTIVE'), findsOneWidget);
+      expect(find.text('Complete KYC & Activate (₦5,000)'), findsOneWidget);
       expect(find.text('Generate Referral Code'), findsOneWidget);
-      expect(find.byType(ReferralActiveCodeView), findsNothing);
     });
 
-    testWidgets('renders active code banner and code view when user already has code', (tester) async {
+    testWidgets('renders Share Referral Code when user already has code', (tester) async {
       final notifier = _MockReferralNotifier(
         const ReferralActivationState(
           referralCode: 'CUSTOMER-4-C701F16C',
@@ -107,9 +107,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('CUSTOMER-4-C701F16C'), findsOneWidget);
-      expect(find.text('Commission Earning Active'), findsOneWidget);
-      expect(find.byType(ReferralActiveCodeView), findsOneWidget);
+      expect(find.text('Share Referral Code'), findsOneWidget);
     });
 
     testWidgets('tapping Generate Referral Code triggers generateReferralCode', (tester) async {
@@ -149,8 +147,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(notifier.generateCalled, isTrue);
-      expect(find.text('CUSTOMER-4-C701F16C'), findsOneWidget);
-      expect(find.byType(ReferralActiveCodeView), findsOneWidget);
+      expect(find.text('Share Referral Code'), findsOneWidget);
     });
   });
 }
@@ -187,6 +184,13 @@ class _MockReferralNotifier extends StateNotifier<ReferralActivationState>
     required String idType,
     required String idDocumentName,
     required String proofOfAddressName,
+    String? dateOfBirth,
+    String? nationality,
+    String? residentialAddress,
+    String? city,
+    String? stateName,
+    String? lga,
+    List<KycUploadDocument>? uploadDocuments,
   }) async {}
 
   @override

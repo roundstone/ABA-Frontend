@@ -4,16 +4,20 @@ import '../../../core/logging/app_logger.dart';
 import '../../../core/network/dio_client.dart';
 import '../domain/wallet_entities.dart';
 import '../domain/wallet_repository.dart';
+import 'wallet_bank_payout_service.dart';
 import 'wallet_mock_repository.dart';
 
 class WalletRemoteRepository implements WalletRepository {
   WalletRemoteRepository({
     required this.dio,
     WalletMockRepository? mockFallback,
-  }) : _mock = mockFallback ?? WalletMockRepository();
+  }) : _mock = mockFallback ?? WalletMockRepository() {
+    _payoutService = WalletBankPayoutService(dio: dio, mock: _mock);
+  }
 
   final Dio dio;
   final WalletMockRepository _mock;
+  late final WalletBankPayoutService _payoutService;
 
   @override
   Future<WalletInfo> getWalletInfo() async {
@@ -195,4 +199,71 @@ class WalletRemoteRepository implements WalletRepository {
     );
     return res.transactions;
   }
+
+  @override
+  Future<WalletFundInitResult> initializeFundWallet(double amount) =>
+      _payoutService.initializeFundWallet(amount);
+
+  @override
+  Future<bool> verifyFundWallet(String reference) =>
+      _payoutService.verifyFundWallet(reference);
+
+  @override
+  Future<WalletPayout> createWithdrawal({
+    required double amount,
+    required int bankAccountId,
+  }) =>
+      _payoutService.createWithdrawal(
+        amount: amount,
+        bankAccountId: bankAccountId,
+      );
+
+  @override
+  Future<List<WalletPayout>> getMyPayouts() => _payoutService.getMyPayouts();
+
+  @override
+  Future<WalletPayout> getPayoutById(String id) =>
+      _payoutService.getPayoutById(id);
+
+  @override
+  Future<List<BankOption>> getAvailableBanks() =>
+      _payoutService.getAvailableBanks();
+
+  @override
+  Future<List<UserBankAccount>> getUserBankAccounts() =>
+      _payoutService.getUserBankAccounts();
+
+  @override
+  Future<UserBankAccount> addBankAccount({
+    required String bankName,
+    required String bankCode,
+    required String accountNumber,
+    bool isPrimary = false,
+  }) =>
+      _payoutService.addBankAccount(
+        bankName: bankName,
+        bankCode: bankCode,
+        accountNumber: accountNumber,
+        isPrimary: isPrimary,
+      );
+
+  @override
+  Future<UserBankAccount> updateBankAccount(
+    int id, {
+    String? bankName,
+    String? bankCode,
+    String? accountNumber,
+    bool? isPrimary,
+  }) =>
+      _payoutService.updateBankAccount(
+        id,
+        bankName: bankName,
+        bankCode: bankCode,
+        accountNumber: accountNumber,
+        isPrimary: isPrimary,
+      );
+
+  @override
+  Future<void> deleteBankAccount(int id) =>
+      _payoutService.deleteBankAccount(id);
 }

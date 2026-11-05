@@ -108,7 +108,7 @@ class _DashboardBody extends StatelessWidget {
         .where(
           (o) =>
               o.status == OrderStatus.pending ||
-              o.status == OrderStatus.processing,
+              o.status == OrderStatus.shippedOrReadyForPickup,
         )
         .length;
 

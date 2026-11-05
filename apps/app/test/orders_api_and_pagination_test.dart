@@ -111,6 +111,20 @@ void main() {
       expect(order.canBeCancelled, isFalse);
       expect(order.cancellationReason, 'Customer changed mind');
     });
+
+    test('parses all updated order statuses correctly', () {
+      expect(OrderStatus.fromString('pending'), OrderStatus.pending);
+      expect(OrderStatus.fromString('complete'), OrderStatus.complete);
+      expect(
+        OrderStatus.fromString('shipped_or_ready_for_pickup'),
+        OrderStatus.shippedOrReadyForPickup,
+      );
+      expect(OrderStatus.fromString('cancelled'), OrderStatus.cancelled);
+      expect(
+        OrderStatus.fromString('refund_requested'),
+        OrderStatus.refundRequested,
+      );
+    });
   });
 
   group('OrdersApi Integration', () {

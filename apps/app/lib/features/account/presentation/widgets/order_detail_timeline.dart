@@ -51,16 +51,49 @@ class OrderDetailTimeline extends StatelessWidget {
       );
     }
 
-    final isProcessing = [
-      OrderStatus.processing,
-      OrderStatus.shipped,
-      OrderStatus.delivered,
-    ].contains(order.status);
+    if (order.status == OrderStatus.refundRequested) {
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: cs.surface,
+          borderRadius: AppSpacing.borderRadiusLG,
+          border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Order Timeline',
+                style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: AppSpacing.md),
+            const _TimelineStep(
+              icon: HugeIcons.strokeRoundedPackage,
+              title: 'Order Placed',
+              description: 'Order was submitted.',
+              isActive: true,
+              isCompleted: true,
+              isLast: false,
+            ),
+            _TimelineStep(
+              icon: HugeIcons.strokeRoundedAlert02,
+              title: 'Refund Requested',
+              description: order.cancellationReason ??
+                  'A refund has been requested and is under review.',
+              isActive: true,
+              isCompleted: true,
+              isError: true,
+              isLast: true,
+            ),
+          ],
+        ),
+      );
+    }
+
     final isShipped = [
-      OrderStatus.shipped,
-      OrderStatus.delivered,
+      OrderStatus.shippedOrReadyForPickup,
+      OrderStatus.complete,
     ].contains(order.status);
-    final isDelivered = order.status == OrderStatus.delivered;
+    final isComplete = order.status == OrderStatus.complete;
+    final isPendingActive = order.status == OrderStatus.pending || isShipped;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -87,26 +120,26 @@ class OrderDetailTimeline extends StatelessWidget {
           ),
           _TimelineStep(
             icon: HugeIcons.strokeRoundedTime01,
-            title: 'Processing',
+            title: 'Pending',
             description: 'The merchant is preparing your items.',
-            isActive: isProcessing,
-            isCompleted: isProcessing,
+            isActive: isPendingActive,
+            isCompleted: isShipped,
             isLast: false,
           ),
           _TimelineStep(
             icon: HugeIcons.strokeRoundedDeliveryBox01,
-            title: 'Shipped',
-            description: 'Your order has been handed over to the delivery partner.',
+            title: 'Shipped / Ready for Pickup',
+            description: 'Your order is on the way or ready for pickup.',
             isActive: isShipped,
             isCompleted: isShipped,
             isLast: false,
           ),
           _TimelineStep(
             icon: HugeIcons.strokeRoundedLocation01,
-            title: 'Delivered',
-            description: 'Your order has arrived at the destination.',
-            isActive: isDelivered,
-            isCompleted: isDelivered,
+            title: 'Complete',
+            description: 'Your order has been delivered and completed.',
+            isActive: isComplete,
+            isCompleted: isComplete,
             isLast: true,
           ),
         ],
@@ -143,7 +176,7 @@ class _TimelineStep extends StatelessWidget {
     if (isError) {
       iconBgColor = AppColors.error;
     } else if (isCompleted) {
-      iconBgColor = (title == 'Delivered' || title == 'Order Placed')
+      iconBgColor = (title == 'Complete' || title == 'Order Placed')
           ? AppColors.success
           : AppColors.primary;
     } else {

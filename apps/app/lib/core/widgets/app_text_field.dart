@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
@@ -14,6 +15,8 @@ class AppTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
   final int maxLines;
+  final int? maxLength;
+  final List<TextInputFormatter>? inputFormatters;
   final bool enabled;
   final bool readOnly;
   final String? errorText;
@@ -31,6 +34,8 @@ class AppTextField extends StatelessWidget {
     this.validator,
     this.onChanged,
     this.maxLines = 1,
+    this.maxLength,
+    this.inputFormatters,
     this.enabled = true,
     this.readOnly = false,
     this.errorText,
@@ -78,11 +83,14 @@ class AppTextField extends StatelessWidget {
           validator: validator,
           onChanged: onChanged,
           maxLines: maxLines,
+          maxLength: maxLength,
+          inputFormatters: inputFormatters,
           enabled: enabled,
           readOnly: readOnly,
           autovalidateMode: autovalidateMode,
           style: AppTypography.bodyMedium.copyWith(color: cs.onSurface),
           decoration: InputDecoration(
+            counterText: '',
             hintText: hintText,
             hintStyle: AppTypography.bodyMedium.copyWith(
               color: cs.onSurfaceVariant.withAlpha(153),

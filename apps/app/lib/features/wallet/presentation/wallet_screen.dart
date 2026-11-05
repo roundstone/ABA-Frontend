@@ -7,12 +7,15 @@ import '../../../core/router/safe_navigation.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/app_widgets.dart';
 import '../../auth/application/auth_providers.dart';
 import '../application/wallet_providers.dart';
+import 'widgets/fund_wallet_sheet.dart';
+import 'widgets/manage_bank_accounts_sheet.dart';
+import 'widgets/payouts_history_sheet.dart';
 import 'widgets/wallet_balance_card.dart';
 import 'widgets/wallet_filter_bar.dart';
 import 'widgets/wallet_transactions_list.dart';
+import 'widgets/withdraw_wallet_sheet.dart';
 
 class WalletScreen extends ConsumerWidget {
   const WalletScreen({super.key});
@@ -51,15 +54,20 @@ class WalletScreen extends ConsumerWidget {
         centerTitle: false,
         actions: [
           IconButton(
-            onPressed: () {
-              ref.invalidate(walletInfoProvider);
-              ref.invalidate(walletTransactionsProvider);
-            },
+            onPressed: () => ManageBankAccountsSheet.show(context),
             icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
+              icon: HugeIcons.strokeRoundedBank,
               color: AppColors.grey,
             ),
-            tooltip: 'Refresh',
+            tooltip: 'Bank Accounts',
+          ),
+          IconButton(
+            onPressed: () => PayoutsHistorySheet.show(context),
+            icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedInvoice01,
+              color: AppColors.grey,
+            ),
+            tooltip: 'Payouts History',
           ),
         ],
       ),
@@ -77,6 +85,8 @@ class WalletScreen extends ConsumerWidget {
             onRefresh: () async {
               ref.invalidate(walletInfoProvider);
               ref.invalidate(walletTransactionsProvider);
+              ref.invalidate(userBankAccountsProvider);
+              ref.invalidate(myPayoutsProvider);
             },
             child: ListView(
               padding: AppSpacing.paddingHorizontalMD,
@@ -92,12 +102,12 @@ class WalletScreen extends ConsumerWidget {
                       ? ApiError.toUserFriendlyMessage(walletInfoAsync.error)
                       : null,
                   onRetry: () => ref.invalidate(walletInfoProvider),
-                  onFund: () {
-                    AppSnackbar.info(context, 'Fund wallet coming soon');
-                  },
-                  onWithdraw: () {
-                    AppSnackbar.info(context, 'Withdrawal coming soon');
-                  },
+                  onFund: () => FundWalletSheet.show(context),
+                  onWithdraw: () => WithdrawWalletSheet.show(
+                    context,
+                    availableBalance:
+                        walletInfoAsync.valueOrNull?.balance ?? 0.0,
+                  ),
                 ),
                 AppSpacing.verticalSpaceMD,
 

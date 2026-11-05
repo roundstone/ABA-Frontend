@@ -82,7 +82,7 @@ class OrdersMockService {
           if (p is Map && p['reference'] == reference) {
             p['status'] = 'success';
             p['paid_at'] = DateTime.now().toIso8601String();
-            o['status'] = 'confirmed';
+            o['status'] = 'pending';
             return true;
           }
         }

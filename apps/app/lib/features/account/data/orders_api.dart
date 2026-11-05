@@ -42,7 +42,7 @@ class OrdersApi {
         if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
         if (startDate != null && startDate.isNotEmpty) 'startDate': startDate,
         if (endDate != null && endDate.isNotEmpty) 'endDate': endDate,
-        if (status != null) 'status': status.name,
+        if (status != null) 'status': status.apiValue,
       };
 
       AppLogger.d('GET $endpoint with params: $queryParams');

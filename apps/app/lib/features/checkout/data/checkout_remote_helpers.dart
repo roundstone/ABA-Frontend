@@ -51,8 +51,7 @@ class CheckoutRemoteHelpers {
       orderNumber: orderJson['order_number']?.toString() ?? ordId,
       date: safeDate,
       status: safeStatus,
-      paymentState: orderJson['payment_state']?.toString() ??
-          (safeStatus == OrderStatus.unpaid ? 'unpaid' : 'paid'),
+      paymentState: orderJson['payment_state']?.toString() ?? 'paid',
       total: safeTotalKobo,
       paymentMethod: paymentType.name,
       shippingAddress: ShippingAddress(

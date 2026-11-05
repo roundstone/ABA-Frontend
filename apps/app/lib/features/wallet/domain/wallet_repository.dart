@@ -26,4 +26,34 @@ abstract class WalletRepository {
     int? transactionType,
     int? status,
   });
+
+  // Fund Wallet via Paystack
+  Future<WalletFundInitResult> initializeFundWallet(double amount);
+  Future<bool> verifyFundWallet(String reference);
+
+  // Withdrawals & Payouts
+  Future<WalletPayout> createWithdrawal({
+    required double amount,
+    required int bankAccountId,
+  });
+  Future<List<WalletPayout>> getMyPayouts();
+  Future<WalletPayout> getPayoutById(String id);
+
+  // User Bank Accounts
+  Future<List<BankOption>> getAvailableBanks();
+  Future<List<UserBankAccount>> getUserBankAccounts();
+  Future<UserBankAccount> addBankAccount({
+    required String bankName,
+    required String bankCode,
+    required String accountNumber,
+    bool isPrimary = false,
+  });
+  Future<UserBankAccount> updateBankAccount(
+    int id, {
+    String? bankName,
+    String? bankCode,
+    String? accountNumber,
+    bool? isPrimary,
+  });
+  Future<void> deleteBankAccount(int id);
 }

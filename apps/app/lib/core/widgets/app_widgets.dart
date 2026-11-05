@@ -155,14 +155,22 @@ class OrderStatusBadge extends StatelessWidget {
 
   (Color bg, Color fg, String label) get _style {
     switch (status) {
-      case OrderStatus.delivered:
-        return (const Color(0xFFE8F5E9), const Color(0xFF2E7D32), 'Delivered');
-      case OrderStatus.shipped:
-        return (const Color(0xFFE3F2FD), const Color(0xFF1565C0), 'Shipped');
-      case OrderStatus.processing:
-        return (const Color(0xFFFFF8E1), const Color(0xFFF57F17), 'Processing');
+      case OrderStatus.complete:
+        return (const Color(0xFFE8F5E9), const Color(0xFF2E7D32), 'Complete');
+      case OrderStatus.shippedOrReadyForPickup:
+        return (
+          const Color(0xFFE3F2FD),
+          const Color(0xFF1565C0),
+          'Shipped / Ready for Pickup',
+        );
       case OrderStatus.pending:
-        return (const Color(0xFFFCE4EC), const Color(0xFFC62828), 'Pending');
+        return (const Color(0xFFFFF8E1), const Color(0xFFF57F17), 'Pending');
+      case OrderStatus.refundRequested:
+        return (
+          const Color(0xFFF3E5F5),
+          const Color(0xFF6A1B9A),
+          'Refund Requested',
+        );
       case OrderStatus.cancelled:
         return (const Color(0xFFEEEEEE), const Color(0xFF616161), 'Cancelled');
     }

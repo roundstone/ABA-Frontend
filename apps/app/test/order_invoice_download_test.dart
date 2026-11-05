@@ -15,7 +15,7 @@ void main() {
     id: '1811',
     orderNumber: 'ORD-1793458691802-863YFRV2',
     date: DateTime(2026, 10, 31),
-    status: OrderStatus.processing,
+    status: OrderStatus.pending,
     paymentMethod: 'card_or_bank',
     total: 2530000,
     items: const [],
@@ -48,19 +48,91 @@ void main() {
   });
 
   group('Invoice Endpoint & Service Tests', () {
-    test('ApiEndpoints.orders.invoice constructs correct mobile app URL', () {
-      final endpoint = ApiEndpoints.orders.invoice('1811');
-      expect(endpoint, equals('/api/v1/orders/mobile-app/1811/invoice'));
+    test('ApiEndpoints.invoices constructs correct view and download URLs', () {
+      expect(
+        ApiEndpoints.invoices.byOrderId('1814'),
+        equals('/api/v1/invoices/orders/1814'),
+      );
+      expect(
+        ApiEndpoints.invoices.downloadByOrderId('1814'),
+        equals('/api/v1/invoices/orders/1814/download'),
+      );
+      expect(
+        ApiEndpoints.orders.invoice('1811'),
+        equals('/api/v1/invoices/orders/1811/download'),
+      );
     });
 
-    testWidgets('InvoiceService queries endpoint and handles direct binary bytes', (tester) async {
+    test('InvoiceService.fetchOrderInvoice parses backend invoice JSON', () async {
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            if (options.path.endsWith('/invoices/orders/1814')) {
+              return handler.resolve(
+                Response(
+                  requestOptions: options,
+                  statusCode: 200,
+                  data: {
+                    'success': true,
+                    'statusCode': 200,
+                    'message': 'Request completed successfully',
+                    'data': {
+                      'id': 1,
+                      'order_id': 1814,
+                      'customer_id': 4,
+                      'merchant_id': null,
+                      'invoice_number': 'INV-1814-1793838157748',
+                      'status': 'issued',
+                      'subtotal': '0.00',
+                      'discount_amount': '0.00',
+                      'delivery_amount': '0.00',
+                      'tax_amount': '0.00',
+                      'total_amount': '26900.00',
+                      'currency': 'NGN',
+                      'customer_snapshot': {
+                        'name': 'Bro David Enabs',
+                        'email': 'c-davidenabs@gmail.com',
+                        'deliveryAddress': {
+                          'id': 106,
+                          'zip': '450001',
+                          'city': 'Aba',
+                          'name': 'Office/Work',
+                          'state': 'Abia',
+                          'street': 'nexus road',
+                        }
+                      },
+                      'issued_at': '2026-11-05T00:22:37.748Z',
+                      'items': [],
+                    },
+                  },
+                ),
+              );
+            }
+            return handler.next(options);
+          },
+        ),
+      );
+
+      final inv = await InvoiceService.fetchOrderInvoice('1814', dioClient: dio);
+      expect(inv.id, 1);
+      expect(inv.orderId, 1814);
+      expect(inv.invoiceNumber, 'INV-1814-1793838157748');
+      expect(inv.status, 'issued');
+      expect(inv.totalAmount, 26900.0);
+      expect(inv.customerName, 'Bro David Enabs');
+      expect(inv.customerEmail, 'c-davidenabs@gmail.com');
+      expect(inv.deliveryAddress?.city, 'Aba');
+    });
+
+    testWidgets('InvoiceService queries download endpoint and handles direct binary bytes', (tester) async {
       final dio = Dio();
       bool endpointCalled = false;
 
       dio.interceptors.add(
         InterceptorsWrapper(
           onRequest: (options, handler) {
-            if (options.path.endsWith('/orders/mobile-app/1811/invoice')) {
+            if (options.path.endsWith('/invoices/orders/1811/download')) {
               endpointCalled = true;
               return handler.resolve(
                 Response(
@@ -106,7 +178,7 @@ void main() {
       dio.interceptors.add(
         InterceptorsWrapper(
           onRequest: (options, handler) {
-            if (options.path.endsWith('/orders/mobile-app/1811/invoice')) {
+            if (options.path.endsWith('/invoices/orders/1811/download')) {
               invoiceEndpointCalled = true;
               return handler.resolve(
                 Response(

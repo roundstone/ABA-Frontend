@@ -1,13 +1,14 @@
 import '../domain/wallet_entities.dart';
 import '../domain/wallet_repository.dart';
+import 'wallet_mock_data.dart';
 
 class WalletMockRepository implements WalletRepository {
   @override
   Future<WalletInfo> getWalletInfo() async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 300));
     return WalletInfo(
       id: 104,
-      balance: 145000.50,
+      balance: WalletMockData.mockBalance,
       currency: 'NGN',
       walletableType: 'customer',
       walletableId: 4,
@@ -30,8 +31,8 @@ class WalletMockRepository implements WalletRepository {
     int? transactionType,
     int? status,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    var list = _mockTransactions;
+    await Future.delayed(const Duration(milliseconds: 300));
+    var list = List<WalletTransaction>.from(WalletMockData.mockTransactions);
 
     if (transactionType != null) {
       list = list.where((t) => t.transactionType.value == transactionType).toList();
@@ -103,66 +104,157 @@ class WalletMockRepository implements WalletRepository {
     return result.transactions;
   }
 
-  static final List<WalletTransaction> _mockTransactions = [
-    WalletTransaction(
-      id: '101',
-      walletId: 12,
-      referenceNumber: 'DEMO-WALLET-CUSTOMER-12-1',
-      amount: 25000.0,
-      type: TransactionType.credit,
-      status: TransactionStatus.completed,
-      transactionType: WalletTransactionType.deposit,
-      date: DateTime.now().subtract(const Duration(hours: 2)),
-      description: 'Demo Paystack wallet deposit',
-      balanceBefore: 0.0,
-      balanceAfter: 25000.0,
-      sourceType: 'wallet_transaction_seed',
-      sourceId: 12,
-    ),
-    WalletTransaction(
-      id: '102',
-      walletId: 12,
-      referenceNumber: 'DEMO-WALLET-CUSTOMER-12-2',
-      amount: 5000.0,
-      type: TransactionType.debit,
-      status: TransactionStatus.completed,
-      transactionType: WalletTransactionType.orderPayment,
-      date: DateTime.now().subtract(const Duration(hours: 1)),
-      description: 'Demo wallet-funded order payment',
-      balanceBefore: 25000.0,
-      balanceAfter: 20000.0,
-      sourceType: 'wallet_transaction_seed',
-      sourceId: 12,
-    ),
-    WalletTransaction(
-      id: '103',
-      walletId: 12,
-      referenceNumber: 'DEMO-WALLET-CUSTOMER-12-3',
-      amount: 3000.0,
-      type: TransactionType.credit,
-      status: TransactionStatus.completed,
-      transactionType: WalletTransactionType.refund,
-      date: DateTime.now().subtract(const Duration(days: 2)),
-      description: 'Refund for cancelled order item #310',
-      balanceBefore: 20000.0,
-      balanceAfter: 23000.0,
-      sourceType: 'wallet_transaction_seed',
-      sourceId: 12,
-    ),
-    WalletTransaction(
-      id: '104',
-      walletId: 12,
-      referenceNumber: 'DEMO-WALLET-CUSTOMER-12-4',
-      amount: 10000.0,
-      type: TransactionType.debit,
-      status: TransactionStatus.pending,
-      transactionType: WalletTransactionType.withdrawal,
-      date: DateTime.now().subtract(const Duration(days: 3)),
-      description: 'Withdrawal to Access Bank •••• 4591',
-      balanceBefore: 23000.0,
-      balanceAfter: 13000.0,
-      sourceType: 'wallet_transaction_seed',
-      sourceId: 12,
-    ),
-  ];
+  @override
+  Future<WalletFundInitResult> initializeFundWallet(double amount) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    final ref = 'WLT-${DateTime.now().millisecondsSinceEpoch}';
+    return WalletFundInitResult(
+      reference: ref,
+      email: 'c-davidenabs@gmail.com',
+      amountInKobo: (amount * 100).round(),
+      publicKey: 'pk_test_a3c52ce327f5f3e830c62d7d2209ca361833dbb9',
+    );
+  }
+
+  @override
+  Future<bool> verifyFundWallet(String reference) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return reference.isNotEmpty;
+  }
+
+  @override
+  Future<WalletPayout> createWithdrawal({
+    required double amount,
+    required int bankAccountId,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 350));
+    final acc = WalletMockData.mockBankAccounts.firstWhere(
+      (b) => b.id == bankAccountId,
+      orElse: () => WalletMockData.mockBankAccounts.first,
+    );
+    WalletMockData.mockBalance =
+        (WalletMockData.mockBalance - amount).clamp(0.0, double.infinity);
+
+    final payout = WalletPayout(
+      id: '${WalletMockData.mockPayouts.length + 1}',
+      amount: amount,
+      status: 'pending',
+      createdAt: DateTime.now(),
+      reference: 'PYT-${DateTime.now().millisecondsSinceEpoch}',
+      bankAccountId: bankAccountId,
+      bankName: acc.bankName,
+      accountNumber: acc.accountNumber,
+      accountName: acc.accountName,
+    );
+    WalletMockData.mockPayouts.insert(0, payout);
+
+    WalletMockData.mockTransactions.insert(
+      0,
+      WalletTransaction(
+        id: '${DateTime.now().millisecondsSinceEpoch}',
+        walletId: 104,
+        referenceNumber: payout.reference,
+        amount: amount,
+        type: TransactionType.debit,
+        status: TransactionStatus.pending,
+        transactionType: WalletTransactionType.withdrawal,
+        date: DateTime.now(),
+        description:
+            'Withdrawal to ${acc.bankName} ${acc.maskedAccountNumber}',
+      ),
+    );
+    return payout;
+  }
+
+  @override
+  Future<List<WalletPayout>> getMyPayouts() async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    return List.unmodifiable(WalletMockData.mockPayouts);
+  }
+
+  @override
+  Future<WalletPayout> getPayoutById(String id) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    return WalletMockData.mockPayouts.firstWhere(
+      (p) => p.id == id,
+      orElse: () => WalletMockData.mockPayouts.first,
+    );
+  }
+
+  @override
+  Future<List<BankOption>> getAvailableBanks() async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    return List.unmodifiable(WalletMockData.mockBanks);
+  }
+
+  @override
+  Future<List<UserBankAccount>> getUserBankAccounts() async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    return List.unmodifiable(WalletMockData.mockBankAccounts);
+  }
+
+  @override
+  Future<UserBankAccount> addBankAccount({
+    required String bankName,
+    required String bankCode,
+    required String accountNumber,
+    bool isPrimary = false,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 350));
+    if (isPrimary) {
+      for (var i = 0; i < WalletMockData.mockBankAccounts.length; i++) {
+        WalletMockData.mockBankAccounts[i] =
+            WalletMockData.mockBankAccounts[i].copyWith(isPrimary: false);
+      }
+    }
+    final newAcc = UserBankAccount(
+      id: WalletMockData.mockBankAccounts.length + 1,
+      userId: 10,
+      bankName: bankName,
+      bankCode: bankCode,
+      accountNumber: accountNumber,
+      accountName: 'DAVID OSAGIE ENABULELE',
+      isVerified: true,
+      isPrimary: isPrimary || WalletMockData.mockBankAccounts.isEmpty,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    WalletMockData.mockBankAccounts.insert(0, newAcc);
+    return newAcc;
+  }
+
+  @override
+  Future<UserBankAccount> updateBankAccount(
+    int id, {
+    String? bankName,
+    String? bankCode,
+    String? accountNumber,
+    bool? isPrimary,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    if (isPrimary == true) {
+      for (var i = 0; i < WalletMockData.mockBankAccounts.length; i++) {
+        WalletMockData.mockBankAccounts[i] =
+            WalletMockData.mockBankAccounts[i].copyWith(isPrimary: false);
+      }
+    }
+    final idx = WalletMockData.mockBankAccounts.indexWhere((b) => b.id == id);
+    if (idx >= 0) {
+      final updated = WalletMockData.mockBankAccounts[idx].copyWith(
+        bankName: bankName,
+        bankCode: bankCode,
+        accountNumber: accountNumber,
+        isPrimary: isPrimary,
+      );
+      WalletMockData.mockBankAccounts[idx] = updated;
+      return updated;
+    }
+    return WalletMockData.mockBankAccounts.first;
+  }
+
+  @override
+  Future<void> deleteBankAccount(int id) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    WalletMockData.mockBankAccounts.removeWhere((b) => b.id == id);
+  }
 }

@@ -9,20 +9,14 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../application/referral_activation_provider.dart';
-import 'referral_active_code_view.dart';
-// Note: Preserved for when KYC flow with payment is restored per backend specification
-// ignore: unused_import
 import 'referral_activation_sheet.dart';
+// import 'referral_active_code_view.dart';
 
 /// Card showing referral code status & commission earning activation state.
 class ReferralActivationCard extends ConsumerWidget {
   const ReferralActivationCard({super.key});
 
   Future<void> _handleGenerateCode(BuildContext context, WidgetRef ref) async {
-    // Note: The KYC modal flow with payment is temporarily skipped per backend instructions.
-    // Uncomment the following line when KYC verification is ready to be restored:
-    // ReferralActivationSheet.show(context);
-
     try {
       final code = await ref
           .read(referralActivationProvider.notifier)
@@ -43,6 +37,10 @@ class ReferralActivationCard extends ConsumerWidget {
         );
       }
     }
+  }
+
+  void _handleActivateKyc(BuildContext context) {
+    ReferralActivationSheet.show(context);
   }
 
   @override
@@ -72,12 +70,6 @@ class ReferralActivationCard extends ConsumerWidget {
       );
     }
 
-    // 1. User HAS a referral code and it is ACTIVE
-    if (state.hasCode && state.isActive) {
-      return ReferralActiveCodeView(referralCode: state.referralCode!);
-    }
-
-    // 2. User DOES NOT have a referral code yet (or inactive)
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.xl),
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -113,14 +105,14 @@ class ReferralActivationCard extends ConsumerWidget {
                   ),
                 ),
               ),
-              if (state.hasCode)
-                Text(
-                  'Code: ${state.referralCode}',
-                  style: AppTypography.caption.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFFC28B38),
-                  ),
-                ),
+              // if (state.hasCode)
+              //   Text(
+              //     'Code: ${state.referralCode}',
+              //     style: AppTypography.caption.copyWith(
+              //       fontWeight: FontWeight.w800,
+              //       color: const Color(0xFFC28B38),
+              //     ),
+              //   ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -130,7 +122,7 @@ class ReferralActivationCard extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Generate your unique referral code to start inviting customers and earning commissions on purchases across the marketplace.',
+            'Complete KYC verification and pay the ₦5,000 activation fee (100% credited to your shopping wallet) to unlock referral commission earnings.',
             style: AppTypography.bodySmall.copyWith(
               color: isDark ? AppColors.darkTextSecondary : AppColors.grey,
               height: 1.4,
@@ -167,29 +159,29 @@ class ReferralActivationCard extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          if (!state.hasCode) ...[
-            AppButton.primary(
+          AppButton.primary(
+            label: 'Complete KYC & Activate (₦5,000)',
+            icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedUserCheck01,
+              color: Colors.white,
+              size: 18,
+            ),
+            onPressed: () => _handleActivateKyc(context),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          if (!state.hasCode)
+            AppButton.outlined(
               label: state.isGenerating
                   ? 'Generating...'
                   : 'Generate Referral Code',
               isLoading: state.isGenerating,
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedQrCode01,
-                color: Colors.white,
-                size: 18,
-              ),
               onPressed: state.isGenerating
                   ? null
                   : () => _handleGenerateCode(context, ref),
-            ),
-          ] else ...[
-            AppButton.primary(
+            )
+          else
+            AppButton.outlined(
               label: 'Share Referral Code',
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedShare01,
-                color: Colors.white,
-                size: 18,
-              ),
               onPressed: () {
                 SharePlus.instance.share(
                   ShareParams(
@@ -199,7 +191,6 @@ class ReferralActivationCard extends ConsumerWidget {
                 );
               },
             ),
-          ],
         ],
       ),
     );

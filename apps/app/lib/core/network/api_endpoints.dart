@@ -39,6 +39,10 @@ abstract final class ApiEndpoints {
   static const payments = PaymentsEndpoints();
   static const profile = ProfileEndpoints();
   static const wallets = _WalletsEndpoints();
+  static const payouts = PayoutsEndpoints();
+  static const userBankAccounts = UserBankAccountsEndpoints();
+  static const invoices = InvoicesEndpoints();
+  static const kyc = KycEndpoints();
   static const referrals = _ReferralsEndpoints();
   static const wishlists = WishlistsEndpoints();
 }
@@ -128,7 +132,8 @@ class _OrdersEndpoints {
   String get createOrder => _base;
   String get list => '${ApiEndpoints.apiV1}/orders/mobile-app';
   String byId(String id) => '${ApiEndpoints.apiV1}/orders/mobile-app/$id';
-  String invoice(String id) => '${ApiEndpoints.apiV1}/orders/mobile-app/$id/invoice';
+  String invoice(String id) => '${ApiEndpoints.apiV1}/invoices/orders/$id/download';
+  String invoiceView(String id) => '${ApiEndpoints.apiV1}/invoices/orders/$id';
   String get cancel => '${ApiEndpoints.apiV1}/orders/mobile-app/cancel';
 }
 
@@ -221,6 +226,9 @@ class _WalletsEndpoints {
   static const String _base = '${ApiEndpoints.apiV1}/wallets/mobile-app';
   String get me => '$_base/me';
   String get transactions => '$_base/me/transactions';
+  String get fundPaystackInitialize => '$_base/fund/paystack/initialize';
+  String fundPaystackVerify(String reference) =>
+      '$_base/fund/paystack/$reference/verify';
 }
 
 /// 16. Referrals Endpoints

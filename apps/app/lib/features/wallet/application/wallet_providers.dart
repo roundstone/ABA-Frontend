@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_client.dart';
 import '../data/wallet_mock_repository.dart';
@@ -7,6 +8,16 @@ import '../domain/wallet_repository.dart';
 
 export '../domain/wallet_entities.dart';
 export '../domain/wallet_repository.dart';
+
+extension CacheForExtension on Ref<Object?> {
+  /// Keeps the provider state alive for [duration] after the last listener
+  /// (e.g. a modal bottom sheet) closes, preventing redundant API calls on re-open.
+  void cacheFor(Duration duration) {
+    final link = keepAlive();
+    final timer = Timer(duration, link.close);
+    onDispose(timer.cancel);
+  }
+}
 
 class WalletTransactionFilter {
   const WalletTransactionFilter({
@@ -60,6 +71,7 @@ final walletRepositoryProvider = Provider<WalletRepository>((ref) {
 });
 
 final walletInfoProvider = FutureProvider.autoDispose<WalletInfo>((ref) async {
+  ref.cacheFor(const Duration(minutes: 2));
   final repo = ref.watch(walletRepositoryProvider);
   return repo.getWalletInfo();
 });
@@ -71,6 +83,7 @@ final walletFilterProvider =
 
 final walletTransactionsProvider =
     FutureProvider.autoDispose<List<WalletTransaction>>((ref) async {
+  ref.cacheFor(const Duration(minutes: 2));
   final repo = ref.watch(walletRepositoryProvider);
   final filter = ref.watch(walletFilterProvider);
   return repo.getTransactions(
@@ -83,4 +96,32 @@ final walletTransactionsProvider =
     transactionType: filter.type?.value,
     status: filter.status?.value,
   );
+});
+
+final availableBanksProvider =
+    FutureProvider.autoDispose<List<BankOption>>((ref) async {
+  ref.cacheFor(const Duration(minutes: 30));
+  final repo = ref.watch(walletRepositoryProvider);
+  return repo.getAvailableBanks();
+});
+
+final userBankAccountsProvider =
+    FutureProvider.autoDispose<List<UserBankAccount>>((ref) async {
+  ref.cacheFor(const Duration(minutes: 5));
+  final repo = ref.watch(walletRepositoryProvider);
+  return repo.getUserBankAccounts();
+});
+
+final myPayoutsProvider =
+    FutureProvider.autoDispose<List<WalletPayout>>((ref) async {
+  ref.cacheFor(const Duration(minutes: 2));
+  final repo = ref.watch(walletRepositoryProvider);
+  return repo.getMyPayouts();
+});
+
+final payoutByIdProvider =
+    FutureProvider.autoDispose.family<WalletPayout, String>((ref, id) async {
+  ref.cacheFor(const Duration(minutes: 5));
+  final repo = ref.watch(walletRepositoryProvider);
+  return repo.getPayoutById(id);
 });

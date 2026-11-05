@@ -27,6 +27,7 @@ class PaystackChargeService {
   Future<PaystackInitResult> initializeTransaction({
     required double amount,
     required String email,
+    String? reference,
     String? callbackUrl,
     List<String>? channels,
   }) async {
@@ -34,6 +35,8 @@ class PaystackChargeService {
     final payload = {
       'email': email.trim(),
       'amount': amountInKobo.toString(),
+      if (reference != null && reference.trim().isNotEmpty)
+        'reference': reference.trim(),
       'currency': 'NGN',
       'callback_url': callbackUrl ?? 'https://standard.paystack.co/close',
       'channels': channels ??
@@ -62,6 +65,7 @@ class PaystackChargeService {
     required String cardNumber,
     required String expiry,
     required String cvv,
+    String? reference,
   }) async {
     final cleanNumber = cardNumber.replaceAll(RegExp(r'\s+'), '');
     final parts = expiry.split('/');
@@ -74,6 +78,8 @@ class PaystackChargeService {
     final payload = {
       'email': email.trim(),
       'amount': amountInKobo.toString(),
+      if (reference != null && reference.trim().isNotEmpty)
+        'reference': reference.trim(),
       'card': {
         'number': cleanNumber,
         'cvv': cvv.trim(),

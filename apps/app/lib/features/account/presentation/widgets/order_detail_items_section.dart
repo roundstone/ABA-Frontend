@@ -174,29 +174,31 @@ class _ItemStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final parsed = OrderStatus.fromString(status);
     Color bg;
     Color fg;
 
-    switch (status.toLowerCase()) {
-      case 'delivered':
+    switch (parsed) {
+      case OrderStatus.complete:
         bg = isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7);
         fg = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF15803D);
         break;
-      case 'shipped':
-        bg = isDark ? const Color(0xFF0F2B2A) : const Color(0xFFE6E1D8);
-        fg = isDark ? const Color(0xFF5EEAD4) : const Color(0xFF172A1D);
-        break;
-      case 'processing':
+      case OrderStatus.shippedOrReadyForPickup:
         bg = isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF);
         fg = isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8);
         break;
-      case 'cancelled':
+      case OrderStatus.cancelled:
         bg = isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEF2F2);
         fg = isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB42318);
         break;
-      default:
+      case OrderStatus.refundRequested:
+        bg = isDark ? const Color(0xFF3B1F5E) : const Color(0xFFF5F3FF);
+        fg = isDark ? const Color(0xFFC4B5FD) : const Color(0xFF6D28D9);
+        break;
+      case OrderStatus.pending:
         bg = isDark ? const Color(0xFF4A2B0F) : const Color(0xFFFEF3C7);
         fg = isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309);
+        break;
     }
 
     return Container(
@@ -206,7 +208,7 @@ class _ItemStatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(3),
       ),
       child: Text(
-        status.toUpperCase(),
+        parsed.shortLabel.toUpperCase(),
         style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: fg),
       ),
     );

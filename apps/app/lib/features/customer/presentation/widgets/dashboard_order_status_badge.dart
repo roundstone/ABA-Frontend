@@ -14,22 +14,21 @@ class DashboardOrderStatusBadge extends StatelessWidget {
     Color fg;
 
     switch (status) {
-      case OrderStatus.processing:
-        bg = isDark ? const Color(0xFF4A2B0F) : const Color(0xFFFEF3C7);
-        fg = isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309);
+      case OrderStatus.shippedOrReadyForPickup:
+        bg = isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF);
+        fg = isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8);
         break;
-      case OrderStatus.shipped:
-        bg = isDark ? const Color(0xFF0F2B2A) : const Color(0xFFE6E1D8);
-        fg = isDark ? const Color(0xFF5EEAD4) : const Color(0xFF172A1D);
-        break;
-      case OrderStatus.delivered:
+      case OrderStatus.complete:
         bg = isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7);
         fg = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF15803D);
         break;
-      case OrderStatus.unpaid:
       case OrderStatus.pending:
-        bg = isDark ? const Color(0xFF3F1B1B) : const Color(0xFFFEE2E2);
-        fg = isDark ? const Color(0xFFFCA5A5) : const Color(0xFFDC2626);
+        bg = isDark ? const Color(0xFF4A2B0F) : const Color(0xFFFEF3C7);
+        fg = isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309);
+        break;
+      case OrderStatus.refundRequested:
+        bg = isDark ? const Color(0xFF3B1F5E) : const Color(0xFFF5F3FF);
+        fg = isDark ? const Color(0xFFC4B5FD) : const Color(0xFF6D28D9);
         break;
       case OrderStatus.cancelled:
         bg = isDark ? const Color(0xFF262626) : const Color(0xFFF3F4F6);
@@ -44,7 +43,7 @@ class DashboardOrderStatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        status.label,
+        status.shortLabel,
         style: AppTypography.caption.copyWith(
           color: fg,
           fontWeight: FontWeight.w600,

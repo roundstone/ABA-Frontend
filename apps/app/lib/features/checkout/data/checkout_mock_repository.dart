@@ -154,7 +154,7 @@ class CheckoutMockRepository implements CheckoutRepository {
     final order = CustomerOrder(
       id: orderId,
       date: DateTime.now(),
-      status: OrderStatus.processing,
+      status: OrderStatus.pending,
       total: totalInKobo,
       paymentMethod: paymentType.name,
       shippingAddress: ShippingAddress(
@@ -171,7 +171,7 @@ class CheckoutMockRepository implements CheckoutRepository {
     mockOrders.insert(0, {
       "id": order.id,
       "date": order.date.toIso8601String(),
-      "status": "Processing",
+      "status": "pending",
       "total": order.total,
       "paymentMethod": order.paymentMethod,
       "shippingAddress": {
@@ -192,7 +192,7 @@ class CheckoutMockRepository implements CheckoutRepository {
 
     return CheckoutOrderResult(
       orderId: orderId,
-      status: 'Processing',
+      status: 'Pending',
       totalAmount: grandTotal,
       createdAt: DateTime.now(),
       order: order,

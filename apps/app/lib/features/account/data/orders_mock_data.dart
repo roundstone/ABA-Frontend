@@ -83,7 +83,7 @@ final mockOrders = [
     "delivery_method": "standard",
     "order_number": "ORD-1793457713652-NS4UADG1",
     "total_amount": "25300.00",
-    "status": "processing",
+    "status": "shipped_or_ready_for_pickup",
     "cancellation_reason": null,
     "deliveryAddress": {
       "id": 106,
@@ -112,7 +112,7 @@ final mockOrders = [
         "productName": "Demo Product 2 - Black",
         "unit_price": "25300.00",
         "quantity": 1,
-        "status": "processing",
+        "status": "shipped_or_ready_for_pickup",
         "imageUrl": "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&auto=format&fit=crop&q=80"
       }
     ],

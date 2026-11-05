@@ -1,7 +1,13 @@
 // Domain entities — pure Dart, no framework dependencies.
 // Mirrors the shapes in: apps/web/src/services/mock/{order,commission,user}.service.ts
 
-enum OrderStatus { pending, processing, shipped, delivered, cancelled }
+enum OrderStatus {
+  pending,
+  complete,
+  shippedOrReadyForPickup,
+  cancelled,
+  refundRequested,
+}
 
 enum CommissionStatus { pending, approved, paid, reversed }
 

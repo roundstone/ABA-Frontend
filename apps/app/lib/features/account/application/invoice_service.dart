@@ -5,15 +5,67 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../domain/customer_order.dart';
+import '../domain/order_invoice_model.dart';
 
-/// Downloads and shares order invoices from the backend endpoint:
-/// GET /api/v1/orders/mobile-app/{id}/invoice
+export '../domain/order_invoice_model.dart';
+
+/// Views, downloads, and shares order invoices from the backend endpoints:
+/// - View: GET /api/v1/invoices/orders/{orderId}
+/// - Download: GET /api/v1/invoices/orders/{orderId}/download
 class InvoiceService {
   InvoiceService._();
+
+  static Future<OrderInvoice> fetchOrderInvoice(
+    String orderId, {
+    WidgetRef? ref,
+    Dio? dioClient,
+  }) async {
+    if (AppConfig.isMockMode && dioClient == null) {
+      await Future.delayed(const Duration(milliseconds: 250));
+      final parsedId = int.tryParse(orderId) ?? 1814;
+      return OrderInvoice(
+        id: 1,
+        orderId: parsedId,
+        customerId: 4,
+        invoiceNumber: 'INV-$parsedId-1793838157748',
+        status: 'issued',
+        subtotal: 0.0,
+        discountAmount: 0.0,
+        deliveryAmount: 0.0,
+        taxAmount: 0.0,
+        totalAmount: 26900.0,
+        currency: 'NGN',
+        customerName: 'Bro David Enabs',
+        customerEmail: 'c-davidenabs@gmail.com',
+        issuedAt: DateTime.now(),
+      );
+    }
+
+    final Dio dio = dioClient ?? (ref != null ? ref.read(dioProvider) : Dio());
+    final endpoint = ApiEndpoints.invoices.byOrderId(orderId);
+    AppLogger.d('GET $endpoint (view order invoice)');
+
+    try {
+      final response = await dio.get(endpoint);
+      final body = response.data;
+      if (body is Map<String, dynamic>) {
+        return OrderInvoice.fromJson(body);
+      }
+      throw const ApiError(
+        success: false,
+        statusCode: 500,
+        message: 'Unexpected invoice response format.',
+      );
+    } on DioException catch (e) {
+      AppLogger.e('Failed to fetch order invoice', error: e);
+      throw ApiError.fromDio(e);
+    }
+  }
 
   static Future<void> downloadAndShareInvoice(
     BuildContext context,
@@ -37,8 +89,8 @@ class InvoiceService {
         dio = Dio();
       }
 
-      final endpoint = ApiEndpoints.orders.invoice(order.id);
-      AppLogger.d('GET $endpoint (download invoice)');
+      final endpoint = ApiEndpoints.invoices.downloadByOrderId(order.id);
+      AppLogger.d('GET $endpoint (download invoice PDF)');
 
       final response = await dio.get<List<int>>(
         endpoint,

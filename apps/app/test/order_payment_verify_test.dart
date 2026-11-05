@@ -54,7 +54,7 @@ void main() {
     id: '1812',
     orderNumber: 'ORD-PAID-001',
     date: DateTime(2026, 10, 31, 14, 58),
-    status: OrderStatus.processing,
+    status: OrderStatus.shippedOrReadyForPickup,
     total: 2530000,
     paymentMethod: 'card_or_bank',
     shippingAddress: ShippingAddress(

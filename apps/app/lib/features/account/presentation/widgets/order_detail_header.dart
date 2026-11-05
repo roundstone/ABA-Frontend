@@ -10,10 +10,10 @@ import '../../../../core/widgets/app_snackbar.dart';
 import '../../../checkout/application/payment_gateway_registry.dart';
 import '../../../checkout/domain/payment_gateway.dart';
 import '../../../checkout/presentation/widgets/paystack_payment_sheet.dart';
-import '../../application/invoice_service.dart';
 import '../../application/orders_providers.dart';
 import '../../domain/customer_order.dart';
 import 'order_cancel_dialog.dart';
+import 'order_invoice_preview_sheet.dart';
 import 'order_status_badge.dart';
 
 class OrderDetailHeader extends ConsumerWidget {
@@ -22,7 +22,9 @@ class OrderDetailHeader extends ConsumerWidget {
   final CustomerOrder order;
 
   Future<void> _handlePayNow(BuildContext context, WidgetRef ref) async {
-    final gateway = ref.read(paymentGatewayServiceProvider(PaymentGatewayType.paystack));
+    final gateway = ref.read(
+      paymentGatewayServiceProvider(PaymentGatewayType.paystack),
+    );
     final orderIdInt = int.tryParse(order.id);
 
     if (orderIdInt == null) {
@@ -76,7 +78,9 @@ class OrderDetailHeader extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  order.orderNumber.isNotEmpty ? order.orderNumber : 'Order #${order.id}',
+                  order.orderNumber.isNotEmpty
+                      ? order.orderNumber
+                      : 'Order #${order.id}',
                   style: AppTypography.h4,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -99,37 +103,54 @@ class OrderDetailHeader extends ConsumerWidget {
               const SizedBox(width: 8),
               Text(
                 'Placed on ${DateFormat('MMM d, y, h:mm a').format(order.date)}',
-                style: AppTypography.caption.copyWith(color: cs.onSurfaceVariant),
+                style: AppTypography.caption.copyWith(
+                  color: cs.onSurfaceVariant,
+                ),
               ),
             ],
           ),
-          if (order.isCancelled) ...[
+          if (order.isCancelled || order.isRefundRequested) ...[
             const SizedBox(height: AppSpacing.sm),
             Container(
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: AppColors.error.withValues(alpha: isDark ? 0.2 : 0.08),
                 borderRadius: AppSpacing.borderRadiusMD,
-                border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.error.withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.error, size: 18),
+                  const HugeIcon(
+                    icon: HugeIcons.strokeRoundedAlert02,
+                    color: AppColors.error,
+                    size: 18,
+                  ),
                   const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Order Cancelled',
-                            style: AppTypography.bodySmall.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.error,
-                            )),
-                        if (order.cancellationReason != null && order.cancellationReason!.isNotEmpty) ...[
+                        Text(
+                          order.isRefundRequested
+                              ? 'Refund Requested'
+                              : 'Order Cancelled',
+                          style: AppTypography.bodySmall.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.error,
+                          ),
+                        ),
+                        if (order.cancellationReason != null &&
+                            order.cancellationReason!.isNotEmpty) ...[
                           const SizedBox(height: 2),
-                          Text('Reason: ${order.cancellationReason}',
-                              style: AppTypography.caption.copyWith(color: cs.onSurfaceVariant)),
+                          Text(
+                            'Reason: ${order.cancellationReason}',
+                            style: AppTypography.caption.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
                         ],
                       ],
                     ),
@@ -161,7 +182,8 @@ class OrderDetailHeader extends ConsumerWidget {
                     size: 18,
                     color: cs.onSurface,
                   ),
-                  onPressed: () => InvoiceService.downloadAndShareInvoice(context, order, ref: ref),
+                  onPressed: () =>
+                      OrderInvoicePreviewSheet.show(context, order),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),

@@ -81,6 +81,18 @@ class PaymentsEndpoints {
   String paystackInitialize(dynamic orderId) =>
       '$_base/orders/$orderId/paystack/initialize';
   String paystackVerify(String reference) => '$_base/paystack/$reference/verify';
+  String get kycActivationPaystackInitialize =>
+      '${ApiEndpoints.apiV1}/payments/kyc-activation/paystack/initialize';
+}
+
+/// 25. Mobile App KYC Endpoints
+class KycEndpoints {
+  const KycEndpoints();
+  static const String _base = '${ApiEndpoints.apiV1}/kyc';
+  String get activationSubmission => '$_base/activation-submission';
+  String get profile => '$_base/mobile-app/profile';
+  String get submitProfile => '$_base/mobile-app/profile/submit';
+  String get documents => '$_base/mobile-app/documents';
 }
 
 /// 25. Mobile App Profile Endpoints
@@ -96,4 +108,32 @@ class WishlistsEndpoints {
   static const String _base = '${ApiEndpoints.apiV1}/wishlists/mobile-app';
   String get base => _base;
   String byId(dynamic id) => '$_base/$id';
+}
+
+/// 27. Mobile App Payouts & Withdrawals Endpoints
+class PayoutsEndpoints {
+  const PayoutsEndpoints();
+  static const String _base = '${ApiEndpoints.apiV1}/payouts/mobile-app';
+  String get base => _base;
+  String get withdrawals => '$_base/withdrawals';
+  String get me => '$_base/me';
+  String byId(dynamic id) => '$_base/$id';
+}
+
+/// 28. Mobile App User Bank Accounts Endpoints
+class UserBankAccountsEndpoints {
+  const UserBankAccountsEndpoints();
+  static const String _base =
+      '${ApiEndpoints.apiV1}/user-bank-accounts/mobile-app';
+  String get base => _base;
+  String get banks => '$_base/banks';
+  String byId(dynamic id) => '$_base/$id';
+}
+
+/// 29. Order Invoices Endpoints
+class InvoicesEndpoints {
+  const InvoicesEndpoints();
+  static const String _base = '${ApiEndpoints.apiV1}/invoices/orders';
+  String byOrderId(dynamic orderId) => '$_base/$orderId';
+  String downloadByOrderId(dynamic orderId) => '$_base/$orderId/download';
 }

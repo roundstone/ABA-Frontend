@@ -65,6 +65,13 @@ class _ShopBodyState extends ConsumerState<_ShopBody> {
     }
   }
 
+  void _onRefresh() {
+    ref.invalidate(shopCatalogueProvider);
+    ref.invalidate(productCategoriesProvider);
+    ref.read(paginatedProductsNotifierProvider.notifier).fetchFirstPage();
+    ref.read(cartProvider);
+  }
+
   @override
   Widget build(BuildContext context) {
     final shopState = ref.watch(shopNotifierProvider);
@@ -72,7 +79,8 @@ class _ShopBodyState extends ConsumerState<_ShopBody> {
     final products = paginatedState.items;
     final catalogueAsync = ref.watch(shopCatalogueProvider);
     final categoriesAsync = ref.watch(productCategoriesProvider);
-    final categories = categoriesAsync.valueOrNull ??
+    final categories =
+        categoriesAsync.valueOrNull ??
         catalogueAsync.valueOrNull?.categories ??
         const <ShopCategory>[];
     final cartCount = ref.watch(cartProvider).valueOrNull?.itemCount ?? 0;
@@ -87,9 +95,7 @@ class _ShopBodyState extends ConsumerState<_ShopBody> {
         isLoadingMore: paginatedState.isLoadingMore,
         prefetchDistance: 250.0,
         child: RefreshIndicator(
-          onRefresh: () => ref
-              .read(paginatedProductsNotifierProvider.notifier)
-              .fetchFirstPage(),
+          onRefresh: () async => _onRefresh(),
           child: CustomScrollView(
             controller: _scrollController,
             slivers: [
@@ -184,7 +190,9 @@ class _ShopBodyState extends ConsumerState<_ShopBody> {
               if (paginatedState.error != null && products.isNotEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.md,
+                    ),
                     child: Center(
                       child: TextButton.icon(
                         icon: const Icon(Icons.refresh, size: 16),

@@ -32,7 +32,7 @@ class StepReviewOrder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final deliveryCost = state.selectedDeliveryMethod?.cost ?? 2500.0;
+    final deliveryCost = state.selectedDeliveryMethod?.cost ?? 0.0;
     final grandTotal = cart.subtotal + deliveryCost + cart.tax;
 
     return Container(

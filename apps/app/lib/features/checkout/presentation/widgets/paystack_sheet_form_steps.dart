@@ -31,23 +31,41 @@ class PaystackSheetHeader extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF0BA4DB).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text('paystack', style: TextStyle(color: Color(0xFF0BA4DB), fontWeight: FontWeight.w900, fontSize: 14)),
+                  child: const Text(
+                    'paystack',
+                    style: TextStyle(
+                      color: Color(0xFF0BA4DB),
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: (isTestMode ? Colors.amber : Colors.green).withValues(alpha: 0.2),
+                    color: (isTestMode ? Colors.amber : Colors.green)
+                        .withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     isTestMode ? 'TEST MODE' : 'SECURE',
-                    style: TextStyle(color: isTestMode ? Colors.amber : Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: isTestMode ? Colors.amber : Colors.green,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -59,9 +77,15 @@ class PaystackSheetHeader extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        Text(email, style: AppTypography.caption.copyWith(color: AppColors.grey)),
+        Text(
+          email,
+          style: AppTypography.caption.copyWith(color: AppColors.grey),
+        ),
         const SizedBox(height: 2),
-        Text('Pay ${formatNaira(amount)}', style: AppTypography.h5.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          'Pay ${formatNaira(amount)}',
+          style: AppTypography.h5.copyWith(fontWeight: FontWeight.bold),
+        ),
         const Divider(height: 24),
       ],
     );
@@ -119,7 +143,9 @@ class PaystackCardStepForm extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         AppButton.primary(
-          label: isProcessing ? 'Processing with Paystack...' : 'Pay ${formatNaira(amount)}',
+          label: isProcessing
+              ? 'Processing with Paystack...'
+              : 'Pay ${formatNaira(amount)}',
           isLoading: isProcessing,
           onPressed: isProcessing ? null : onPay,
         ),
@@ -190,7 +216,8 @@ class PaystackOtpStepForm extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          displayText ?? 'Enter the OTP sent to your phone/email (Demo OTP: 1234)',
+          displayText ??
+              'Enter the OTP sent to your phone/email (Demo OTP: 1234)',
           style: const TextStyle(fontSize: 13, color: Colors.grey),
         ),
         const SizedBox(height: 12),
@@ -210,4 +237,3 @@ class PaystackOtpStepForm extends StatelessWidget {
     );
   }
 }
-

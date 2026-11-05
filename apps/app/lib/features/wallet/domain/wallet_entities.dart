@@ -1,4 +1,5 @@
 // Wallet domain entities, enums, and data models matching the ABA ERP backend.
+export 'wallet_payout_models.dart';
 
 enum WalletTransactionType {
   deposit(1),

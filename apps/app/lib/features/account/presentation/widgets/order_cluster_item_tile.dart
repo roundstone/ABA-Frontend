@@ -26,15 +26,12 @@ class OrderClusterItemTile extends StatelessWidget {
     final (statusLabel, statusColor, circleBg, circleIconColor) =
         _resolveStatusAttributes(isDark);
 
-    final title = order.items.isNotEmpty
-        ? order.items.first.productName
-        : (order.orderNumber.isNotEmpty
-            ? order.orderNumber
-            : 'Order #${order.id}');
+    final title = (order.orderNumber.isNotEmpty
+        ? order.orderNumber
+        : 'Order #${order.id}');
 
     final dateFormatted = formatOrderDateOrdinal(order.date);
-    final countLabel =
-        order.items.length > 1 ? ' • +${order.items.length - 1} more' : '';
+    final countLabel = ' • ${order.items.length} items';
     final subtitle = '$dateFormatted$countLabel';
 
     return InkWell(
@@ -124,31 +121,44 @@ class OrderClusterItemTile extends StatelessWidget {
         AppColors.grey,
       );
     }
-    if (order.isPaid || order.status == OrderStatus.delivered) {
-      final label =
-          order.status == OrderStatus.delivered ? 'Delivered' : 'Paid';
+    if (order.isRefundRequested) {
       return (
-        label,
+        'Refund Requested',
+        const Color(0xFF7C3AED),
+        const Color(0xFF7C3AED).withValues(alpha: isDark ? 0.22 : 0.12),
+        const Color(0xFF7C3AED),
+      );
+    }
+    if (order.status == OrderStatus.complete) {
+      return (
+        'Complete',
         AppColors.success,
         AppColors.success.withValues(alpha: isDark ? 0.22 : 0.12),
         AppColors.success,
       );
     }
-    if (order.isUnpaid || order.status == OrderStatus.unpaid) {
+    if (order.status == OrderStatus.shippedOrReadyForPickup) {
+      return (
+        order.status.shortLabel,
+        AppColors.primary,
+        AppColors.primary.withValues(alpha: isDark ? 0.22 : 0.12),
+        AppColors.primary,
+      );
+    }
+    if (order.isPaid) {
+      return (
+        'Paid',
+        AppColors.success,
+        AppColors.success.withValues(alpha: isDark ? 0.22 : 0.12),
+        AppColors.success,
+      );
+    }
+    if (order.isUnpaid) {
       return (
         'Unpaid',
         const Color(0xFFC28B38),
         const Color(0xFFC28B38).withValues(alpha: isDark ? 0.22 : 0.12),
         const Color(0xFFC28B38),
-      );
-    }
-    if (order.status == OrderStatus.processing ||
-        order.status == OrderStatus.shipped) {
-      return (
-        order.status.label,
-        AppColors.primary,
-        AppColors.primary.withValues(alpha: isDark ? 0.22 : 0.12),
-        AppColors.primary,
       );
     }
     return (
@@ -159,4 +169,3 @@ class OrderClusterItemTile extends StatelessWidget {
     );
   }
 }
-

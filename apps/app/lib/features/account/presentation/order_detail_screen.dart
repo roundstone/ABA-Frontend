@@ -48,8 +48,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen>
     final order =
         ref.read(customerOrderByIdProvider(widget.orderId)).valueOrNull;
     if (order != null &&
-        (order.status == OrderStatus.delivered ||
-            order.status == OrderStatus.cancelled)) {
+        (order.status == OrderStatus.complete ||
+            order.status == OrderStatus.cancelled ||
+            order.status == OrderStatus.refundRequested)) {
       _pollTimer?.cancel();
       return;
     }

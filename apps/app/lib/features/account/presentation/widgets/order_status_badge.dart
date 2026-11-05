@@ -16,27 +16,17 @@ class OrderStatusBadge extends StatelessWidget {
     Color border;
 
     switch (status) {
-      case OrderStatus.unpaid:
-        bg = isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEF2F2);
-        text = isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB42318);
-        border = isDark ? const Color(0xFFB91C1C) : const Color(0xFFFECACA);
-        break;
       case OrderStatus.pending:
         bg = isDark ? const Color(0xFF4A2B0F) : const Color(0xFFFEF3C7);
         text = isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309);
         border = isDark ? const Color(0xFF92400E) : const Color(0xFFFDE68A);
         break;
-      case OrderStatus.processing:
+      case OrderStatus.shippedOrReadyForPickup:
         bg = isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF);
         text = isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8);
         border = isDark ? const Color(0xFF1E40AF) : const Color(0xFFBFDBFE);
         break;
-      case OrderStatus.shipped:
-        bg = isDark ? const Color(0xFF0F2B2A) : const Color(0xFFE6E1D8);
-        text = isDark ? const Color(0xFF5EEAD4) : const Color(0xFF172A1D);
-        border = isDark ? const Color(0xFF115E59) : const Color(0xFFD4CEC4);
-        break;
-      case OrderStatus.delivered:
+      case OrderStatus.complete:
         bg = isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7);
         text = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF15803D);
         border = isDark ? const Color(0xFF047857) : const Color(0xFFBBF7D0);
@@ -45,6 +35,11 @@ class OrderStatusBadge extends StatelessWidget {
         bg = isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEF2F2);
         text = isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB42318);
         border = isDark ? const Color(0xFFB91C1C) : const Color(0xFFFECACA);
+        break;
+      case OrderStatus.refundRequested:
+        bg = isDark ? const Color(0xFF3B1F5E) : const Color(0xFFF5F3FF);
+        text = isDark ? const Color(0xFFC4B5FD) : const Color(0xFF6D28D9);
+        border = isDark ? const Color(0xFF5B21B6) : const Color(0xFFDDD6FE);
         break;
     }
 

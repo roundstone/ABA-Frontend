@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -17,6 +18,15 @@ class ReferralKycStepView extends StatelessWidget {
     required this.onUploadId,
     required this.onUploadAddress,
     required this.onSubmit,
+    this.idFileName,
+    this.addressFileName,
+    this.dobController,
+    this.nationalityController,
+    this.addressController,
+    this.cityController,
+    this.stateController,
+    this.lgaController,
+    this.isSubmitting = false,
   });
 
   final String idType;
@@ -27,6 +37,15 @@ class ReferralKycStepView extends StatelessWidget {
   final VoidCallback onUploadId;
   final VoidCallback onUploadAddress;
   final VoidCallback onSubmit;
+  final String? idFileName;
+  final String? addressFileName;
+  final TextEditingController? dobController;
+  final TextEditingController? nationalityController;
+  final TextEditingController? addressController;
+  final TextEditingController? cityController;
+  final TextEditingController? stateController;
+  final TextEditingController? lgaController;
+  final bool isSubmitting;
 
   @override
   Widget build(BuildContext context) {
@@ -50,9 +69,11 @@ class ReferralKycStepView extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            Text(
-              'Step 1 of 2: KYC Verification',
-              style: AppTypography.h4.copyWith(fontWeight: FontWeight.w800),
+            Expanded(
+              child: Text(
+                'Step 1 of 2: KYC Verification',
+                style: AppTypography.h4.copyWith(fontWeight: FontWeight.w800),
+              ),
             ),
           ],
         ),
@@ -80,10 +101,16 @@ class ReferralKycStepView extends StatelessWidget {
               value: 'Driver\'s License',
               child: Text('Driver\'s License'),
             ),
+            DropdownMenuItem(
+              value: 'International Passport',
+              child: Text('International Passport'),
+            ),
           ],
-          onChanged: (v) {
-            if (v != null) onIdTypeChanged(v);
-          },
+          onChanged: isSubmitting
+              ? null
+              : (v) {
+                  if (v != null) onIdTypeChanged(v);
+                },
         ),
         const SizedBox(height: AppSpacing.md),
         AppTextField(
@@ -91,25 +118,100 @@ class ReferralKycStepView extends StatelessWidget {
           hintText: 'e.g. 12345678901',
           controller: ninController,
           keyboardType: TextInputType.number,
+          maxLength: 11,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(11),
+          ],
+          enabled: !isSubmitting,
         ),
+        if (dobController != null && addressController != null) ...[
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Expanded(
+                child: AppTextField(
+                  label: 'Date of Birth',
+                  hintText: 'YYYY-MM-DD',
+                  controller: dobController,
+                  enabled: !isSubmitting,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: AppTextField(
+                  label: 'Nationality',
+                  hintText: 'Nigerian',
+                  controller: nationalityController,
+                  enabled: !isSubmitting,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          AppTextField(
+            label: 'Residential Address',
+            hintText: '14 Admiralty Way',
+            controller: addressController,
+            enabled: !isSubmitting,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Expanded(
+                child: AppTextField(
+                  label: 'City',
+                  hintText: 'Lekki',
+                  controller: cityController,
+                  enabled: !isSubmitting,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: AppTextField(
+                  label: 'State',
+                  hintText: 'Lagos',
+                  controller: stateController,
+                  enabled: !isSubmitting,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: AppTextField(
+                  label: 'LGA',
+                  hintText: 'Eti Osa',
+                  controller: lgaController,
+                  enabled: !isSubmitting,
+                ),
+              ),
+            ],
+          ),
+        ],
         const SizedBox(height: AppSpacing.md),
         _uploadTile(
           title: 'Proof of Identity (Government ID)',
-          fileName: idUploaded ? 'nin_slip_verified.jpg' : null,
+          fileName: idUploaded
+              ? (idFileName ?? 'nin_slip_verified.png')
+              : null,
           onTap: onUploadId,
           isDark: isDark,
         ),
         const SizedBox(height: AppSpacing.sm),
         _uploadTile(
           title: 'Proof of Address (Utility Bill)',
-          fileName: addressUploaded ? 'electric_bill.pdf' : null,
+          fileName: addressUploaded
+              ? (addressFileName ?? 'electric_bill.png')
+              : null,
           onTap: onUploadAddress,
           isDark: isDark,
         ),
         const SizedBox(height: AppSpacing.xl),
         AppButton.primary(
-          label: 'Continue to Activation Fee',
-          onPressed: onSubmit,
+          label: isSubmitting
+              ? 'Submitting KYC...'
+              : 'Continue to Activation Fee',
+          isLoading: isSubmitting,
+          onPressed: isSubmitting ? null : onSubmit,
         ),
       ],
     );
@@ -122,7 +224,7 @@ class ReferralKycStepView extends StatelessWidget {
     required bool isDark,
   }) {
     return InkWell(
-      onTap: onTap,
+      onTap: isSubmitting ? null : onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),

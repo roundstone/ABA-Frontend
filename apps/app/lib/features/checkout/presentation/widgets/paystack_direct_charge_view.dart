@@ -12,6 +12,7 @@ class PaystackDirectChargeView extends StatefulWidget {
     required this.email,
     required this.service,
     required this.onSuccess,
+    this.initialReference,
     this.onError,
   });
 
@@ -19,6 +20,7 @@ class PaystackDirectChargeView extends StatefulWidget {
   final String email;
   final PaystackChargeService service;
   final ValueChanged<String> onSuccess;
+  final String? initialReference;
   final ValueChanged<String>? onError;
 
   @override
@@ -62,6 +64,7 @@ class _PaystackDirectChargeViewState extends State<PaystackDirectChargeView> {
       cardNumber: _cardNumberCtrl.text,
       expiry: _expiryCtrl.text,
       cvv: _cvvCtrl.text,
+      reference: widget.initialReference,
     );
 
     if (!mounted) return;

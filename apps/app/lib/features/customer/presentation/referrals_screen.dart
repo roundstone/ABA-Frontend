@@ -1,10 +1,13 @@
 import 'package:app/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/router/safe_navigation.dart';
 import '../../auth/application/auth_providers.dart';
+import '../application/referral_activation_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -81,12 +84,16 @@ class ReferralsScreen extends ConsumerStatefulWidget {
 }
 
 class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
-  final String referralCode = "ABA-JANE-123";
-  final String referralLink = "https://aba-erp.com/register?ref=ABA-JANE-123";
-
   @override
   Widget build(BuildContext context) {
     final asyncData = ref.watch(referralDataProvider);
+    final activationState = ref.watch(referralActivationProvider);
+    final activeCode = activationState.hasCode
+        ? activationState.referralCode!
+        : 'Not generated yet';
+    final activeLink = activationState.hasCode
+        ? 'https://abaonline.vercel.app/community/${activationState.referralCode}'
+        : 'Generate your referral code above to get your invite link';
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -113,7 +120,16 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
               color: Colors.white,
               size: 24,
             ),
-            onPressed: () {},
+            onPressed: activationState.hasCode
+                ? () {
+                    SharePlus.instance.share(
+                      ShareParams(
+                        text:
+                            'Join me on BuyNaija! Use my referral code: $activeCode when signing up: $activeLink',
+                      ),
+                    );
+                  }
+                : null,
           ),
         ],
       ),
@@ -189,11 +205,12 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
                         const SizedBox(height: AppSpacing.xl),
 
                         // Invite & Earn Card
-                        // _InviteCard(
-                        //   referralCode: referralCode,
-                        //   referralLink: referralLink,
-                        // ),
-                        // const SizedBox(height: AppSpacing.xl),
+                        _InviteCard(
+                          referralCode: activeCode,
+                          referralLink: activeLink,
+                          hasCode: activationState.hasCode,
+                        ),
+                        const SizedBox(height: AppSpacing.xl),
 
                         // Your Network
                         Text(
@@ -350,11 +367,15 @@ class _KpiCard extends StatelessWidget {
   }
 }
 
-// ignore: unused_element
 class _InviteCard extends StatelessWidget {
-  const _InviteCard({required this.referralCode, required this.referralLink});
+  const _InviteCard({
+    required this.referralCode,
+    required this.referralLink,
+    this.hasCode = true,
+  });
   final String referralCode;
   final String referralLink;
+  final bool hasCode;
 
   @override
   Widget build(BuildContext context) {
@@ -449,7 +470,17 @@ class _InviteCard extends StatelessWidget {
                 ),
               ),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  final textToCopy = hasCode ? referralCode : referralLink;
+                  Clipboard.setData(ClipboardData(text: textToCopy));
+                  AppSnackbar.show(
+                    context,
+                    message: hasCode
+                        ? 'Referral code $referralCode copied to clipboard!'
+                        : 'Link copied to clipboard!',
+                    type: AppSnackbarType.info,
+                  );
+                },
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: const BoxDecoration(

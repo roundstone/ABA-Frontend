@@ -2,22 +2,70 @@ import 'customer_order_models.dart';
 export 'customer_order_models.dart';
 
 enum OrderStatus {
-  pending('Pending'),
-  unpaid('Unpaid'),
-  processing('Processing'),
-  shipped('Shipped'),
-  delivered('Delivered'),
-  cancelled('Cancelled');
+  pending(
+    apiValue: 'pending',
+    label: 'Pending',
+    shortLabel: 'Pending',
+  ),
+  shippedOrReadyForPickup(
+    apiValue: 'shipped_or_ready_for_pickup',
+    label: 'Shipped / Ready for Pickup',
+    shortLabel: 'Shipped',
+  ),
+  complete(
+    apiValue: 'complete',
+    label: 'Complete',
+    shortLabel: 'Complete',
+  ),
+  cancelled(
+    apiValue: 'cancelled',
+    label: 'Cancelled',
+    shortLabel: 'Cancelled',
+  ),
+  refundRequested(
+    apiValue: 'refund_requested',
+    label: 'Refund Requested',
+    shortLabel: 'Refund Req.',
+  );
 
-  const OrderStatus(this.label);
+  const OrderStatus({
+    required this.apiValue,
+    required this.label,
+    required this.shortLabel,
+  });
+
+  final String apiValue;
   final String label;
+  final String shortLabel;
 
   factory OrderStatus.fromString(String value) {
     final v = value.toLowerCase().trim();
-    if (v == 'unpaid') return OrderStatus.unpaid;
-    if (v == 'confirmed') return OrderStatus.processing;
+    if (v == 'complete' || v == 'completed' || v == 'delivered') {
+      return OrderStatus.complete;
+    }
+    if (v == 'shipped_or_ready_for_pickup' ||
+        v == 'shipped' ||
+        v == 'ready_for_pickup' ||
+        v == 'ready') {
+      return OrderStatus.shippedOrReadyForPickup;
+    }
+    if (v == 'refund_requested' || v == 'refunded') {
+      return OrderStatus.refundRequested;
+    }
+    if (v == 'cancelled' || v == 'canceled') {
+      return OrderStatus.cancelled;
+    }
+    if (v == 'pending' ||
+        v == 'unpaid' ||
+        v == 'processing' ||
+        v == 'confirmed') {
+      return OrderStatus.pending;
+    }
     return OrderStatus.values.firstWhere(
-      (e) => e.name.toLowerCase() == v || e.label.toLowerCase() == v,
+      (e) =>
+          e.apiValue == v ||
+          e.name.toLowerCase() == v ||
+          e.label.toLowerCase() == v,
       orElse: () => OrderStatus.pending,
     );
   }
@@ -60,17 +108,22 @@ class CustomerOrder {
 
   bool get isCancelled => status == OrderStatus.cancelled;
 
+  bool get isRefundRequested => status == OrderStatus.refundRequested;
+
+  bool get isComplete => status == OrderStatus.complete;
+
   bool get isUnpaid =>
       !isPaid &&
       !isCancelled &&
-      (status == OrderStatus.pending ||
-          status == OrderStatus.unpaid ||
-          paymentState.toLowerCase() == 'unpaid');
+      !isRefundRequested &&
+      !isComplete &&
+      (status == OrderStatus.pending || paymentState.toLowerCase() == 'unpaid');
 
   bool get canBeCancelled =>
       !isCancelled &&
-      status != OrderStatus.delivered &&
-      status != OrderStatus.shipped;
+      !isRefundRequested &&
+      status != OrderStatus.complete &&
+      status != OrderStatus.shippedOrReadyForPickup;
 
   factory CustomerOrder.fromJson(Map<String, dynamic> json) {
     int parsedTotal = 0;
@@ -106,10 +159,8 @@ class CustomerOrder {
     OrderStatus parsedStatus;
     if (rawStatus != null && rawStatus.isNotEmpty) {
       parsedStatus = OrderStatus.fromString(rawStatus);
-    } else if (payState.toLowerCase() == 'unpaid') {
-      parsedStatus = OrderStatus.unpaid;
     } else {
-      parsedStatus = OrderStatus.processing;
+      parsedStatus = OrderStatus.pending;
     }
 
     List<CustomerOrderPayment> parsedPayments = [];

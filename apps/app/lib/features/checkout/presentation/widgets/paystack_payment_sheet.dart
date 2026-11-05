@@ -46,6 +46,8 @@ class PaystackPaymentSheet extends StatefulWidget {
   }) {
     return showModalBottomSheet<String>(
       context: context,
+      useRootNavigator: true,
+      useSafeArea: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => PaystackPaymentSheet(
@@ -129,12 +131,14 @@ class _PaystackPaymentSheetState extends State<PaystackPaymentSheet> {
       final init = await _service.initializeTransaction(
         amount: widget.amount,
         email: widget.email,
+        reference: widget.reference,
       );
       if (!mounted) return;
       if (init.authorizationUrl.isNotEmpty) {
         setState(() {
           _authorizationUrl = init.authorizationUrl;
-          _initialReference = init.reference;
+          _initialReference =
+              init.reference.isNotEmpty ? init.reference : widget.reference;
           _isInitializing = false;
         });
         return;
@@ -142,7 +146,10 @@ class _PaystackPaymentSheetState extends State<PaystackPaymentSheet> {
     } catch (_) {}
 
     if (!mounted) return;
-    setState(() => _isInitializing = false);
+    setState(() {
+      _initialReference = widget.reference;
+      _isInitializing = false;
+    });
   }
 
   @override
@@ -229,6 +236,7 @@ class _PaystackPaymentSheetState extends State<PaystackPaymentSheet> {
       amount: widget.amount,
       email: widget.email,
       service: _service,
+      initialReference: _initialReference ?? widget.reference,
       onSuccess: widget.onSuccess,
       onError: (msg) => setState(() => _errorMessage = msg),
     );

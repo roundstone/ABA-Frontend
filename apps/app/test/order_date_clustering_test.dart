@@ -16,7 +16,7 @@ void main() {
     id: '101',
     orderNumber: 'ORD-NOV-001',
     date: DateTime(2026, 11, 1, 7, 53, 33),
-    status: OrderStatus.delivered,
+    status: OrderStatus.complete,
     total: 4067943,
     paymentMethod: 'card_or_bank',
     shippingAddress: ShippingAddress(
@@ -68,7 +68,7 @@ void main() {
     id: '103',
     orderNumber: 'ORD-OCT-001',
     date: DateTime(2026, 10, 31, 19, 43, 9),
-    status: OrderStatus.processing,
+    status: OrderStatus.shippedOrReadyForPickup,
     total: 50000,
     paymentMethod: 'card',
     shippingAddress: ShippingAddress(
@@ -148,8 +148,8 @@ void main() {
       expect(find.textContaining('Total ₦'), findsOneWidget);
 
       // Both orders are displayed
-      expect(find.text('Leather Bag'), findsOneWidget);
-      expect(find.text('SafeBox Interest Item'), findsOneWidget);
+      expect(find.text('ORD-NOV-001'), findsOneWidget);
+      expect(find.text('ORD-NOV-002'), findsOneWidget);
       expect(find.byType(OrderClusterItemTile), findsNWidgets(2));
 
       // Tap header to collapse
