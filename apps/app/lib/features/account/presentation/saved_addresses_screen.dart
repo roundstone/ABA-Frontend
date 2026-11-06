@@ -1,3 +1,4 @@
+import 'package:app/core/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -5,8 +6,6 @@ import '../../../core/network/list_query_params.dart';
 import '../../../core/router/safe_navigation.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/paginated_list_view.dart';
 import '../application/address_providers.dart';
@@ -64,12 +63,18 @@ class _SavedAddressesScreenState extends ConsumerState<SavedAddressesScreen> {
   }
 
   void _onSearch(String term) {
-    setState(() => _params = _params.withSearch(term.trim().isEmpty ? null : term.trim()));
+    setState(
+      () => _params = _params.withSearch(
+        term.trim().isEmpty ? null : term.trim(),
+      ),
+    );
     _load();
   }
 
   void _toggleSort() {
-    final next = _params.sortDirection == SortDirection.desc ? SortDirection.asc : SortDirection.desc;
+    final next = _params.sortDirection == SortDirection.desc
+        ? SortDirection.asc
+        : SortDirection.desc;
     setState(() => _params = _params.withSort('createdAt', next));
     _load();
   }
@@ -114,10 +119,7 @@ class _SavedAddressesScreenState extends ConsumerState<SavedAddressesScreen> {
             onPressed: _toggleSort,
           ),
           IconButton(
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedAdd01,
-              size: 20,
-            ),
+            icon: const HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 20),
             tooltip: 'Add Address',
             onPressed: _showAddDialog,
           ),
@@ -153,7 +155,10 @@ class _SavedAddressesScreenState extends ConsumerState<SavedAddressesScreen> {
                           color: AppColors.grey,
                           size: 16,
                         ),
-                        onPressed: () { _searchCtrl.clear(); _onSearch(''); },
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          _onSearch('');
+                        },
                       )
                     : null,
                 onChanged: _onSearch,
@@ -170,8 +175,40 @@ class _SavedAddressesScreenState extends ConsumerState<SavedAddressesScreen> {
                 prefetchDistance: 250.0,
                 showBottomLoader: true,
                 padding: const EdgeInsets.all(AppSpacing.md),
-                separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-                emptyWidget: _buildEmptyState(isDark),
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: AppSpacing.sm),
+                emptyWidget: AppEmptyState(
+                  icon: HugeIcons.strokeRoundedMapPin,
+                  title: _params.search != null
+                      ? 'No matching addresses'
+                      : 'No saved addresses yet',
+                  description: _params.search != null
+                      ? 'Try adjusting your search query.'
+                      : 'Add your delivery address for faster checkout.',
+
+                  action: _params.search != null
+                      ? FilledButton.icon(
+                          onPressed: () {
+                            _searchCtrl.clear();
+                            _onSearch('');
+                          },
+                          icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedSearch01,
+                            size: AppSpacing.iconSizeSM,
+                            color: Colors.white,
+                          ),
+                          label: const Text('Clear Search'),
+                        )
+                      : FilledButton.icon(
+                          onPressed: _showAddDialog,
+                          icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedAdd01,
+                            size: AppSpacing.iconSizeSM,
+                            color: Colors.white,
+                          ),
+                          label: const Text('Add Address'),
+                        ),
+                ),
                 itemBuilder: (context, addr, index) {
                   return AddressCard(
                     address: addr.toCheckoutAddress(),
@@ -188,52 +225,6 @@ class _SavedAddressesScreenState extends ConsumerState<SavedAddressesScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedMapPin,
-            color: isDark ? Colors.white : AppColors.onBackground,
-            size: 40,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            _params.search != null ? 'No matching addresses' : 'No saved addresses yet',
-            style: AppTypography.titleMedium,
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            _params.search != null
-                ? 'Try adjusting your search query.'
-                : 'Add your delivery address for faster checkout.',
-            style: AppTypography.bodySmall.copyWith(
-              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          if (_params.search != null)
-            AppButton(
-              label: 'Clear Search',
-              onPressed: () {
-                _searchCtrl.clear();
-                _onSearch('');
-              },
-              type: AppButtonType.secondary,
-            )
-          else
-            AppButton(
-              label: 'Add New Address',
-              onPressed: _showAddDialog,
-              type: AppButtonType.secondary,
-            ),
-        ],
       ),
     );
   }

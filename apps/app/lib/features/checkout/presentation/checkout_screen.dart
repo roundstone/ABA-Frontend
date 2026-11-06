@@ -1,3 +1,4 @@
+import 'package:app/core/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,7 +13,6 @@ import '../application/checkout_notifier.dart';
 import '../application/checkout_providers.dart';
 import '../application/checkout_state.dart';
 import 'checkout_order_handler.dart';
-import 'widgets/checkout_empty_view.dart';
 import 'widgets/checkout_progress_bar.dart';
 import 'widgets/checkout_referral_section.dart';
 import 'widgets/checkout_summary_card.dart';
@@ -86,7 +86,20 @@ class CheckoutScreen extends ConsumerWidget {
     required bool isDirectBuy,
   }) {
     if (cart.isEmpty && checkoutState.createdOrderResult == null) {
-      return const CheckoutEmptyView();
+      return AppEmptyState(
+        icon: HugeIcons.strokeRoundedShoppingCart01,
+        title: 'Your cart is empty',
+        description: 'Add items to your cart before proceeding to checkout.',
+        action: FilledButton.icon(
+          onPressed: () => context.go('/shop'),
+          icon: const HugeIcon(
+            icon: HugeIcons.strokeRoundedShoppingBag01,
+            size: AppSpacing.iconSizeSM,
+            color: Colors.white,
+          ),
+          label: const Text('Explore Shop'),
+        ),
+      );
     }
 
     if (checkoutState.isLoadingInit) {

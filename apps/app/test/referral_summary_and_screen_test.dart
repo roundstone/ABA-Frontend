@@ -215,8 +215,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Referral Network'), findsOneWidget);
-      expect(find.text('Marketer'), findsOneWidget);
-      expect(find.text('Ledger'), findsOneWidget);
+      expect(find.byTooltip('Marketer Tree'), findsOneWidget);
+      expect(find.byTooltip('Ledger'), findsOneWidget);
       expect(find.text('CustomerB B'), findsOneWidget);
       expect(find.text('CUSTOMER-638-033F5078'), findsWidgets);
     });

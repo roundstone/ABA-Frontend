@@ -90,17 +90,20 @@ class CartNotifier extends AsyncNotifier<Cart> {
     String? size,
     int? variantId,
   }) async {
-    final current = state.valueOrNull ?? const Cart();
-
     var effectiveProduct = product;
+
+    // Fetch full product only when variant information is required.
     if (effectiveProduct.variants.isEmpty && variantId == null) {
       try {
         final repo = ref.read(shopRepositoryProvider);
         final full = await repo.fetchProductById(product.id);
-        if (full != null && full.variants.isNotEmpty) {
+
+        if (full != null) {
           effectiveProduct = full;
         }
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.w('CartNotifier.addToCart product lookup failed: $e');
+      }
     }
 
     final vId = CartCacheHelper.resolveVariantId(
@@ -117,55 +120,79 @@ class CartNotifier extends AsyncNotifier<Cart> {
       selectedColor: color,
       selectedSize: size,
     );
+
+    // Optimistic update.
+    final current = state.valueOrNull ?? const Cart();
     final optimisticCart = current.addItem(optItem);
+
     state = AsyncValue.data(optimisticCart);
 
+    // Persist immediately.
+    await _persist(optimisticCart);
+
+    // Synchronize with backend.
     try {
       final repo = ref.read(cartRepositoryProvider);
+
       final created = await repo.addItem(
         productVariantId: vId,
         quantity: quantity,
         product: effectiveProduct,
       );
+
       if (created.id != null) {
-        final synced = optimisticCart.items.map((i) {
-          if (i.product.id == effectiveProduct.id &&
-              (i.effectiveVariantId == vId || i.effectiveVariantId == null)) {
-            return i.copyWith(id: created.id, productVariantId: vId);
+        // Always reconcile against the latest state.
+        final latest = state.valueOrNull ?? optimisticCart;
+
+        final syncedItems = latest.items.map((item) {
+          if (item.product.id == effectiveProduct.id &&
+              item.effectiveVariantId == vId) {
+            return item.copyWith(id: created.id, productVariantId: vId);
           }
-          return i;
+          return item;
         }).toList();
-        final finalCart = Cart(id: optimisticCart.id, items: synced);
-        state = AsyncValue.data(finalCart);
-        await _persist(finalCart);
-        return;
+
+        final syncedCart = Cart(
+          id: latest.id ?? optimisticCart.id,
+          items: syncedItems,
+        );
+
+        state = AsyncValue.data(syncedCart);
+        await _persist(syncedCart);
       }
     } catch (e) {
       AppLogger.w('CartNotifier.addToCart remote failed: $e');
     }
-    await _persist(optimisticCart);
   }
 
   Future<void> removeFromCart(String productIdOrItemId) async {
     final current = state.valueOrNull ?? const Cart();
-    final item = current.items.where(
-      (i) =>
-          i.id == productIdOrItemId ||
-          i.product.id == productIdOrItemId ||
-          i.effectiveId == productIdOrItemId,
-    ).firstOrNull;
+
+    final item = current.items
+        .where(
+          (i) =>
+              i.id == productIdOrItemId ||
+              i.product.id == productIdOrItemId ||
+              i.effectiveId == productIdOrItemId,
+        )
+        .firstOrNull;
 
     final targetId = item?.id ?? productIdOrItemId;
+
+    // Optimistic update.
+    final next = current.removeItem(productIdOrItemId);
+    state = AsyncValue.data(next);
+
+    // Persist locally first.
+    await _persist(next);
+
+    // Synchronize with backend.
     try {
       final repo = ref.read(cartRepositoryProvider);
       await repo.removeItem(targetId);
     } catch (e) {
       AppLogger.w('CartNotifier.removeFromCart remote failed: $e');
     }
-
-    final next = current.removeItem(productIdOrItemId);
-    state = AsyncValue.data(next);
-    await _persist(next);
   }
 
   Future<void> updateQuantity(String productIdOrItemId, int quantity) async {
@@ -174,39 +201,59 @@ class CartNotifier extends AsyncNotifier<Cart> {
     }
 
     final current = state.valueOrNull ?? const Cart();
-    final item = current.items.where(
-      (i) =>
-          i.id == productIdOrItemId ||
-          i.product.id == productIdOrItemId ||
-          i.effectiveId == productIdOrItemId,
-    ).firstOrNull;
 
-    final targetId = item?.id ?? productIdOrItemId;
+    final item = current.items
+        .where(
+          (i) =>
+              i.id == productIdOrItemId ||
+              i.product.id == productIdOrItemId ||
+              i.effectiveId == productIdOrItemId,
+        )
+        .firstOrNull;
+
+    if (item == null) return;
+
+    final targetId = item.id ?? productIdOrItemId;
+
+    // Optimistic update.
+    final next = current.updateQuantity(productIdOrItemId, quantity);
+    state = AsyncValue.data(next);
+
+    // Persist locally first.
+    await _persist(next);
+
+    // Synchronize with backend.
     try {
       final repo = ref.read(cartRepositoryProvider);
+
       await repo.updateItemQuantity(itemId: targetId, quantity: quantity);
     } catch (e) {
       AppLogger.w('CartNotifier.updateQuantity remote failed: $e');
     }
-
-    final next = current.updateQuantity(productIdOrItemId, quantity);
-    state = AsyncValue.data(next);
-    await _persist(next);
   }
 
   Future<void> clearCart() async {
-    try {
-      final repo = ref.read(cartRepositoryProvider);
-      await repo.clearCart();
-    } catch (e) {
-      AppLogger.w('CartNotifier.clearCart remote failed: $e');
-    }
-    state = const AsyncValue.data(Cart());
     final user = ref.read(currentUserProvider);
     final userId = user?.id.toString();
+
+    // 1. Immediately update the UI
+    state = const AsyncValue.data(Cart());
+
+    // 2. Clear local cache
     if (userId != null) {
       final prefs = ref.read(sharedPreferencesProvider);
       await prefs?.remove(CartCacheHelper.keyForUser(userId));
+    }
+
+    // 3. Synchronize with the backend
+    try {
+      final repo = ref.read(cartRepositoryProvider);
+      await repo.clearCart();
+    } catch (e, stackTrace) {
+      AppLogger.w('CartNotifier.clearCart remote failed: $e');
+
+      // Consider scheduling a retry or notifying the user
+      // that the cart could not be synchronized.
     }
   }
 

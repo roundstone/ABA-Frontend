@@ -13,7 +13,6 @@ import 'widgets/fund_wallet_sheet.dart';
 import 'widgets/manage_bank_accounts_sheet.dart';
 import 'widgets/payouts_history_sheet.dart';
 import 'widgets/wallet_balance_card.dart';
-import 'widgets/wallet_credits_banner.dart';
 import 'widgets/wallet_filter_bar.dart';
 import 'widgets/wallet_transactions_list.dart';
 import 'widgets/withdraw_wallet_sheet.dart';

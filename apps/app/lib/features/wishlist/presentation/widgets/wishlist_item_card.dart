@@ -108,7 +108,8 @@ class WishlistItemCard extends ConsumerWidget {
                         color: isDark ? AppColors.secondary : cs.primary,
                       ),
                     ),
-                    if (product?.brand != null && product!.brand.isNotEmpty) ...[
+                    if (product?.brand != null &&
+                        product!.brand.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(
                         product.brand,
@@ -154,10 +155,11 @@ class WishlistItemCard extends ConsumerWidget {
                       ),
                       onPressed: () {
                         ref.read(cartProvider.notifier).addToCart(product);
-                        AppSnackbar.show(
+                        AppSnackbar.success(
                           context,
-                          message: '${product.name} added to cart',
-                          type: AppSnackbarType.success,
+                          'Added to cart!',
+                          actionLabel: 'View Cart',
+                          onAction: () => context.push('/cart'),
                         );
                       },
                     ),

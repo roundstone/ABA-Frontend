@@ -100,11 +100,6 @@ void main() {
       expect(find.text('My Wallet'), findsOneWidget);
       expect(find.byType(WalletBalanceCard), findsOneWidget);
       expect(find.text('Total Balance'), findsOneWidget);
-      expect(find.byType(WalletCreditsBanner), findsOneWidget);
-      expect(find.text('Credits'), findsWidgets);
-      expect(find.text('NON-WITHDRAWABLE'), findsWidgets);
-      expect(find.text('Credited from referral activation fee. Valid for purchasing all BuyNaija marketplace products.'), findsOneWidget);
-      expect(find.text('Automatically applied at checkout'), findsOneWidget);
       expect(find.text('Recent Transactions'), findsOneWidget);
       expect(find.byType(WalletFilterBar), findsOneWidget);
       expect(find.text('Deposits'), findsOneWidget);

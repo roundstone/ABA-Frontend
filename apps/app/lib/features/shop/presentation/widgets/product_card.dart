@@ -162,7 +162,9 @@ class _GridCard extends ConsumerWidget {
                               cartNotifier.addToCart(product);
                               AppSnackbar.success(
                                 context,
-                                '${product.name} added to cart',
+                                'Added to cart!',
+                                actionLabel: 'View Cart',
+                                onAction: () => context.push('/cart'),
                               );
                             }
                           },
@@ -304,7 +306,9 @@ class _ListCard extends ConsumerWidget {
                               cartNotifier.addToCart(product);
                               AppSnackbar.success(
                                 context,
-                                '${product.name} added to cart',
+                                'Added to cart!',
+                                actionLabel: 'View Cart',
+                                onAction: () => context.push('/cart'),
                               );
                             }
                           },

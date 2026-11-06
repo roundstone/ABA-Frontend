@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -22,16 +21,6 @@ class ReferralInviteCard extends StatelessWidget {
   void _copyToClipboard(BuildContext context, String text, String message) {
     Clipboard.setData(ClipboardData(text: text));
     AppSnackbar.show(context, message: message, type: AppSnackbarType.info);
-  }
-
-  void _shareLink() {
-    if (!hasCode) return;
-    SharePlus.instance.share(
-      ShareParams(
-        text:
-            'Join me on BuyNaija! Use my referral code: $referralCode when signing up: $referralLink',
-      ),
-    );
   }
 
   @override

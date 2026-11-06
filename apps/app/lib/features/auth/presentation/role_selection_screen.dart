@@ -1,3 +1,4 @@
+import 'package:app/core/widgets/app_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
@@ -69,7 +70,12 @@ class RoleSelectionScreen extends StatelessWidget {
                       badgeLabel: 'Marketer',
                       title: 'Promote & Earn',
                       description: 'Promote products\nand earn commissions.',
-                      onTap: () => context.go('/login/marketer'),
+                      // onTap: () => context.go('/login/marketer'),
+                      // show comming soon for now
+                      onTap: () => AppSnackbar.info(
+                        context,
+                        "Marketer flow is coming soon",
+                      ),
                     ),
 
                     const SizedBox(height: AppSpacing.xxxl),

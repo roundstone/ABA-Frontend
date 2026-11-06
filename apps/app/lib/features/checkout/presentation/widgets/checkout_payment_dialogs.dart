@@ -18,7 +18,9 @@ class CheckoutPaymentDialogs {
         canPop: false,
         child: Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(AppSpacing.radiusLG)),
+            borderRadius: BorderRadius.all(
+              Radius.circular(AppSpacing.radiusLG),
+            ),
           ),
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 28),
@@ -47,10 +49,7 @@ class CheckoutPaymentDialogs {
     );
   }
 
-  static void showPaymentPendingDialog(
-    BuildContext context,
-    dynamic orderId,
-  ) {
+  static void showPaymentPendingDialog(BuildContext context, dynamic orderId) {
     showDialog<void>(
       context: context,
       builder: (ctx) => Dialog(
@@ -79,13 +78,13 @@ class CheckoutPaymentDialogs {
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
-                'Payment Incomplete',
+                'Payment Processing',
                 style: AppTypography.h4.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Your order #$orderId has been placed with status "Pending Payment". You can complete payment at any time from My Orders.',
+                "Your payment for order #$orderId is awaiting confirmation. We're checking the transaction with Paystack. If you were debited, please don't make another payment. Your order status will be updated once your payment is confirmed.",
                 style: AppTypography.bodySmall.copyWith(
                   color: AppColors.textSecondary,
                   height: 1.4,

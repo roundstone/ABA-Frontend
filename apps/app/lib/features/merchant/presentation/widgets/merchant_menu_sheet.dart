@@ -1,3 +1,4 @@
+import 'package:app/features/auth/presentation/utils/auth_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -225,7 +226,7 @@ class _MerchantMenuModal extends ConsumerWidget {
                   color: AppColors.error,
                   title: 'Logout',
                   subtitle: 'Sign out of merchant portal',
-                  onTap: () => showConfirmLogoutDialog(context, ref),
+                  onTap: () => confirmLogout(context, ref),
                 ),
                 MerchantMenuTile(
                   icon: HugeIcons.strokeRoundedDelete02,

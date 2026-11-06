@@ -1,4 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
+import 'package:app/features/auth/presentation/utils/auth_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -139,17 +140,6 @@ MoreMenuItem _buildLogoutItem(WidgetRef ref) => MoreMenuItem(
   label: 'Logout',
   color: AppColors.error,
   onTap: (ctx) async {
-    final nav = rootNavigatorKey.currentContext ?? ctx;
-    try {
-      GoRouter.of(nav).go('/role-select');
-    } catch (_) {
-      try {
-        Navigator.of(nav).pushNamedAndRemoveUntil(
-          '/role-select',
-          (route) => false,
-        );
-      } catch (_) {}
-    }
-    await ref.read(authStateProvider.notifier).logout();
+    await confirmLogout(ctx, ref);
   },
 );

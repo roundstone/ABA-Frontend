@@ -1,4 +1,6 @@
+import 'package:app/features/auth/presentation/utils/auth_actions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/safe_navigation.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -8,36 +10,12 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/notification_icon_button.dart';
 import '../../domain/customer_entities.dart';
 
-class DashboardHeader extends StatelessWidget {
+class DashboardHeader extends ConsumerWidget {
   const DashboardHeader({super.key, required this.profile});
   final CustomerProfile profile;
 
-  void _confirmLogout(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Confirm Logout'),
-        content: const Text('Are you sure you want to log out of your account?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              context.go('/login');
-            },
-            child: const Text('Log Out'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -135,7 +113,7 @@ class DashboardHeader extends StatelessWidget {
             size: AppSpacing.iconSizeMD,
           ),
           tooltip: 'Logout',
-          onPressed: () => _confirmLogout(context),
+          onPressed: () =>  confirmLogout(context, ref),
         ),
       ],
     );

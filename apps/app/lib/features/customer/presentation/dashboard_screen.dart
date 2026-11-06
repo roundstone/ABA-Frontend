@@ -1,3 +1,7 @@
+import 'package:app/core/network/dio_client.dart';
+import 'package:app/features/wallet/presentation/widgets/fund_wallet_sheet.dart';
+import 'package:app/features/wallet/presentation/widgets/wallet_balance_card.dart';
+import 'package:app/features/wallet/presentation/widgets/withdraw_wallet_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/router/safe_navigation.dart';
@@ -15,7 +19,6 @@ import 'widgets/dashboard_overview_metrics.dart';
 import 'widgets/dashboard_quick_actions.dart';
 import 'widgets/dashboard_recent_orders.dart';
 import 'widgets/dashboard_recent_transactions.dart';
-import 'widgets/dashboard_wallet_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -24,6 +27,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final summaryAsync = ref.watch(dashboardSummaryProvider);
     final walletInfoAsync = ref.watch(walletInfoProvider);
+    final shoppingCreditsAsync = ref.watch(shoppingCreditsProvider);
     final walletTransactionsAsync = ref.watch(walletTransactionsProvider);
     final ordersAsync = ref.watch(customerOrdersProvider);
     final referralAsync = ref.watch(referralDataProvider);
@@ -38,42 +42,44 @@ class DashboardScreen extends ConsumerWidget {
           context.popOrGo('/home');
         },
         child: summaryAsync.when(
-        loading: () => const LoadingState(message: 'Loading dashboard…'),
-        error: (e, _) => ErrorState(
-          message: 'Could not load dashboard.\n${e.toString()}',
-          onRetry: () {
-            ref.invalidate(dashboardSummaryProvider);
-            ref.invalidate(walletInfoProvider);
-            ref.invalidate(customerOrdersProvider);
-          },
-        ),
-        data: (summary) => RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(dashboardSummaryProvider);
-            ref.invalidate(walletInfoProvider);
-            ref.invalidate(walletTransactionsProvider);
-            ref.invalidate(customerOrdersProvider);
-            ref.invalidate(referralDataProvider);
-            ref.invalidate(rewardSummaryProvider);
-            await ref.read(dashboardSummaryProvider.future);
-          },
-          child: _DashboardBody(
-            profile: summary.profile,
-            walletBalance: walletInfoAsync.value?.balance ??
-                summary.availableToWithdraw,
-            orders: ordersAsync.value ?? [],
-            isOrdersLoading: ordersAsync.isLoading,
-            transactions: walletTransactionsAsync.value ?? [],
-            isTransactionsLoading: walletTransactionsAsync.isLoading,
-            referralEarned: (referralAsync.value?.metrics.totalEarned ??
-                    (summary.totalEarned * 100).toInt()) /
-                100,
-            networkMembersCount:
-                referralAsync.value?.metrics.totalNetwork ?? 142,
-            rewardPoints: rewardSummaryAsync.value?.available ?? summary.totalPoints,
+          loading: () => const LoadingState(message: 'Loading dashboard…'),
+          error: (e, _) => ErrorState(
+            message: 'Could not load dashboard.\n${e.toString()}',
+            onRetry: () {
+              ref.invalidate(dashboardSummaryProvider);
+              ref.invalidate(walletInfoProvider);
+              ref.invalidate(customerOrdersProvider);
+            },
+          ),
+          data: (summary) => RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(dashboardSummaryProvider);
+              ref.invalidate(walletInfoProvider);
+              ref.invalidate(walletTransactionsProvider);
+              ref.invalidate(customerOrdersProvider);
+              ref.invalidate(referralDataProvider);
+              ref.invalidate(rewardSummaryProvider);
+              await ref.read(dashboardSummaryProvider.future);
+            },
+            child: _DashboardBody(
+              profile: summary.profile,
+              walletInfoAsync: walletInfoAsync,
+              shoppingCreditsAsync: shoppingCreditsAsync,
+              orders: ordersAsync.value ?? [],
+              isOrdersLoading: ordersAsync.isLoading,
+              transactions: walletTransactionsAsync.value ?? [],
+              isTransactionsLoading: walletTransactionsAsync.isLoading,
+              referralEarned: referralAsync.value != null
+                  ? referralAsync.value!.metrics.totalEarned.toDouble()
+                  : summary.totalEarned,
+              networkMembersCount:
+                  referralAsync.value?.metrics.totalNetwork ?? 142,
+              rewardPoints:
+                  rewardSummaryAsync.value?.available ?? summary.totalPoints,
+              ref: ref,
+            ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -82,7 +88,8 @@ class DashboardScreen extends ConsumerWidget {
 class _DashboardBody extends StatelessWidget {
   const _DashboardBody({
     required this.profile,
-    required this.walletBalance,
+    required this.walletInfoAsync,
+    required this.shoppingCreditsAsync,
     required this.orders,
     required this.isOrdersLoading,
     required this.transactions,
@@ -90,10 +97,12 @@ class _DashboardBody extends StatelessWidget {
     required this.referralEarned,
     required this.networkMembersCount,
     required this.rewardPoints,
+    required this.ref,
   });
 
   final customer_domain.CustomerProfile profile;
-  final double walletBalance;
+  final AsyncValue<WalletInfo> walletInfoAsync;
+  final AsyncValue<ShoppingCreditInfo> shoppingCreditsAsync;
   final List<CustomerOrder> orders;
   final bool isOrdersLoading;
   final List<dynamic> transactions;
@@ -101,6 +110,7 @@ class _DashboardBody extends StatelessWidget {
   final double referralEarned;
   final int networkMembersCount;
   final int rewardPoints;
+  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +134,26 @@ class _DashboardBody extends StatelessWidget {
             AppSpacing.md,
           ),
           sliver: SliverToBoxAdapter(
-            child: DashboardWalletCard(balance: walletBalance),
+            child: WalletBalanceCard(
+              info: walletInfoAsync.valueOrNull,
+              credits: shoppingCreditsAsync.valueOrNull,
+              isLoading: walletInfoAsync.isLoading,
+              isCreditsLoading: shoppingCreditsAsync.isLoading,
+              errorMessage:
+                  walletInfoAsync.hasError &&
+                      walletInfoAsync.valueOrNull == null
+                  ? ApiError.toUserFriendlyMessage(walletInfoAsync.error)
+                  : null,
+              onRetry: () {
+                ref.invalidate(walletInfoProvider);
+                ref.invalidate(shoppingCreditsProvider);
+              },
+              onFund: () => FundWalletSheet.show(context),
+              onWithdraw: () => WithdrawWalletSheet.show(
+                context,
+                availableBalance: walletInfoAsync.valueOrNull?.balance ?? 0.0,
+              ),
+            ),
           ),
         ),
         SliverPadding(
@@ -145,9 +174,7 @@ class _DashboardBody extends StatelessWidget {
             AppSpacing.md,
             0,
           ),
-          sliver: SliverToBoxAdapter(
-            child: DashboardQuickActions(),
-          ),
+          sliver: SliverToBoxAdapter(child: DashboardQuickActions()),
         ),
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(

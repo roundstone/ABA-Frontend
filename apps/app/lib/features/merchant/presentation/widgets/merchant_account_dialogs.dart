@@ -5,16 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../auth/application/auth_providers.dart';
-import '../../../auth/domain/auth_entities.dart';
-import '../../../auth/presentation/widgets/logout_dialog.dart';
-
-void showConfirmLogoutDialog(BuildContext context, WidgetRef ref) {
-  showAppLogoutDialog(
-    context: context,
-    ref: ref,
-    role: UserRole.merchant,
-  );
-}
 
 void showConfirmDeleteAccountDialog(BuildContext context, WidgetRef ref) {
   showDialog(

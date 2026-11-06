@@ -121,7 +121,8 @@ class _CustomersEndpoints {
 /// 7. Delivery Addresses Endpoints
 class _DeliveryAddressEndpoints {
   const _DeliveryAddressEndpoints();
-  static const String _base = '${ApiEndpoints.apiV1}/delivery-addresses/mobile-app';
+  static const String _base =
+      '${ApiEndpoints.apiV1}/delivery-addresses/mobile-app';
   String get base => _base;
   String byId(String id) => '$_base/$id';
 }
@@ -134,7 +135,8 @@ class _OrdersEndpoints {
   String get createOrder => _base;
   String get list => '${ApiEndpoints.apiV1}/orders/mobile-app';
   String byId(String id) => '${ApiEndpoints.apiV1}/orders/mobile-app/$id';
-  String invoice(String id) => '${ApiEndpoints.apiV1}/invoices/orders/$id/download';
+  String invoice(String id) =>
+      '${ApiEndpoints.apiV1}/invoices/orders/$id/download';
   String invoiceView(String id) => '${ApiEndpoints.apiV1}/invoices/orders/$id';
   String get cancel => '${ApiEndpoints.apiV1}/orders/mobile-app/cancel';
 }
@@ -216,7 +218,7 @@ class _VendorsEndpoints {
 /// 14b. Merchants Endpoints
 class _MerchantsEndpoints {
   const _MerchantsEndpoints();
-  static const String _base = '${ApiEndpoints.apiV1}/merchants';
+  static const String _base = '${ApiEndpoints.apiV1}/storefront/merchants';
   String get base => _base;
   String byId(String id) => '$_base/$id';
   String status(String id) => '$_base/$id/status';

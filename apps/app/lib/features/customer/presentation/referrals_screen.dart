@@ -15,9 +15,7 @@ import '../../../core/widgets/app_widgets.dart';
 import 'widgets/referral_activation_card.dart';
 import 'widgets/referral_invite_card.dart';
 import 'widgets/referral_kpi_cards.dart';
-import 'widgets/referral_leaderboard_section.dart';
 import 'widgets/referral_network_list.dart';
-import 'widgets/referral_quick_actions.dart';
 
 export '../application/referral_summary_providers.dart';
 

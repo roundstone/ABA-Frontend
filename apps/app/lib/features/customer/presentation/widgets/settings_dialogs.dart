@@ -5,16 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../auth/application/auth_providers.dart';
-import '../../../auth/domain/auth_entities.dart';
-import '../../../auth/presentation/widgets/logout_dialog.dart';
 
-void showCustomerLogoutDialog(BuildContext context, WidgetRef ref) {
-  showAppLogoutDialog(
-    context: context,
-    ref: ref,
-    role: UserRole.customer,
-  );
-}
 
 void showCustomerDeleteAccountDialog(BuildContext context, WidgetRef ref) {
   showDialog(
@@ -31,19 +22,14 @@ void showCustomerDeleteAccountDialog(BuildContext context, WidgetRef ref) {
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red.shade700,
-          ),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700),
           onPressed: () async {
             Navigator.pop(ctx);
             await ref.read(authStateProvider.notifier).logout();
             final nav = rootNavigatorKey.currentContext;
             if (nav != null) {
               nav.go('/role-select');
-              AppSnackbar.info(
-                nav,
-                'Account has been scheduled for deletion.',
-              );
+              AppSnackbar.info(nav, 'Account has been scheduled for deletion.');
             }
           },
           child: const Text('Delete', style: TextStyle(color: Colors.white)),

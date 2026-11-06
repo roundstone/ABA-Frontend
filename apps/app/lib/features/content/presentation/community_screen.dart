@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../core/config/app_brand.dart';
@@ -6,18 +7,20 @@ import '../../../core/router/safe_navigation.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../auth/application/auth_providers.dart';
 import '../data/content_mock_data.dart';
 import 'community_screen_widgets.dart';
 
 /// Community Screen matching Web Storefront /community page.
-class CommunityScreen extends StatelessWidget {
+class CommunityScreen extends ConsumerWidget {
   const CommunityScreen({super.key});
 
   static const Color copper = Color(0xFFC28B38);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isAuthenticated = ref.watch(authStateProvider).isAuthenticated;
 
     return Scaffold(
       appBar: AppBar(
@@ -183,26 +186,28 @@ class CommunityScreen extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 44,
-                    child: ElevatedButton(
-                      onPressed: () => context.push('/referrals'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: AppColors.primary,
-                        minimumSize: const Size(double.infinity, 44),
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: AppSpacing.avatarRadius,
+                  if (!isAuthenticated) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: ElevatedButton(
+                        onPressed: () => context.push('/login'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppColors.primary,
+                          minimumSize: const Size(double.infinity, 44),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: AppSpacing.avatarRadius,
+                          ),
+                        ),
+                        child: const Text(
+                          'Join the Community',
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
-                      child: const Text(
-                        'Join the Community',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),

@@ -1,3 +1,4 @@
+import 'package:app/core/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -47,7 +48,20 @@ class CartScreen extends ConsumerWidget {
         ),
         data: (cart) {
           if (cart.isEmpty) {
-            return _EmptyCart(onShop: () => context.go('/shop'));
+            return AppEmptyState(
+              icon: HugeIcons.strokeRoundedShoppingCart01,
+              title: 'Your cart is empty',
+              description: 'Add items from the shop to get started',
+              action: FilledButton.icon(
+                onPressed: () => context.go('/shop'),
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedShoppingBag01,
+                  size: AppSpacing.iconSizeSM,
+                  color: Colors.white,
+                ),
+                label: const Text('Browse Shop'),
+              ),
+            );
           }
           return _CartBody(cart: cart);
         },
@@ -99,70 +113,21 @@ class _CartBody extends ConsumerWidget {
           cart: cart,
           onCheckout: () => context.push('/checkout'),
           onClear: () {
-            notifier.clearCart().then(
-              (_) {
-                if (context.mounted) {
-                  AppSnackbar.success(context, 'Cart cleared successfully');
-                }
-              },
-            ).catchError(
-              (onError) {
-                if (context.mounted) {
-                  AppSnackbar.error(context, onError.toString());
-                }
-              },
-            );
+            notifier
+                .clearCart()
+                .then((_) {
+                  if (context.mounted) {
+                    AppSnackbar.success(context, 'Cart cleared successfully');
+                  }
+                })
+                .catchError((onError) {
+                  if (context.mounted) {
+                    AppSnackbar.error(context, onError.toString());
+                  }
+                });
           },
         ),
       ],
-    );
-  }
-}
-
-class _EmptyCart extends StatelessWidget {
-  const _EmptyCart({required this.onShop});
-  final VoidCallback onShop;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedShoppingCart01,
-              size: 72,
-              color: cs.primary.withAlpha(80),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'Your cart is empty',
-              style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Add items from the shop to get started',
-              style: AppTypography.bodySmall.copyWith(
-                color: cs.onSurface.withAlpha(153),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            FilledButton.icon(
-              onPressed: onShop,
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedShoppingBag01,
-                size: AppSpacing.iconSizeSM,
-                color: Colors.white,
-              ),
-              label: const Text('Browse Shop'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:app/features/auth/presentation/utils/auth_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -45,7 +46,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           tooltip: 'Back',
           onPressed: () {
-            final fallback = ref.read(authStateProvider).isMerchant ? '/merchant' : '/home';
+            final fallback = ref.read(authStateProvider).isMerchant
+                ? '/merchant'
+                : '/home';
             context.popOrGo(fallback);
           },
         ),
@@ -55,7 +58,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         canPop: context.canPopSafely,
         onPopInvokedWithResult: (didPop, result) {
           if (didPop) return;
-          final fallback = ref.read(authStateProvider).isMerchant ? '/merchant' : '/home';
+          final fallback = ref.read(authStateProvider).isMerchant
+              ? '/merchant'
+              : '/home';
           context.popOrGo(fallback);
         },
         child: ListView(
@@ -104,7 +109,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.notifications_active_outlined, size: 20),
+              leading: const Icon(
+                Icons.notifications_active_outlined,
+                size: 20,
+              ),
               title: const Text('Push Diagnostics & Live Test'),
               subtitle: const Text('View device FCM token & simulate flows'),
               trailing: const Icon(Icons.chevron_right, size: 20),
@@ -142,7 +150,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 final emailParam = user?.email.isNotEmpty == true
                     ? Uri.encodeComponent(user!.email)
                     : '';
-                context.push('/forgot-password?role=customer&email=$emailParam');
+                context.push(
+                  '/forgot-password?role=customer&email=$emailParam',
+                );
               },
             ),
             const SizedBox(height: AppSpacing.md),
@@ -169,7 +179,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.link_rounded, size: 20, color: AppColors.primary),
+              leading: const Icon(
+                Icons.link_rounded,
+                size: 20,
+                color: AppColors.primary,
+              ),
               title: const Text('Deep Link Simulator'),
               subtitle: const Text('Test reset-password tokens & app links'),
               trailing: const Icon(Icons.chevron_right, size: 20),
@@ -190,7 +204,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 size: 18,
               ),
               label: const Text('Logout Account'),
-              onPressed: () => showCustomerLogoutDialog(context, ref),
+              onPressed: () => confirmLogout(context, ref),
             ),
             const SizedBox(height: AppSpacing.sm),
             TextButton.icon(

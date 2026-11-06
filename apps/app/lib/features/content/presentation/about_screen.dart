@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/config/app_brand.dart';
 import '../../../core/router/safe_navigation.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../auth/application/auth_providers.dart';
 import '../data/content_mock_data.dart';
 import 'about_pillar_card.dart';
 
 /// About Screen matching Web Storefront /about page.
-class AboutScreen extends StatelessWidget {
+class AboutScreen extends ConsumerWidget {
   const AboutScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     const page = ContentMockData.aboutPage;
     final introSection = page.sections.firstWhere((s) => s.name == 'Hero/Intro');
@@ -113,7 +116,14 @@ class AboutScreen extends StatelessWidget {
               description:
                   'Discover authentic products crafted by Nigerian artisans and merchants. Verified quality, direct pricing, and safe door-to-door delivery.',
               buttonLabel: 'Start Shopping',
-              onTap: () => context.go('/shop'),
+              onTap: () {
+                final isAuth = ref.read(authStateProvider).isAuthenticated;
+                if (!isAuth) {
+                  context.push('/login');
+                } else {
+                  context.go('/shop');
+                }
+              },
               accentColor: const Color(0xFF15803D),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -126,7 +136,16 @@ class AboutScreen extends StatelessWidget {
               description:
                   'Get your products in front of buyers nationwide. Manage catalog, digital orders, and in-store transactions with our built-in POS.',
               buttonLabel: 'Become a Merchant',
-              onTap: () => context.push('/merchants/onboarding'),
+              onTap: () async {
+                const merchantUrl =
+                    'https://buy-naija-git-nov-featureweb-ap-a7f155-yusufs-projects-ed3add33.vercel.app/merchants/onboarding';
+                final uri = Uri.parse(merchantUrl);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } else {
+                  await launchUrl(uri);
+                }
+              },
               accentColor: AppColors.primary,
             ),
             const SizedBox(height: AppSpacing.md),
