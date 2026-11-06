@@ -12,39 +12,70 @@ class ReferralKpiCardsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs,
+        vertical: AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: AppSpacing.borderRadiusLG,
+        border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(isDark ? 0 : 4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: IntrinsicHeight(
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            ReferralKpiCard(
-              title: 'Total Network',
-              value: metrics.totalNetwork.toString(),
-              subtitle: '${metrics.totalNetwork} members',
-              icon: HugeIcons.strokeRoundedUserMultiple,
-              iconColor: AppColors.primary,
-              iconBg: AppColors.primary.withAlpha(25),
+            Expanded(
+              child: _StatColumn(
+                title: 'Total Network',
+                value: metrics.totalNetwork.toString(),
+                subtitle: '${metrics.totalNetwork} members',
+                icon: HugeIcons.strokeRoundedUserMultiple,
+                iconColor: AppColors.primary,
+                iconBg: AppColors.primary.withAlpha(25),
+              ),
             ),
-            const SizedBox(width: AppSpacing.md),
-            ReferralKpiCard(
-              title: 'Active Buyers',
-              value: metrics.activeBuyers.toString(),
-              subtitle: metrics.totalNetwork > 0
-                  ? '${((metrics.activeBuyers / metrics.totalNetwork) * 100).toStringAsFixed(0)}% conversion'
-                  : '0% conversion',
-              icon: HugeIcons.strokeRoundedTarget01,
-              iconColor: AppColors.success,
-              iconBg: AppColors.success.withAlpha(25),
+            VerticalDivider(
+              width: 1,
+              thickness: 1,
+              color: isDark ? Colors.white10 : AppColors.border,
             ),
-            const SizedBox(width: AppSpacing.md),
-            ReferralKpiCard(
-              title: 'Total Earned',
-              value: formatNaira(metrics.totalEarned.toDouble()),
-              subtitle: 'Lifetime',
-              icon: HugeIcons.strokeRoundedDollarCircle,
-              iconColor: AppColors.warning,
-              iconBg: AppColors.warning.withAlpha(25),
+            Expanded(
+              child: _StatColumn(
+                title: 'Active Buyers',
+                value: metrics.activeBuyers.toString(),
+                subtitle: metrics.totalNetwork > 0
+                    ? '${((metrics.activeBuyers / metrics.totalNetwork) * 100).toStringAsFixed(0)}% conv'
+                    : '0% conv',
+                icon: HugeIcons.strokeRoundedTarget01,
+                iconColor: AppColors.success,
+                iconBg: AppColors.success.withAlpha(25),
+              ),
+            ),
+            VerticalDivider(
+              width: 1,
+              thickness: 1,
+              color: isDark ? Colors.white10 : AppColors.border,
+            ),
+            Expanded(
+              child: _StatColumn(
+                title: 'Total Earned',
+                value: formatNaira(metrics.totalEarned.toDouble()),
+                subtitle: 'Lifetime',
+                icon: HugeIcons.strokeRoundedDollarCircle,
+                iconColor: AppColors.warning,
+                iconBg: AppColors.warning.withAlpha(25),
+              ),
             ),
           ],
         ),
@@ -53,9 +84,8 @@ class ReferralKpiCardsRow extends StatelessWidget {
   }
 }
 
-class ReferralKpiCard extends StatelessWidget {
-  const ReferralKpiCard({
-    super.key,
+class _StatColumn extends StatelessWidget {
+  const _StatColumn({
     required this.title,
     required this.value,
     required this.subtitle,
@@ -74,64 +104,50 @@ class ReferralKpiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      width: 156,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: AppSpacing.borderRadiusLG,
-        border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.xs),
-                decoration: BoxDecoration(
-                  color: iconBg,
-                  shape: BoxShape.circle,
-                ),
-                child: HugeIcon(icon: icon, color: iconColor, size: 20),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  title,
-                  style: AppTypography.label.copyWith(
-                    color: cs.onSurfaceVariant,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.xs),
+            decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+            child: HugeIcon(icon: icon, color: iconColor, size: 16),
           ),
-          const SizedBox(height: AppSpacing.md),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FittedBox(
-                alignment: Alignment.centerLeft,
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  value,
-                  style: AppTypography.h5.copyWith(fontWeight: FontWeight.bold),
-                  maxLines: 1,
-                ),
+          const SizedBox(height: 6),
+          Text(
+            title,
+            style: AppTypography.caption.copyWith(
+              color: cs.onSurfaceVariant,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: AppTypography.bodyLarge.copyWith(
+                fontWeight: FontWeight.w800,
               ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                subtitle,
-                style: AppTypography.caption.copyWith(color: AppColors.success),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: AppTypography.caption.copyWith(
+              color: AppColors.success,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

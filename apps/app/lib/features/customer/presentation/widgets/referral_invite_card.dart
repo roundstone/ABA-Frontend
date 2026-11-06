@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -18,131 +19,174 @@ class ReferralInviteCard extends StatelessWidget {
   final String referralLink;
   final bool hasCode;
 
+  void _copyToClipboard(BuildContext context, String text, String message) {
+    Clipboard.setData(ClipboardData(text: text));
+    AppSnackbar.show(context, message: message, type: AppSnackbarType.info);
+  }
+
+  void _shareLink() {
+    if (!hasCode) return;
+    SharePlus.instance.share(
+      ShareParams(
+        text:
+            'Join me on BuyNaija! Use my referral code: $referralCode when signing up: $referralLink',
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: AppSpacing.borderRadiusLG,
         border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(isDark ? 0 : 6),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withAlpha(25),
-              shape: BoxShape.circle,
+          // Header Row
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.xs,
             ),
-            child: const HugeIcon(
-              icon: HugeIcons.strokeRoundedShare01,
-              color: AppColors.primary,
-              size: 32,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'Invite & Earn',
-            style: AppTypography.h6.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Share your referral link with friends. When they sign up and make a purchase, you earn a percentage as commission!',
-            style: AppTypography.bodySmall.copyWith(color: cs.onSurfaceVariant),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: cs.surfaceContainerHighest,
-              borderRadius: AppSpacing.borderRadiusSM,
-              border: Border.all(
-                color: isDark ? Colors.white12 : AppColors.border,
-              ),
-            ),
-            child: Column(
+            child: Row(
               children: [
-                Text(
-                  'YOUR REFERRAL CODE',
-                  style: AppTypography.caption.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.xs + 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withAlpha(20),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedGift,
+                    color: AppColors.primary,
+                    size: 20,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  referralCode,
-                  style: AppTypography.h6.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2.0,
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Invite & Earn',
+                        style: AppTypography.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        'Earn commissions on every referral purchase',
+                        style: AppTypography.caption.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withAlpha(20),
+                    borderRadius: AppSpacing.borderRadiusSM,
+                  ),
+                  child: Text(
+                    'Active',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.success,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
+          const Divider(height: 1),
+          // Code Box & Actions
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.md,
-                    vertical: 12,
+                    vertical: AppSpacing.sm + 2,
                   ),
                   decoration: BoxDecoration(
-                    color: cs.surfaceContainerHighest,
-                    borderRadius: const BorderRadius.horizontal(
-                      left: Radius.circular(8),
+                    color: cs.surfaceContainerHighest.withAlpha(
+                      isDark ? 100 : 180,
                     ),
+                    borderRadius: AppSpacing.borderRadiusMD,
                     border: Border.all(
                       color: isDark ? Colors.white12 : AppColors.border,
                     ),
                   ),
-                  child: Text(
-                    referralLink,
-                    style: AppTypography.bodySmall,
-                    overflow: TextOverflow.ellipsis,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'YOUR REFERRAL CODE',
+                              style: AppTypography.caption.copyWith(
+                                color: cs.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.8,
+                                fontSize: 10,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            SelectableText(
+                              referralCode,
+                              style: AppTypography.bodyLarge.copyWith(
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.2,
+                                color: cs.onSurface,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Copy Code',
+                        icon: const HugeIcon(
+                          icon: HugeIcons.strokeRoundedCopy01,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                        onPressed: () => _copyToClipboard(
+                          context,
+                          referralCode,
+                          'Referral code copied to clipboard!',
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  final textToCopy = hasCode ? referralCode : referralLink;
-                  Clipboard.setData(ClipboardData(text: textToCopy));
-                  AppSnackbar.show(
-                    context,
-                    message: hasCode
-                        ? 'Referral code $referralCode copied to clipboard!'
-                        : 'Link copied to clipboard!',
-                    type: AppSnackbarType.info,
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.horizontal(
-                      right: Radius.circular(8),
-                    ),
-                  ),
-                  child: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedCopy01,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 }
-

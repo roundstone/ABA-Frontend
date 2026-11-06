@@ -71,7 +71,6 @@ class ReferralActivationCard extends ConsumerWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.xl),
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF241C10) : const Color(0xFFFFFBF4),

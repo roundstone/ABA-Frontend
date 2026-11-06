@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -16,7 +17,10 @@ class ReferralNetworkList extends StatelessWidget {
 
     if (stats.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.xl,
+        ),
         decoration: BoxDecoration(
           color: cs.surface,
           borderRadius: AppSpacing.borderRadiusLG,
@@ -26,17 +30,33 @@ class ReferralNetworkList extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.people_outline,
-                size: 40,
-                color: isDark ? Colors.white38 : AppColors.grey,
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: (isDark ? Colors.white10 : cs.surfaceContainerHighest),
+                  shape: BoxShape.circle,
+                ),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedUserMultiple,
+                  size: 32,
+                  color: isDark ? Colors.white38 : AppColors.grey,
+                ),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 'No referrals in your network yet',
                 style: AppTypography.bodyMedium.copyWith(
-                  color: isDark ? Colors.white60 : AppColors.grey,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white70 : AppColors.onBackground,
                 ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Share your referral code above to start growing your team and earning commissions.',
+                style: AppTypography.caption.copyWith(
+                  color: cs.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
@@ -49,12 +69,22 @@ class ReferralNetworkList extends StatelessWidget {
         color: cs.surface,
         borderRadius: AppSpacing.borderRadiusLG,
         border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(isDark ? 0 : 4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: stats.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
+        separatorBuilder: (_, __) => Divider(
+          height: 1,
+          color: isDark ? Colors.white10 : AppColors.border,
+        ),
         itemBuilder: (context, i) {
           final stat = stats[i];
           final isActive = stat.status.toLowerCase() == 'active';
@@ -62,36 +92,109 @@ class ReferralNetworkList extends StatelessWidget {
               ? stat.referredUserName.trim()[0].toUpperCase()
               : 'U';
 
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundColor: AppColors.primary.withAlpha(25),
-              child: Text(
-                initial,
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
+          return Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm + 2,
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: AppColors.primary.withAlpha(20),
+                  child: Text(
+                    initial,
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            title: Text(
-              stat.referredUserName,
-              style: AppTypography.bodyMedium.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            subtitle: Text(
-              stat.username != null && stat.username!.isNotEmpty
-                  ? '@${stat.username} • Level ${stat.level} • ${stat.status}'
-                  : 'Level ${stat.level} • ${stat.status}',
-              style: AppTypography.caption.copyWith(
-                color: isActive ? AppColors.success : cs.onSurfaceVariant,
-              ),
-            ),
-            trailing: Text(
-              formatNaira(stat.earnings.toDouble()),
-              style: AppTypography.bodyMedium.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                const SizedBox(width: AppSpacing.sm + 4),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        stat.referredUserName,
+                        style: AppTypography.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: cs.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'Level ${stat.level}',
+                              style: AppTypography.caption.copyWith(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  (isActive
+                                          ? AppColors.success
+                                          : AppColors.warning)
+                                      .withAlpha(20),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              stat.status,
+                              style: AppTypography.caption.copyWith(
+                                color: isActive
+                                    ? AppColors.success
+                                    : AppColors.warning,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      formatNaira(stat.earnings.toDouble()),
+                      style: AppTypography.bodyMedium.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.success,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Commission',
+                      style: AppTypography.caption.copyWith(
+                        color: cs.onSurfaceVariant,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           );
         },

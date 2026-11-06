@@ -11,13 +11,13 @@ import '../application/referral_summary_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_widgets.dart';
 import 'widgets/referral_activation_card.dart';
 import 'widgets/referral_invite_card.dart';
 import 'widgets/referral_kpi_cards.dart';
 import 'widgets/referral_leaderboard_section.dart';
 import 'widgets/referral_network_list.dart';
+import 'widgets/referral_quick_actions.dart';
 
 export '../application/referral_summary_providers.dart';
 
@@ -64,10 +64,29 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
         title: const Text('Referral Network'),
         actions: [
           IconButton(
+            tooltip: 'Marketer Tree',
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedNetwork,
+              color: isDark ? Colors.white70 : AppColors.onBackground,
+              size: 20,
+            ),
+            onPressed: () => context.push('/referrals/profile'),
+          ),
+          IconButton(
+            tooltip: 'Ledger',
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedBook02,
+              color: isDark ? Colors.white70 : AppColors.onBackground,
+              size: 20,
+            ),
+            onPressed: () => context.push('/referrals/ledger'),
+          ),
+          IconButton(
+            tooltip: 'Share',
             icon: const HugeIcon(
               icon: HugeIcons.strokeRoundedShare01,
-              color: Colors.white,
-              size: 24,
+              color: AppColors.primary,
+              size: 20,
             ),
             onPressed: hasCode
                 ? () {
@@ -80,6 +99,7 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
                   }
                 : null,
           ),
+          const SizedBox(width: AppSpacing.xs),
         ],
       ),
       body: PopScope(
@@ -108,77 +128,67 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
                 slivers: [
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.md,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Header Actions (Marketer & Ledger)
-                          Row(
-                            children: [
-                              Expanded(
-                                child: AppButton(
-                                  label: 'Network Tree',
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                    horizontal: 8,
-                                  ),
-                                  icon: const HugeIcon(
-                                    icon: HugeIcons.strokeRoundedNetwork,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                  onPressed: () =>
-                                      context.push('/referrals/profile'),
-                                ),
-                              ),
-                              const SizedBox(width: AppSpacing.xs),
-                              Expanded(
-                                child: AppButton(
-                                  label: 'Ledger',
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                    horizontal: 8,
-                                  ),
-                                  icon: const HugeIcon(
-                                    icon: HugeIcons.strokeRoundedBook02,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                  onPressed: () =>
-                                      context.push('/referrals/ledger'),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.xl),
+                          // -> Not needed now; leave commented for future reference
+                          // 1. Quick Navigation Hub (Marketer Tree & Commission Ledger)
+                          // const ReferralQuickActions(),
+                          // const SizedBox(height: AppSpacing.md),
 
-                          // Referral Activation Status & Fee Notice
+                          // 2. Referral Activation Status & Fee Notice (if needed)
                           const ReferralActivationCard(),
-
-                          // KPI Cards (Total Network, Active Buyers, Total Earned)
-                          ReferralKpiCardsRow(metrics: data.metrics),
-                          const SizedBox(height: AppSpacing.xl),
-
-                          // Invite & Earn Card
+                          const SizedBox(height: AppSpacing.md),
+                          // 3. Invite & Earn Card (Hero Referral Code & 1-tap Actions)
                           ReferralInviteCard(
                             referralCode: activeCode,
                             referralLink: activeLink,
                             hasCode: hasCode,
                           ),
-                          const SizedBox(height: AppSpacing.xl),
-
-                          // Your Network
-                          Text(
-                            'Your Network',
-                            style: AppTypography.h6.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
                           const SizedBox(height: AppSpacing.md),
+
+                          // 4. KPI Performance Summary Cards
+                          ReferralKpiCardsRow(metrics: data.metrics),
+                          const SizedBox(height: AppSpacing.md),
+
+                          // 5. Your Network Section
+                          Row(
+                            children: [
+                              Text(
+                                'Your Network',
+                                style: AppTypography.h6.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.xs),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withAlpha(25),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  data.stats.length.toString(),
+                                  style: AppTypography.caption.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
                           ReferralNetworkList(stats: data.stats),
                           const SizedBox(height: AppSpacing.xl),
 
-                          // Top Promoters Leaderboard -> Not needed now; leave commented for future reference
+                          // 6. Top Promoters Leaderboard -> Not needed now; leave commented for future reference
                           // const ReferralLeaderboardSection(),
                           // const SizedBox(height: AppSpacing.xxl),
                         ],

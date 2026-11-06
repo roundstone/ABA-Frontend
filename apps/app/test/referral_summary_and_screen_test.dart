@@ -1,6 +1,3 @@
-import 'package:app/features/customer/application/referral_summary_providers.dart';
-import 'package:app/features/customer/data/referral_summary_service.dart';
-import 'package:app/features/customer/domain/referral_summary_models.dart';
 import 'package:app/features/customer/presentation/referrals_screen.dart';
 import 'package:app/features/customer/presentation/widgets/referral_invite_card.dart';
 import 'package:app/features/customer/presentation/widgets/referral_kpi_cards.dart';

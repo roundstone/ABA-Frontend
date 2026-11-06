@@ -118,12 +118,12 @@ class WalletScreen extends ConsumerWidget {
                   ),
                 ),
                 AppSpacing.verticalSpaceSM,
-                // Shopping Credits Card (Non-Withdrawable)
-                WalletCreditsBanner(
-                  credits: shoppingCreditsAsync.valueOrNull,
-                  isLoading: shoppingCreditsAsync.isLoading,
-                  onRetry: () => ref.invalidate(shoppingCreditsProvider),
-                ),
+                // Shopping Credits Card (Non-Withdrawable) -> Not needed now; leave commented for future reference
+                // WalletCreditsBanner(
+                //   credits: shoppingCreditsAsync.valueOrNull,
+                //   isLoading: shoppingCreditsAsync.isLoading,
+                //   onRetry: () => ref.invalidate(shoppingCreditsProvider),
+                // ),
                 AppSpacing.verticalSpaceMD,
 
                 // Commission Flow Ledger Card

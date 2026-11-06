@@ -47,7 +47,7 @@ class _MarketerProfileScreenState extends ConsumerState<MarketerProfileScreen> {
             context.popOrGo(fallback);
           },
         ),
-        title: const Text('Network Tree'),
+        title: const Text('Marketer Profile'),
       ),
       body: PopScope(
         canPop: context.canPopSafely,
