@@ -1,3 +1,4 @@
+import 'package:app/features/shop/presentation/widgets/home_hero_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -152,12 +153,12 @@ class _ShopBodyState extends ConsumerState<_ShopBody> {
               // ── Ads Banner
               const SliverPadding(
                 padding: EdgeInsets.fromLTRB(
-                  AppSpacing.md,
+                  0,
                   AppSpacing.sm,
-                  AppSpacing.md,
+                  0,
                   AppSpacing.sm,
                 ),
-                sliver: SliverToBoxAdapter(child: ShopAdsBanner()),
+                sliver: SliverToBoxAdapter(child: HomeHeroBanner()),
               ),
 
               // ── Product grid / list / states

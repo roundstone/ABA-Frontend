@@ -22,25 +22,12 @@ class _HomeHeroBannerState extends State<HomeHeroBanner> {
   Timer? _timer;
 
   static const List<_BannerItem> _banners = [
-    _BannerItem(
-      assetPath: 'assets/images/banners/Aba Online_ Shop Local, Shop Aba.png',
-      tag: 'SHOP LOCAL',
-      title: 'Shop Local, BuyNaija',
-      subtitle: 'Direct from authentic makers & manufacturers',
-    ),
-    _BannerItem(
-      assetPath:
-          'assets/images/banners/AbaOnline_ Shop Local, Grow Together.png',
-      tag: 'GROW TOGETHER',
-      title: 'Support Nigerian Craft',
-      subtitle: 'Empowering workshops, artisans & businesses',
-    ),
-    _BannerItem(
-      assetPath: 'assets/images/banners/Shop Local, Support Aba.png',
-      tag: 'MADE IN NIGERIA',
-      title: 'Pride in Local Production',
-      subtitle: 'Quality leather, textiles & footwear delivered nationwide',
-    ),
+    _BannerItem(assetPath: 'assets/images/banners/Buy Naija Banner - 1.png'),
+    _BannerItem(assetPath: 'assets/images/banners/Buy Naija Banner - 2.png'),
+    _BannerItem(assetPath: 'assets/images/banners/Buy Naija Banner - 3.png'),
+    _BannerItem(assetPath: 'assets/images/banners/Buy Naija Banner - 4.png'),
+    _BannerItem(assetPath: 'assets/images/banners/Buy Naija Banner - 5.png'),
+    _BannerItem(assetPath: 'assets/images/banners/Buy Naija Banner - 6.png'),
   ];
 
   @override
@@ -69,8 +56,9 @@ class _HomeHeroBannerState extends State<HomeHeroBanner> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(
-          height: 190,
+        // Replaced Fixed SizedBox Height with AspectRatio matching 2057/764
+        AspectRatio(
+          aspectRatio: 2057 / 764,
           child: PageView.builder(
             controller: _controller,
             itemCount: _banners.length,
@@ -107,9 +95,8 @@ class _HomeHeroBannerState extends State<HomeHeroBanner> {
                             imageUrl: widget.imageUrl,
                             fit: BoxFit.cover,
                             fallbackType: AppImageFallbackType.banner,
-                            errorWidget: (_, __, ___) => Container(
-                              color: AppColors.primary,
-                            ),
+                            errorWidget: (_, __, ___) =>
+                                Container(color: AppColors.primary),
                           ),
                         ),
 
@@ -136,42 +123,47 @@ class _HomeHeroBannerState extends State<HomeHeroBanner> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.sm,
-                                  vertical: 3,
-                                ),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFC28B38),
-                                  borderRadius: AppSpacing.borderRadiusSM,
-                                ),
-                                child: Text(
-                                  banner.tag,
-                                  style: AppTypography.caption.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.8,
-                                    fontSize: 9,
+                              if (banner.tag != null) ...[
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.sm,
+                                    vertical: 3,
+                                  ),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFC28B38),
+                                    borderRadius: AppSpacing.borderRadiusSM,
+                                  ),
+                                  child: Text(
+                                    banner.tag!,
+                                    style: AppTypography.caption.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.8,
+                                      fontSize: 9,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                banner.title,
-                                style: AppTypography.h4.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
+                                const SizedBox(height: 4),
+                              ],
+                              if (banner.title != null) ...[
+                                Text(
+                                  banner.title!,
+                                  style: AppTypography.h4.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                banner.subtitle,
-                                style: AppTypography.caption.copyWith(
-                                  color: Colors.white.withAlpha(220),
+                                const SizedBox(height: 2),
+                              ],
+                              if (banner.subtitle != null)
+                                Text(
+                                  banner.subtitle!,
+                                  style: AppTypography.caption.copyWith(
+                                    color: Colors.white.withAlpha(220),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
                             ],
                           ),
                         ),
@@ -212,13 +204,13 @@ class _HomeHeroBannerState extends State<HomeHeroBanner> {
 class _BannerItem {
   const _BannerItem({
     required this.assetPath,
-    required this.tag,
-    required this.title,
-    required this.subtitle,
+    this.tag,
+    this.title,
+    this.subtitle,
   });
 
   final String assetPath;
-  final String tag;
-  final String title;
-  final String subtitle;
+  final String? tag;
+  final String? title;
+  final String? subtitle;
 }

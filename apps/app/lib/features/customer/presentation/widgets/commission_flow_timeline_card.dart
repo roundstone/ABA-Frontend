@@ -59,9 +59,7 @@ class CommissionFlowTimelineCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? Colors.white10 : AppColors.border,
-        ),
+        border: Border.all(color: isDark ? Colors.white10 : AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -94,7 +92,9 @@ class CommissionFlowTimelineCard extends StatelessWidget {
                     Text(
                       'Double-entry General Ledger journey (GAAP/IFRS)',
                       style: AppTypography.caption.copyWith(
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.grey,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.grey,
                         fontSize: 11,
                       ),
                     ),
@@ -112,7 +112,7 @@ class CommissionFlowTimelineCard extends StatelessWidget {
                 return Row(
                   children: [
                     Container(
-                      width: 140,
+                      width: 170,
                       padding: const EdgeInsets.all(AppSpacing.sm),
                       decoration: BoxDecoration(
                         color: st.color.withAlpha(isDark ? 30 : 15),
@@ -151,12 +151,17 @@ class CommissionFlowTimelineCard extends StatelessWidget {
                             st.title,
                             style: AppTypography.caption.copyWith(
                               fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppColors.onBackground,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppColors.onBackground,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: isDark ? Colors.black26 : Colors.white70,
                               borderRadius: BorderRadius.circular(4),
@@ -174,7 +179,9 @@ class CommissionFlowTimelineCard extends StatelessWidget {
                           Text(
                             st.desc,
                             style: AppTypography.caption.copyWith(
-                              color: isDark ? AppColors.darkTextSecondary : AppColors.grey,
+                              color: isDark
+                                  ? AppColors.darkTextSecondary
+                                  : AppColors.grey,
                               fontSize: 10,
                               height: 1.2,
                             ),
