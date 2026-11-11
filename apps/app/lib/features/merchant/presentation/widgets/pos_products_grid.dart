@@ -1,3 +1,4 @@
+import 'package:app/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../domain/merchant_product_entities.dart';
@@ -35,10 +36,7 @@ class PosProductsGrid extends StatelessWidget {
           children: [
             Text('Error: $errorMessage'),
             const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('Retry'),
-            ),
+            AppButton(onPressed: onRetry, label: 'Retry'),
           ],
         ),
       );

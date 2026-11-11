@@ -47,6 +47,7 @@ abstract final class ApiEndpoints {
   static const referrals = _ReferralsEndpoints();
   static const wishlists = WishlistsEndpoints();
   static const commissions = CommissionsEndpoints();
+  static const checkout = CheckoutEndpoints();
 }
 
 /// 1. Auth Endpoints

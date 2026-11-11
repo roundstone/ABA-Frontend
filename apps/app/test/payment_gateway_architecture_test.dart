@@ -60,7 +60,7 @@ void main() {
         InterceptorsWrapper(
           onRequest: (options, handler) {
             recordedRequests.add(options);
-            if (options.path.contains('/orders/1807/paystack/initialize')) {
+            if (options.path.endsWith('/orders/1807')) {
               return handler.resolve(
                 Response(
                   requestOptions: options,
@@ -122,8 +122,7 @@ void main() {
       expect(
         recordedRequests.any(
           (r) =>
-              r.method == 'POST' &&
-              r.path.endsWith('/orders/1807/paystack/initialize'),
+              r.method == 'POST' && r.path.endsWith('/orders/1807'),
         ),
         isTrue,
       );

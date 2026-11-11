@@ -21,12 +21,13 @@ class PaystackGatewayService implements PaymentGatewayService {
     required dynamic orderId,
     required double amount,
     required String email,
+    int? paymentMethod,
     Map<String, dynamic>? extra,
   }) async {
-    final endpoint = ApiEndpoints.payments.paystackInitialize(orderId);
-    final payload = {
-      'amount': amount,
-      'email': email,
+    final endpoint = ApiEndpoints.payments.orderPaymentInitialize(orderId);
+    final selectedMethod = paymentMethod ?? extra?['paymentMethod'] ?? 1;
+    final payload = <String, dynamic>{
+      'paymentMethod': selectedMethod,
       ...?extra,
     };
 
@@ -42,22 +43,26 @@ class PaystackGatewayService implements PaymentGatewayService {
       AppLogger.e('PaystackGatewayService.initializePayment failed: $e');
       if (AppConfig.isMockMode) {
         return GatewayPaymentInitResult(
-          authorizationUrl: 'https://checkout.paystack.com/mock-checkout-$orderId',
+          authorizationUrl: selectedMethod == 2
+              ? ''
+              : 'https://checkout.paystack.com/mock-checkout-$orderId',
           reference: 'PSK-mock-${DateTime.now().millisecondsSinceEpoch}',
           orderId: orderId,
           amount: amount,
-          status: 'pending',
+          status: selectedMethod == 2 ? 'success' : 'pending',
         );
       }
       throw ApiError.fromDio(e);
     } catch (e) {
       if (AppConfig.isMockMode) {
         return GatewayPaymentInitResult(
-          authorizationUrl: 'https://checkout.paystack.com/mock-checkout-$orderId',
+          authorizationUrl: selectedMethod == 2
+              ? ''
+              : 'https://checkout.paystack.com/mock-checkout-$orderId',
           reference: 'PSK-mock-${DateTime.now().millisecondsSinceEpoch}',
           orderId: orderId,
           amount: amount,
-          status: 'pending',
+          status: selectedMethod == 2 ? 'success' : 'pending',
         );
       }
       rethrow;

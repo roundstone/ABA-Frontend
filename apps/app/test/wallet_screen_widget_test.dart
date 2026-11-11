@@ -5,7 +5,6 @@ import 'package:app/features/wallet/presentation/wallet_screen.dart';
 import 'package:app/features/wallet/presentation/widgets/transaction_detail_sheet.dart';
 import 'package:app/features/wallet/presentation/widgets/transaction_tile.dart';
 import 'package:app/features/wallet/presentation/widgets/wallet_balance_card.dart';
-import 'package:app/features/wallet/presentation/widgets/wallet_credits_banner.dart';
 import 'package:app/features/wallet/presentation/widgets/wallet_filter_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

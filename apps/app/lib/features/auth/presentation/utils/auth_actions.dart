@@ -27,7 +27,16 @@ Future<void> confirmLogout(BuildContext context, WidgetRef ref) async {
   final nav = rootNavigatorKey.currentContext ?? context;
 
   if (nav.mounted) {
-    GoRouter.of(nav).go('/role-select');
+    try {
+      GoRouter.of(nav).go('/role-select');
+    } catch (_) {
+      try {
+        Navigator.of(nav).pushNamedAndRemoveUntil(
+          '/role-select',
+          (route) => false,
+        );
+      } catch (_) {}
+    }
   }
 
   // No more ref access after the async gap.

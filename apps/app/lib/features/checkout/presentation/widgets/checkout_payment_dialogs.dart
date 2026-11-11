@@ -10,36 +10,41 @@ import '../../../../core/widgets/app_button.dart';
 class CheckoutPaymentDialogs {
   const CheckoutPaymentDialogs._();
 
-  static void showVerifyingDialog(BuildContext context) {
+  static void showVerifyingDialog(
+    BuildContext context, {
+    String title = 'Verifying Payment',
+    String message =
+        'Confirming your transaction with Paystack. Please do not close this screen...',
+  }) {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => const PopScope(
+      builder: (ctx) => PopScope(
         canPop: false,
         child: Dialog(
-          shape: RoundedRectangleBorder(
+          shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(
               Radius.circular(AppSpacing.radiusLG),
             ),
           ),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator.adaptive(
+                const CircularProgressIndicator.adaptive(
                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Text(
-                  'Verifying Payment',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
-                  'Confirming your transaction with Paystack. Please do not close this screen...',
+                  message,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                  style: const TextStyle(fontSize: 13, color: Colors.grey),
                 ),
               ],
             ),

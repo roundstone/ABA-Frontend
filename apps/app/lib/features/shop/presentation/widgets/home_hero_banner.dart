@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_network_image.dart';
 
 /// Interactive Hero Banner Carousel matching Web Storefront (HeroBanner.tsx).
@@ -99,74 +98,6 @@ class _HomeHeroBannerState extends State<HomeHeroBanner> {
                                 Container(color: AppColors.primary),
                           ),
                         ),
-
-                        // Gradient overlay for contrast
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.black.withAlpha(40),
-                                Colors.black.withAlpha(180),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        // Banner content text
-                        Positioned(
-                          bottom: AppSpacing.md,
-                          left: AppSpacing.md,
-                          right: AppSpacing.md,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (banner.tag != null) ...[
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSpacing.sm,
-                                    vertical: 3,
-                                  ),
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFC28B38),
-                                    borderRadius: AppSpacing.borderRadiusSM,
-                                  ),
-                                  child: Text(
-                                    banner.tag!,
-                                    style: AppTypography.caption.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.8,
-                                      fontSize: 9,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                              ],
-                              if (banner.title != null) ...[
-                                Text(
-                                  banner.title!,
-                                  style: AppTypography.h4.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                              ],
-                              if (banner.subtitle != null)
-                                Text(
-                                  banner.subtitle!,
-                                  style: AppTypography.caption.copyWith(
-                                    color: Colors.white.withAlpha(220),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                            ],
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -204,13 +135,7 @@ class _HomeHeroBannerState extends State<HomeHeroBanner> {
 class _BannerItem {
   const _BannerItem({
     required this.assetPath,
-    this.tag,
-    this.title,
-    this.subtitle,
   });
 
   final String assetPath;
-  final String? tag;
-  final String? title;
-  final String? subtitle;
 }

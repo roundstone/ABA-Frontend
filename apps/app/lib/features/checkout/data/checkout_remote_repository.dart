@@ -71,27 +71,38 @@ class CheckoutRemoteRepository implements CheckoutRepository {
     return _mock.getDeliveryMethods();
   }
 
+  final Map<String, List<ReferralCandidate>> _referralCache = {};
+
   @override
   Future<List<ReferralCandidate>> searchReferrals(String query) async {
+    final clean = query.trim().toLowerCase();
+    if (clean.length < 2) return const [];
+    if (_referralCache.containsKey(clean)) {
+      return _referralCache[clean]!;
+    }
+
     try {
       final response = await _dio.get(
-        '/referrals/lookup',
+        ApiEndpoints.checkout.referralCandidates,
         queryParameters: {'query': query},
       );
-      final data = response.data['data'] as List<dynamic>?;
-      if (data != null) {
-        return data.map((json) {
-          return ReferralCandidate(
-            id: json['id'] as String,
-            name: json['name'] as String,
-            moniker: json['moniker'] as String,
-            code: json['code'] as String,
-            imageUrl: json['imageUrl'] as String? ?? '',
-          );
-        }).toList();
+      final rawData = response.data['data'];
+      final List<dynamic>? list = rawData is List
+          ? rawData
+          : (rawData is Map && rawData['data'] is List ? rawData['data'] : null);
+      if (list != null) {
+        final candidates = list.map((item) {
+          if (item is Map) {
+            return ReferralCandidate.fromJson(Map<String, dynamic>.from(item));
+          }
+          return null;
+        }).whereType<ReferralCandidate>().toList();
+        _referralCache[clean] = candidates;
+        return candidates;
       }
     } catch (e) {
       if (AppConfig.isMockMode) return _mock.searchReferrals(query);
+      AppLogger.w('CheckoutRemoteRepository.searchReferrals failed: $e');
     }
     return const [];
   }

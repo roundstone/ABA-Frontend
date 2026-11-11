@@ -186,10 +186,10 @@ class _ReferralActivationSheetState
             bottom: true,
             child: Padding(
               padding: EdgeInsets.fromLTRB(
-                AppSpacing.xl,
-                AppSpacing.xl,
-                AppSpacing.xl,
-                AppSpacing.xl + mq.padding.bottom,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg + mq.padding.bottom,
               ),
               child: SingleChildScrollView(
                 child: Column(

@@ -47,9 +47,11 @@ class StepDeliveryMethod extends StatelessWidget {
                 size: 20,
               ),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Delivery Method',
-                style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+              Expanded(
+                child: Text(
+                  'Delivery Method',
+                  style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+                ),
               ),
             ],
           ),

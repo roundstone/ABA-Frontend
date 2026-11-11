@@ -184,7 +184,7 @@ class _MerchantMenuModal extends ConsumerWidget {
                   subtitle: 'Available payouts & settlement history',
                   onTap: () {
                     Navigator.pop(context);
-                    context.push('/wallet');
+                    context.go('/wallet');
                   },
                 ),
 

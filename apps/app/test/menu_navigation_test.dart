@@ -258,6 +258,11 @@ void main() {
       await tester.tap(find.text('Logout'));
       await tester.pumpAndSettle();
 
+      if (find.text('Log Out').evaluate().isNotEmpty) {
+        await tester.tap(find.text('Log Out'));
+        await tester.pumpAndSettle();
+      }
+
       expect(container.read(authStateProvider).isAuthenticated, isFalse);
       expect(find.text('Role Select Screen'), findsOneWidget);
     });

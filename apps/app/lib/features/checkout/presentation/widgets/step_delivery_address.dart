@@ -129,9 +129,11 @@ class _StepDeliveryAddressState extends ConsumerState<StepDeliveryAddress> {
                 size: 20,
               ),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Delivery Address',
-                style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+              Expanded(
+                child: Text(
+                  'Delivery Address',
+                  style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+                ),
               ),
             ],
           ),

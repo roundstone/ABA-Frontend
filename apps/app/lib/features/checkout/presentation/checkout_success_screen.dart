@@ -25,8 +25,11 @@ class CheckoutSuccessScreen extends StatelessWidget {
     final street = order?.shippingAddress.street ?? '';
     final city = order?.shippingAddress.city ?? '';
     final state = order?.shippingAddress.state ?? '';
-    final addressText =
-        [street, city, state].where((s) => s.isNotEmpty).join(', ');
+    final addressText = [
+      street,
+      city,
+      state,
+    ].where((s) => s.isNotEmpty).join(', ');
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -72,9 +75,7 @@ class CheckoutSuccessScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             Text(
               'Thank you for your purchase. Your order has been placed successfully.',
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.grey,
-              ),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.grey),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -92,23 +93,25 @@ class CheckoutSuccessScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Order Number',
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.grey,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Order Number',
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.grey,
+                              ),
                             ),
-                          ),
-                          Text(
-                            orderId,
-                            style: AppTypography.bodyMedium.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'monospace',
+                            Text(
+                              orderId,
+                              style: AppTypography.bodyMedium.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'monospace',
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
@@ -141,8 +144,9 @@ class CheckoutSuccessScreen extends StatelessWidget {
                       children: [
                         HugeIcon(
                           icon: HugeIcons.strokeRoundedLocation01,
-                          color:
-                              isDark ? AppColors.secondary : AppColors.primary,
+                          color: isDark
+                              ? AppColors.secondary
+                              : AppColors.primary,
                           size: 20,
                         ),
                         const SizedBox(width: AppSpacing.sm),

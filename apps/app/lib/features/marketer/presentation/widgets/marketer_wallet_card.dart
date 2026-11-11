@@ -155,7 +155,7 @@ class MarketerWalletCard extends StatelessWidget {
                       child: _buildActionButton(
                         icon: HugeIcons.strokeRoundedMoneySend02,
                         label: 'Withdraw',
-                        onTap: () => context.push('/wallet'),
+                        onTap: () => context.go('/wallet'),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
@@ -163,7 +163,7 @@ class MarketerWalletCard extends StatelessWidget {
                       child: _buildActionButton(
                         icon: HugeIcons.strokeRoundedClock01,
                         label: 'Transactions',
-                        onTap: () => context.push('/wallet'),
+                        onTap: () => context.go('/wallet'),
                       ),
                     ),
                   ],

@@ -106,6 +106,7 @@ class _PaystackPaymentSheetState extends State<PaystackPaymentSheet> {
           orderId: widget.orderId,
           amount: widget.amount,
           email: widget.email,
+          paymentMethod: 1,
         );
         if (!mounted) return;
         if (res.authorizationUrl.isNotEmpty) {
@@ -137,8 +138,9 @@ class _PaystackPaymentSheetState extends State<PaystackPaymentSheet> {
       if (init.authorizationUrl.isNotEmpty) {
         setState(() {
           _authorizationUrl = init.authorizationUrl;
-          _initialReference =
-              init.reference.isNotEmpty ? init.reference : widget.reference;
+          _initialReference = init.reference.isNotEmpty
+              ? init.reference
+              : widget.reference;
           _isInitializing = false;
         });
         return;
@@ -169,8 +171,9 @@ class _PaystackPaymentSheetState extends State<PaystackPaymentSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
-        mainAxisSize:
-            isMultiChannelActive ? MainAxisSize.max : MainAxisSize.min,
+        mainAxisSize: isMultiChannelActive
+            ? MainAxisSize.max
+            : MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PaystackSheetHeader(
@@ -192,10 +195,7 @@ class _PaystackPaymentSheetState extends State<PaystackPaymentSheet> {
                 style: const TextStyle(color: AppColors.error, fontSize: 12),
               ),
             ),
-          Expanded(
-            flex: isMultiChannelActive ? 1 : 0,
-            child: _buildBody(),
-          ),
+          Expanded(flex: isMultiChannelActive ? 1 : 0, child: _buildBody()),
           const SizedBox(height: AppSpacing.xs),
           const Center(
             child: Text(

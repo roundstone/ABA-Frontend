@@ -39,9 +39,11 @@ class ReferralPaymentStepView extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            Text(
-              'Step 2 of 2: Activation Fee',
-              style: AppTypography.h4.copyWith(fontWeight: FontWeight.w800),
+            Expanded(
+              child: Text(
+                'Step 2 of 2: Activation Fee',
+                style: AppTypography.h4.copyWith(fontWeight: FontWeight.w800),
+              ),
             ),
           ],
         ),

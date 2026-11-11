@@ -36,21 +36,18 @@ class _CheckoutSummaryCardState extends State<CheckoutSummaryCard> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final deliveryFee = widget.deliveryMethod?.cost ?? 0.0;
-    final shippingAmount = (CheckoutSummaryCard.enableShipping &&
-            widget.deliveryMethod != null)
+    final shipping = (CheckoutSummaryCard.enableShipping && widget.deliveryMethod != null)
         ? deliveryFee
         : 0.0;
-    final vatAmount = CheckoutSummaryCard.enableVat ? widget.cart.tax : 0.0;
-    final grandTotal = widget.cart.subtotal + shippingAmount + vatAmount;
+    final vat = CheckoutSummaryCard.enableVat ? widget.cart.tax : 0.0;
+    final grandTotal = widget.cart.subtotal + shipping + vat;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: AppSpacing.borderRadiusLG,
-        border: Border.all(
-          color: isDark ? Colors.white12 : AppColors.border,
-        ),
+        border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,25 +55,32 @@ class _CheckoutSummaryCardState extends State<CheckoutSummaryCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedInvoice01,
-                    color: isDark ? AppColors.secondary : AppColors.primary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    'Order Summary',
-                    style: AppTypography.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w700,
+              Expanded(
+                child: Row(
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedInvoice01,
+                      color: isDark ? AppColors.secondary : AppColors.primary,
+                      size: 20,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        'Order Summary',
+                        style: AppTypography.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               InkWell(
                 onTap: () => setState(() => _expandedItems = !_expandedItems),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       '${widget.cart.itemCount} items',
@@ -155,20 +159,13 @@ class _CheckoutSummaryCardState extends State<CheckoutSummaryCard> {
             label: 'Subtotal',
             value: formatNaira(widget.cart.subtotal),
           ),
-          if (CheckoutSummaryCard.enableShipping &&
-              widget.deliveryMethod != null) ...[
+          if (CheckoutSummaryCard.enableShipping && widget.deliveryMethod != null) ...[
             const SizedBox(height: 4),
-            _SummaryRow(
-              label: 'Delivery Fee',
-              value: formatNaira(deliveryFee),
-            ),
+            _SummaryRow(label: 'Delivery Fee', value: formatNaira(deliveryFee)),
           ],
           if (CheckoutSummaryCard.enableVat) ...[
             const SizedBox(height: 4),
-            _SummaryRow(
-              label: 'Estimated VAT (7.5%)',
-              value: formatNaira(widget.cart.tax),
-            ),
+            _SummaryRow(label: 'Estimated VAT (7.5%)', value: formatNaira(widget.cart.tax)),
           ],
           const SizedBox(height: 6),
           Row(
@@ -194,12 +191,15 @@ class _CheckoutSummaryCardState extends State<CheckoutSummaryCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Grand Total',
-                style: AppTypography.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w800,
+              Expanded(
+                child: Text(
+                  'Grand Total',
+                  style: AppTypography.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
+              const SizedBox(width: AppSpacing.sm),
               Text(
                 formatNaira(grandTotal),
                 style: AppTypography.h6.copyWith(
@@ -225,10 +225,13 @@ class _SummaryRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: AppTypography.caption.copyWith(color: AppColors.grey),
+        Expanded(
+          child: Text(
+            label,
+            style: AppTypography.caption.copyWith(color: AppColors.grey),
+          ),
         ),
+        const SizedBox(width: AppSpacing.sm),
         Text(
           value,
           style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),

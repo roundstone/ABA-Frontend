@@ -48,6 +48,36 @@ class CheckoutMockRepository implements CheckoutRepository {
       code: 'REF-DO99',
       imageUrl: 'https://i.pravatar.cc/150?u=davido',
     ),
+    ReferralCandidate(
+      id: '638',
+      name: 'Customer A',
+      moniker: '@customer.a',
+      code: 'CUSTOMER-638-033F5078',
+      imageUrl: '',
+      customerId: 638,
+      userId: 945,
+      username: 'customer.a',
+    ),
+    ReferralCandidate(
+      id: '641',
+      name: 'Customer One',
+      moniker: '@customer.one',
+      code: 'CUSTOMER-641-1CA3F1F2',
+      imageUrl: '',
+      customerId: 641,
+      userId: 949,
+      username: 'customer.one',
+    ),
+    ReferralCandidate(
+      id: '639',
+      name: 'CustomerB B',
+      moniker: '@customerb.b',
+      code: 'CUSTOMER-639-210DC633',
+      imageUrl: '',
+      customerId: 639,
+      userId: 946,
+      username: 'customerb.b',
+    ),
   ];
 
   static final List<CheckoutAddress> _savedAddresses = [
@@ -110,7 +140,8 @@ class CheckoutMockRepository implements CheckoutRepository {
     return _candidates.where((c) {
       return c.name.toLowerCase().contains(q) ||
           c.moniker.toLowerCase().contains(q) ||
-          c.code.toLowerCase().contains(q);
+          c.code.toLowerCase().contains(q) ||
+          (c.username?.toLowerCase().contains(q) ?? false);
     }).toList();
   }
 

@@ -101,6 +101,9 @@ class ReferralCandidate {
     required this.moniker,
     required this.code,
     required this.imageUrl,
+    this.customerId,
+    this.userId,
+    this.username,
   });
 
   final String id;
@@ -108,6 +111,54 @@ class ReferralCandidate {
   final String moniker;
   final String code;
   final String imageUrl;
+  final int? customerId;
+  final int? userId;
+  final String? username;
+
+  factory ReferralCandidate.fromJson(Map<String, dynamic> json) {
+    final customerId = json['customerId'] != null
+        ? int.tryParse(json['customerId'].toString())
+        : null;
+    final userId = json['userId'] != null
+        ? int.tryParse(json['userId'].toString())
+        : null;
+    final rawId = json['id']?.toString() ??
+        customerId?.toString() ??
+        userId?.toString() ??
+        '';
+    final name = json['name']?.toString() ?? '';
+    final username = json['username']?.toString() ?? '';
+    final moniker = json['moniker']?.toString() ??
+        (username.isNotEmpty ? '@$username' : '');
+    final code = json['referralCode']?.toString() ??
+        json['code']?.toString() ??
+        '';
+    final imageUrl = json['imageUrl']?.toString() ??
+        json['avatar']?.toString() ??
+        '';
+
+    return ReferralCandidate(
+      id: rawId,
+      name: name,
+      moniker: moniker,
+      code: code,
+      imageUrl: imageUrl,
+      customerId: customerId,
+      userId: userId,
+      username: username,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'moniker': moniker,
+    'code': code,
+    'imageUrl': imageUrl,
+    if (customerId != null) 'customerId': customerId,
+    if (userId != null) 'userId': userId,
+    if (username != null) 'username': username,
+  };
 }
 
 class CheckoutOrderResult {

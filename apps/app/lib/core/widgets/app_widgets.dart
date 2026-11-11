@@ -1,3 +1,4 @@
+import 'package:app/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 export 'app_dropdown_field.dart';
 export 'app_network_image.dart';
@@ -70,7 +71,7 @@ class ErrorState extends StatelessWidget {
             ),
             if (onRetry != null) ...[
               AppSpacing.verticalSpaceMD,
-              ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
+              AppButton(onPressed: onRetry, label: 'Retry'),
             ],
           ],
         ),

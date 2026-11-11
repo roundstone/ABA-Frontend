@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/network/api_error.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../cart/application/cart_providers.dart';
 import '../../shop/domain/shop_entities.dart';
+import '../../wallet/application/wallet_providers.dart';
 import '../application/checkout_notifier.dart';
 import '../application/checkout_state.dart';
 import '../application/payment_gateway_registry.dart';
@@ -25,23 +28,16 @@ class CheckoutOrderHandler {
   }) async {
     final isOnline = checkoutState.paymentType == CheckoutPaymentType.paystack ||
         checkoutState.paymentType == CheckoutPaymentType.card;
+    final isWallet = checkoutState.paymentType == CheckoutPaymentType.wallet;
 
     final res = await notifier.submitOrder(
       cart,
-      clearCartOnSuccess: !isDirectBuy,
+      clearCartOnSuccess: false,
       isDirectBuy: isDirectBuy,
     );
     if (res == null || !context.mounted) return;
 
-    // Order has been officially placed; clear cart so items are not left behind
-    if (!isDirectBuy) {
-      await ref.read(cartProvider.notifier).clearCart();
-      ref.invalidate(cartProvider);
-    }
-
     if (isOnline) {
-      // Option 2: Free Delivery / ₦0 Delivery everywhere.
-      // Charge the exact order subtotal (₦25,800.00).
       final amountToPay = cart.subtotal > 0 ? cart.subtotal : res.totalAmount;
       final email = checkoutState.customerInfo.email.isNotEmpty
           ? checkoutState.customerInfo.email
@@ -87,6 +83,7 @@ class CheckoutOrderHandler {
             if (ok) {
               if (!isDirectBuy) {
                 await ref.read(cartProvider.notifier).clearCart();
+                ref.invalidate(cartProvider);
               }
               if (context.mounted) {
                 Navigator.of(context).pushReplacement(
@@ -101,6 +98,64 @@ class CheckoutOrderHandler {
         return;
       }
 
+      if (!isDirectBuy) {
+        await ref.read(cartProvider.notifier).clearCart();
+        ref.invalidate(cartProvider);
+      }
+    } else if (isWallet) {
+      final amountToPay = cart.subtotal > 0 ? cart.subtotal : res.totalAmount;
+      final email = checkoutState.customerInfo.email.isNotEmpty
+          ? checkoutState.customerInfo.email
+          : 'customer@aba.ng';
+
+      final gateway = ref
+          .read(paymentGatewayRegistryProvider)
+          .getGateway(PaymentGatewayType.paystack);
+
+      if (!context.mounted) return;
+      CheckoutPaymentDialogs.showVerifyingDialog(
+        context,
+        title: 'Processing Payment',
+        message: 'Debiting your wallet balance for this order...',
+      );
+
+      try {
+        await gateway.initializePayment(
+          orderId: res.orderId,
+          amount: amountToPay,
+          email: email,
+          paymentMethod: 2,
+          extra: {'paymentMethod': 2},
+        );
+
+        ref.invalidate(walletInfoProvider);
+        ref.invalidate(walletTransactionsProvider);
+
+        if (context.mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+
+        if (!isDirectBuy) {
+          await ref.read(cartProvider.notifier).clearCart();
+          ref.invalidate(cartProvider);
+        }
+      } catch (e) {
+        if (context.mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+          final errorMsg = e is ApiError
+              ? e.message
+              : e.toString().replaceAll('Exception: ', '');
+          AppSnackbar.error(
+            context,
+            errorMsg.isNotEmpty
+                ? errorMsg
+                : 'Wallet payment could not be completed.',
+          );
+          CheckoutPaymentDialogs.showPaymentPendingDialog(context, res.orderId);
+          return;
+        }
+      }
+    } else {
       if (!isDirectBuy) {
         await ref.read(cartProvider.notifier).clearCart();
         ref.invalidate(cartProvider);

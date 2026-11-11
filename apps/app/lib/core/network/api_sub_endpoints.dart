@@ -78,8 +78,11 @@ class PaymentsEndpoints {
   const PaymentsEndpoints();
   static const String _base = '${ApiEndpoints.apiV1}/payments/mobile-app';
   String get base => _base;
-  String paystackInitialize(dynamic orderId) =>
-      '$_base/orders/$orderId/paystack/initialize';
+  /// Order payment initialize endpoint: POST /api/v1/payments/mobile-app/orders/{orderId}
+  /// Body: { "paymentMethod": 1 | 2 } (1 = paystack, 2 = wallet)
+  String orderInitialize(dynamic orderId) => '$_base/orders/$orderId';
+  String orderPaymentInitialize(dynamic orderId) => '$_base/orders/$orderId';
+  String paystackInitialize(dynamic orderId) => '$_base/orders/$orderId';
   String paystackVerify(String reference) => '$_base/paystack/$reference/verify';
   String get kycActivationPaystackInitialize =>
       '${ApiEndpoints.apiV1}/payments/kyc-activation/paystack/initialize';
@@ -152,4 +155,14 @@ class CommissionsEndpoints {
   static const String _base = '${ApiEndpoints.apiV1}/commissions/mobile-app';
   String get base => _base;
   String get overview => '$_base/overview';
+}
+
+/// 32. Checkout Endpoints
+class CheckoutEndpoints {
+  const CheckoutEndpoints();
+  static const String _base = '${ApiEndpoints.apiV1}/checkout';
+  String get base => _base;
+  String get referralCandidates => '$_base/referral-candidates';
+  String referralCandidatesQuery(String query) =>
+      '$_base/referral-candidates?query=${Uri.encodeQueryComponent(query)}';
 }

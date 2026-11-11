@@ -8,7 +8,6 @@ import '../domain/shop_entities.dart';
 import 'widgets/category_chip_bar.dart';
 import 'widgets/popular_brands.dart';
 import 'widgets/related_searches.dart';
-import 'widgets/shop_ads_banner.dart';
 import 'widgets/shop_product_view_sliver.dart';
 import 'widgets/shop_search_bar.dart';
 import 'widgets/shop_sliver_app_bar.dart';

@@ -63,9 +63,11 @@ class StepReviewOrder extends StatelessWidget {
                 size: 20,
               ),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Review Your Order',
-                style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+              Expanded(
+                child: Text(
+                  'Review Your Order',
+                  style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+                ),
               ),
             ],
           ),
@@ -157,7 +159,9 @@ class StepReviewOrder extends StatelessWidget {
                   label: (state.paymentType == CheckoutPaymentType.paystack ||
                           state.paymentType == CheckoutPaymentType.card)
                       ? 'Pay (${formatNaira(grandTotal)})'
-                      : 'Place Order (${formatNaira(grandTotal)})',
+                      : state.paymentType == CheckoutPaymentType.wallet
+                          ? 'Pay (${formatNaira(grandTotal)})'
+                          : 'Place Order (${formatNaira(grandTotal)})',
                   isLoading: state.isSubmitting,
                   onPressed: state.isSubmitting ? null : onPlaceOrder,
                 ),

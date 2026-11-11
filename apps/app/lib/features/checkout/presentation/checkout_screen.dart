@@ -85,7 +85,11 @@ class CheckoutScreen extends ConsumerWidget {
     WidgetRef ref, {
     required bool isDirectBuy,
   }) {
-    if (cart.isEmpty && checkoutState.createdOrderResult == null) {
+    if (checkoutState.createdOrderResult != null && cart.isEmpty) {
+      return const LoadingState(message: 'Finalizing order…');
+    }
+
+    if (cart.isEmpty && !checkoutState.isSubmitting) {
       return AppEmptyState(
         icon: HugeIcons.strokeRoundedShoppingCart01,
         title: 'Your cart is empty',

@@ -7,8 +7,11 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_widgets.dart';
+import '../../../cart/application/cart_providers.dart';
 import '../../../wallet/application/wallet_providers.dart';
+import '../../../wallet/presentation/widgets/fund_wallet_sheet.dart';
 import '../../domain/checkout_entities.dart';
+import 'payment_option_tile.dart';
 
 class StepPaymentMethod extends ConsumerWidget {
   const StepPaymentMethod({
@@ -28,6 +31,8 @@ class StepPaymentMethod extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final walletAsync = ref.watch(walletInfoProvider);
+    final cartAsync = ref.watch(cartProvider);
+    final orderTotal = cartAsync.value?.subtotal ?? 0.0;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -47,15 +52,18 @@ class StepPaymentMethod extends ConsumerWidget {
                 size: 20,
               ),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Payment Method',
-                style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+              Expanded(
+                child: Text(
+                  'Payment Method',
+                  style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
+                ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
+
           // 1. Paystack Gateway (Card, Transfer, USSD)
-          _PaymentOptionTile(
+          PaymentOptionTile(
             isSelected:
                 selectedType == CheckoutPaymentType.paystack ||
                 selectedType == CheckoutPaymentType.card,
@@ -80,35 +88,41 @@ class StepPaymentMethod extends ConsumerWidget {
             ),
           ),
 
-          // 2. ABA Wallet
+          // 2. ABA Wallet (paymentMethod: 2)
           walletAsync.when(
-            data: (info) => _PaymentOptionTile(
+            data: (info) {
+              final isSufficient = info.balance >= orderTotal;
+              return PaymentOptionTile(
+                isSelected: selectedType == CheckoutPaymentType.wallet,
+                onTap: () => onSelectType(CheckoutPaymentType.wallet),
+                icon: HugeIcons.strokeRoundedWallet01,
+                title: '${AppBrand.shortName} Wallet',
+                subtitle: isSufficient
+                    ? 'Available Balance: ${formatNaira(info.balance)}'
+                    : 'Available Balance: ${formatNaira(info.balance)} (Low balance)',
+              );
+            },
+            loading: () => PaymentOptionTile(
               isSelected: selectedType == CheckoutPaymentType.wallet,
-              onTap: () => AppSnackbar.info(context, 'Wallet coming soon!'),
-              icon: HugeIcons.strokeRoundedWallet01,
-              title: '${AppBrand.shortName} Wallet',
-              subtitle: 'Available Balance: ${formatNaira(info.balance)}',
-            ),
-            loading: () => _PaymentOptionTile(
-              isSelected: selectedType == CheckoutPaymentType.wallet,
-              onTap: () {},
+              onTap: () => onSelectType(CheckoutPaymentType.wallet),
               icon: HugeIcons.strokeRoundedWallet01,
               title: '${AppBrand.shortName} Wallet',
               subtitle: 'Checking balance...',
             ),
-            error: (_, __) => _PaymentOptionTile(
+            error: (_, __) => PaymentOptionTile(
               isSelected: selectedType == CheckoutPaymentType.wallet,
-              onTap: () {},
+              onTap: () => onSelectType(CheckoutPaymentType.wallet),
               icon: HugeIcons.strokeRoundedWallet01,
               title: '${AppBrand.shortName} Wallet',
-              subtitle: 'Wallet balance available',
+              subtitle: 'Pay directly from your wallet balance',
             ),
           ),
 
           // 3. Bank Transfer
-          _PaymentOptionTile(
+          PaymentOptionTile(
             isSelected: selectedType == CheckoutPaymentType.bankTransfer,
-            onTap: () => AppSnackbar.info(context, 'Bank transfer coming soon!'),
+            onTap: () =>
+                AppSnackbar.info(context, 'Bank transfer coming soon!'),
             icon: HugeIcons.strokeRoundedBank,
             title: 'Bank Transfer',
             subtitle: 'Instant transfer to designated escrow account',
@@ -132,7 +146,9 @@ class StepPaymentMethod extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     '256-bit SSL encrypted & NDPR compliant checkout.',
-                    style: AppTypography.caption.copyWith(color: AppColors.grey),
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.grey,
+                    ),
                   ),
                 ),
               ],
@@ -149,99 +165,31 @@ class StepPaymentMethod extends ConsumerWidget {
               Expanded(
                 child: AppButton.primary(
                   label: 'Review Order',
-                  onPressed: onContinue,
+                  onPressed: () {
+                    if (selectedType == CheckoutPaymentType.wallet) {
+                      final balance = walletAsync.value?.balance ?? 0.0;
+                      if (orderTotal > 0 && balance < orderTotal) {
+                        AppSnackbar.error(
+                          context,
+                          'Insufficient wallet balance (${formatNaira(balance)}).',
+                          actionLabel: 'Fund wallet',
+                          onAction: () async {
+                            final funded = await FundWalletSheet.show(context);
+                            if (funded == true) {
+                              ref.invalidate(walletInfoProvider);
+                            }
+                          },
+                        );
+                        return;
+                      }
+                    }
+                    onContinue();
+                  },
                 ),
               ),
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _PaymentOptionTile extends StatelessWidget {
-  const _PaymentOptionTile({
-    required this.isSelected,
-    required this.onTap,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    this.trailing,
-  });
-
-  final bool isSelected;
-  final VoidCallback onTap;
-  final List<List<dynamic>> icon;
-  final String title;
-  final String subtitle;
-  final Widget? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isDark
-                    ? AppColors.secondary.withAlpha(25)
-                    : AppColors.primary.withAlpha(15))
-              : (isDark ? const Color(0xFF252525) : Colors.white),
-          borderRadius: AppSpacing.borderRadiusMD,
-          border: Border.all(
-            color: isSelected
-                ? (isDark ? AppColors.secondary : AppColors.primary)
-                : (isDark ? Colors.white12 : AppColors.border),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            HugeIcon(
-              icon: icon,
-              color: isSelected
-                  ? (isDark ? AppColors.secondary : AppColors.primary)
-                  : AppColors.grey,
-              size: 22,
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: AppTypography.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (trailing != null) ...[
-              trailing!,
-              const SizedBox(width: AppSpacing.xs),
-            ],
-            if (isSelected)
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                color: isDark ? AppColors.secondary : AppColors.primary,
-                size: 22,
-              ),
-          ],
-        ),
       ),
     );
   }

@@ -249,7 +249,7 @@ class CartNotifier extends AsyncNotifier<Cart> {
     try {
       final repo = ref.read(cartRepositoryProvider);
       await repo.clearCart();
-    } catch (e, stackTrace) {
+    } catch (e) {
       AppLogger.w('CartNotifier.clearCart remote failed: $e');
 
       // Consider scheduling a retry or notifying the user

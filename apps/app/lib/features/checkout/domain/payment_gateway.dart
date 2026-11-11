@@ -85,10 +85,12 @@ abstract class PaymentGatewayService {
   PaymentGatewayType get type;
 
   /// Initializes payment on the backend for an existing order.
+  /// [paymentMethod]: 1 = paystack, 2 = wallet.
   Future<GatewayPaymentInitResult> initializePayment({
     required dynamic orderId,
     required double amount,
     required String email,
+    int? paymentMethod,
     Map<String, dynamic>? extra,
   });
 

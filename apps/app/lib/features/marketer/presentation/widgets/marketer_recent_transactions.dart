@@ -32,7 +32,7 @@ class MarketerRecentTransactions extends StatelessWidget {
               style: AppTypography.h4.copyWith(fontWeight: FontWeight.w700),
             ),
             TextButton(
-              onPressed: () => context.push('/wallet'),
+              onPressed: () => context.go('/wallet'),
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 minimumSize: Size.zero,

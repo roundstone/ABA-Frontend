@@ -49,10 +49,12 @@ class CheckoutReferralSection extends StatelessWidget {
                 size: 20,
               ),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Referred by someone?',
-                style: AppTypography.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w700,
+              Expanded(
+                child: Text(
+                  'Referred by someone?',
+                  style: AppTypography.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
@@ -86,22 +88,35 @@ class CheckoutReferralSection extends StatelessWidget {
                               size: 14,
                             ),
                             const SizedBox(width: 4),
-                            Text(
-                              'Referral applied',
-                              style: AppTypography.caption.copyWith(
-                                color: AppColors.success,
-                                fontWeight: FontWeight.w700,
+                            Expanded(
+                              child: Text(
+                                'Referral applied',
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.success,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
                         Text(
-                          'Supporting ${appliedReferral!.name} (${appliedReferral!.moniker})',
+                          appliedReferral!.moniker.isNotEmpty
+                              ? 'Supporting ${appliedReferral!.name} (${appliedReferral!.moniker})'
+                              : 'Supporting ${appliedReferral!.name}',
                           style: AppTypography.caption.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          appliedReferral!.code,
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.grey,
+                            fontSize: 11,
+                          ),
                         ),
                       ],
                     ),
@@ -119,7 +134,7 @@ class CheckoutReferralSection extends StatelessWidget {
             ),
           ] else ...[
             AppTextField(
-              hintText: 'Enter name or code (e.g. Chisom, Aba, REF-CN2026)',
+              hintText: 'Enter name, username or code (e.g. Customer, @customer.a)',
               prefixIcon: const Icon(Icons.search, size: 18),
               onChanged: onQueryChanged,
             ),
@@ -175,7 +190,9 @@ class CheckoutReferralSection extends StatelessWidget {
                         ),
                       ),
                       subtitle: Text(
-                        '${c.moniker} • ${c.code}',
+                        c.moniker.isNotEmpty
+                            ? '${c.moniker} • ${c.code}'
+                            : c.code,
                         style: AppTypography.caption.copyWith(
                           color: AppColors.grey,
                         ),
@@ -194,7 +211,7 @@ class CheckoutReferralSection extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: AppSpacing.xs),
                 child: Text(
-                  'No marketers found matching "$searchQuery"',
+                  'No referral candidates found matching "$searchQuery"',
                   style: AppTypography.caption.copyWith(color: AppColors.grey),
                 ),
               ),
