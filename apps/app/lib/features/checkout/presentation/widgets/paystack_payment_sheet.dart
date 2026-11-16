@@ -1,3 +1,4 @@
+import 'package:app/core/widgets/app_widgets.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/config/paystack_config.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -232,13 +233,17 @@ class _PaystackPaymentSheetState extends State<PaystackPaymentSheet> {
         },
       );
     }
-    return PaystackDirectChargeView(
-      amount: widget.amount,
-      email: widget.email,
-      service: _service,
-      initialReference: _initialReference ?? widget.reference,
-      onSuccess: widget.onSuccess,
-      onError: (msg) => setState(() => _errorMessage = msg),
+    return const ErrorState(
+      message: "Web checkout unavailable. Kindly contact support.",
     );
+    // This is not working right now -> will be implemented later
+    // return PaystackDirectChargeView(
+    //   amount: widget.amount,
+    //   email: widget.email,
+    //   service: _service,
+    //   initialReference: _initialReference ?? widget.reference,
+    //   onSuccess: widget.onSuccess,
+    //   onError: (msg) => setState(() => _errorMessage = msg),
+    // );
   }
 }

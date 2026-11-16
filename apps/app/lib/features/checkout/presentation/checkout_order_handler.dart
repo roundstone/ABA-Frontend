@@ -38,7 +38,11 @@ class CheckoutOrderHandler {
     if (res == null || !context.mounted) return;
 
     if (isOnline) {
-      final amountToPay = cart.subtotal > 0 ? cart.subtotal : res.totalAmount;
+      final deliveryFee = CheckoutDeliveryPricing.effectiveFee(
+        checkoutState.selectedDeliveryMethod,
+      );
+      final amountToPay =
+          cart.subtotal > 0 ? (cart.subtotal + deliveryFee) : res.totalAmount;
       final email = checkoutState.customerInfo.email.isNotEmpty
           ? checkoutState.customerInfo.email
           : 'customer@aba.ng';
@@ -82,8 +86,7 @@ class CheckoutOrderHandler {
             );
             if (ok) {
               if (!isDirectBuy) {
-                await ref.read(cartProvider.notifier).clearCart();
-                ref.invalidate(cartProvider);
+                await ref.read(cartProvider.notifier).syncAfterPayment();
               }
               if (context.mounted) {
                 Navigator.of(context).pushReplacement(
@@ -99,11 +102,14 @@ class CheckoutOrderHandler {
       }
 
       if (!isDirectBuy) {
-        await ref.read(cartProvider.notifier).clearCart();
-        ref.invalidate(cartProvider);
+        await ref.read(cartProvider.notifier).syncAfterPayment();
       }
     } else if (isWallet) {
-      final amountToPay = cart.subtotal > 0 ? cart.subtotal : res.totalAmount;
+      final deliveryFee = CheckoutDeliveryPricing.effectiveFee(
+        checkoutState.selectedDeliveryMethod,
+      );
+      final amountToPay =
+          cart.subtotal > 0 ? (cart.subtotal + deliveryFee) : res.totalAmount;
       final email = checkoutState.customerInfo.email.isNotEmpty
           ? checkoutState.customerInfo.email
           : 'customer@aba.ng';
@@ -136,8 +142,7 @@ class CheckoutOrderHandler {
         }
 
         if (!isDirectBuy) {
-          await ref.read(cartProvider.notifier).clearCart();
-          ref.invalidate(cartProvider);
+          await ref.read(cartProvider.notifier).syncAfterPayment();
         }
       } catch (e) {
         if (context.mounted) {

@@ -179,4 +179,25 @@ void main() {
       expect(find.text('Visit Store'), findsOneWidget);
     });
   });
+
+  group('Merchant.fromJson Map Handling', () {
+    test('parses Map location and avatar without type cast errors', () {
+      final merchant = Merchant.fromJson({
+        'id': 4,
+        'business_name': 'Demo Merchant Store 2',
+        'business_address': '2 Commerce Avenue, Lagos',
+        'avatar': {'id': 8, 'url': 'https://example.com/avatar.jpg'},
+        'location': {
+          'id': 3,
+          'street_address': '1 Commerce Avenue',
+          'city': 'Lagos',
+          'state': 'Lagos',
+        },
+      });
+
+      expect(merchant.id, '4');
+      expect(merchant.logoUrl, 'https://example.com/avatar.jpg');
+      expect(merchant.location, '1 Commerce Avenue, Lagos, Lagos');
+    });
+  });
 }

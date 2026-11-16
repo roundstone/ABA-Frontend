@@ -166,13 +166,14 @@ class CheckoutRemoteRepository implements CheckoutRepository {
       };
     }).toList();
 
+    final fee = CheckoutDeliveryPricing.effectiveFee(deliveryMethod);
     final payload = {
       'deliveryAddressId': addressId,
       'items': itemsPayload,
       'referralCode': referral?.code,
-      'deliveryFee': 0,
-      'shippingFee': 0,
-      'deliveryAmount': 0,
+      'deliveryFee': fee,
+      'shippingFee': fee,
+      'deliveryAmount': fee,
     };
 
     try {

@@ -21,9 +21,8 @@ class CheckoutSummaryCard extends StatefulWidget {
   /// Preserved for future tax system integration.
   static const bool enableVat = false;
 
-  /// Toggleable shipping configuration for this card. Delivery method is selected
-  /// during checkout step 2, so shipping is hidden from this generic summary.
-  static const bool enableShipping = false;
+  /// Toggleable shipping configuration for this card.
+  static const bool enableShipping = CheckoutDeliveryPricing.enableShipping;
 
   @override
   State<CheckoutSummaryCard> createState() => _CheckoutSummaryCardState();
@@ -35,10 +34,8 @@ class _CheckoutSummaryCardState extends State<CheckoutSummaryCard> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final deliveryFee = widget.deliveryMethod?.cost ?? 0.0;
-    final shipping = (CheckoutSummaryCard.enableShipping && widget.deliveryMethod != null)
-        ? deliveryFee
-        : 0.0;
+    final deliveryFee = CheckoutDeliveryPricing.effectiveFee(widget.deliveryMethod);
+    final shipping = CheckoutSummaryCard.enableShipping ? deliveryFee : 0.0;
     final vat = CheckoutSummaryCard.enableVat ? widget.cart.tax : 0.0;
     final grandTotal = widget.cart.subtotal + shipping + vat;
 
@@ -159,9 +156,14 @@ class _CheckoutSummaryCardState extends State<CheckoutSummaryCard> {
             label: 'Subtotal',
             value: formatNaira(widget.cart.subtotal),
           ),
-          if (CheckoutSummaryCard.enableShipping && widget.deliveryMethod != null) ...[
+          if (CheckoutSummaryCard.enableShipping) ...[
             const SizedBox(height: 4),
-            _SummaryRow(label: 'Delivery Fee', value: formatNaira(deliveryFee)),
+            _SummaryRow(
+              label: CheckoutDeliveryPricing.useTemporaryFlatFee
+                  ? 'Delivery Fee (Temp. flat rate)'
+                  : 'Delivery Fee',
+              value: formatNaira(deliveryFee),
+            ),
           ],
           if (CheckoutSummaryCard.enableVat) ...[
             const SizedBox(height: 4),

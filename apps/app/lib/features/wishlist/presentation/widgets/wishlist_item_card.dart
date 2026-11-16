@@ -147,21 +147,35 @@ class WishlistItemCard extends ConsumerWidget {
                   ),
                   if (product != null)
                     IconButton(
-                      tooltip: 'Add to Cart',
-                      icon: const HugeIcon(
+                      tooltip: product.inStock ? 'Add to Cart' : 'Out of stock',
+                      icon: HugeIcon(
                         icon: HugeIcons.strokeRoundedShoppingCart01,
-                        color: AppColors.primary,
+                        color: product.inStock
+                            ? AppColors.primary
+                            : AppColors.grey,
                         size: 20,
                       ),
-                      onPressed: () {
-                        ref.read(cartProvider.notifier).addToCart(product);
-                        AppSnackbar.success(
-                          context,
-                          'Added to cart!',
-                          actionLabel: 'View Cart',
-                          onAction: () => context.push('/cart'),
-                        );
-                      },
+                      onPressed: !product.inStock
+                          ? null
+                          : () async {
+                              final notifier = ref.read(cartProvider.notifier);
+                              final ok = await notifier.addToCart(product);
+                              if (!context.mounted) return;
+                              if (ok) {
+                                AppSnackbar.success(
+                                  context,
+                                  'Added to cart!',
+                                  actionLabel: 'View Cart',
+                                  onAction: () => context.push('/cart'),
+                                );
+                              } else {
+                                AppSnackbar.error(
+                                  context,
+                                  notifier.lastErrorMessage ??
+                                      'Could not add item to cart.',
+                                );
+                              }
+                            },
                     ),
                 ],
               ),

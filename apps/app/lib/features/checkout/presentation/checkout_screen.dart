@@ -1,4 +1,5 @@
 import 'package:app/core/widgets/app_empty_state.dart';
+import 'package:app/features/checkout/presentation/widgets/step_customer_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -161,7 +162,7 @@ class CheckoutScreen extends ConsumerWidget {
                   isDirectBuy: isDirectBuy,
                 ),
                 const SizedBox(height: AppSpacing.md),
-                if (checkoutState.step < 5) ...[
+                if (checkoutState.step <= 5) ...[
                   CheckoutReferralSection(
                     appliedReferral: checkoutState.appliedReferral,
                     searchQuery: checkoutState.referralQuery,
@@ -195,6 +196,11 @@ class CheckoutScreen extends ConsumerWidget {
   }) {
     switch (checkoutState.step) {
       case 1:
+        return StepCustomerInfo(
+          initialInfo: checkoutState.customerInfo,
+          onContinue: (info) { notifier.updateCustomerInfo(info); notifier.nextStep(); },
+        );
+      case 2:
         return StepDeliveryAddress(
           savedAddresses: checkoutState.savedAddresses,
           selectedAddress: checkoutState.selectedAddress,
@@ -205,7 +211,7 @@ class CheckoutScreen extends ConsumerWidget {
           onBack: notifier.prevStep,
           onContinue: notifier.nextStep,
         );
-      case 2:
+      case 3:
         return StepDeliveryMethod(
           methods: checkoutState.deliveryMethods,
           selectedMethod: checkoutState.selectedDeliveryMethod,
@@ -213,20 +219,20 @@ class CheckoutScreen extends ConsumerWidget {
           onBack: notifier.prevStep,
           onContinue: notifier.nextStep,
         );
-      case 3:
+      case 4:
         return StepPaymentMethod(
           selectedType: checkoutState.paymentType,
           onSelectType: notifier.selectPaymentType,
           onBack: notifier.prevStep,
           onContinue: notifier.nextStep,
         );
-      case 4:
+      case 5:
       default:
         return StepReviewOrder(
           state: checkoutState,
           cart: cart,
-          onEditAddress: () => notifier.goToStep(1),
-          onEditPayment: () => notifier.goToStep(3),
+          onEditAddress: () => notifier.goToStep(2),
+          onEditPayment: () => notifier.goToStep(4),
           onBack: notifier.prevStep,
           onPlaceOrder: () => CheckoutOrderHandler.handlePlaceOrder(
             context: context,

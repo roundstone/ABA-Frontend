@@ -1016,19 +1016,27 @@ class _ProductDetailBody extends ConsumerWidget {
         quantity: quantity,
         selectedColor: selectedColor,
         selectedSize: selectedSize,
-        onAddToCart: () {
-          cartNotifier.addToCart(
+        onAddToCart: () async {
+          final ok = await cartNotifier.addToCart(
             product,
             quantity: quantity,
             color: selectedColor,
             size: selectedSize,
           );
-          AppSnackbar.success(
-            context,
-            'Added to cart!',
-            actionLabel: 'View Cart',
-            onAction: () => context.push('/cart'),
-          );
+          if (!context.mounted) return;
+          if (ok) {
+            AppSnackbar.success(
+              context,
+              'Added to cart!',
+              actionLabel: 'View Cart',
+              onAction: () => context.push('/cart'),
+            );
+          } else {
+            AppSnackbar.error(
+              context,
+              cartNotifier.lastErrorMessage ?? 'Could not add item to cart.',
+            );
+          }
         },
       ),
     );

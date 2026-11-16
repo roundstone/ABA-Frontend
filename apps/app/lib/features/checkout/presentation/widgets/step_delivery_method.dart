@@ -56,6 +56,36 @@ class StepDeliveryMethod extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
+          if (CheckoutDeliveryPricing.useTemporaryFlatFee) ...[
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              margin: const EdgeInsets.only(bottom: AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(15),
+                borderRadius: AppSpacing.borderRadiusMD,
+                border: Border.all(color: AppColors.primary.withAlpha(50)),
+              ),
+              child: Row(
+                children: [
+                  const HugeIcon(
+                    icon: HugeIcons.strokeRoundedInformationCircle,
+                    color: AppColors.primary,
+                    size: 16,
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: Text(
+                      'Temporary flat delivery fee of ${formatNaira(CheckoutDeliveryPricing.temporaryFlatFee)} applies at checkout.',
+                      style: AppTypography.caption.copyWith(
+                        color: isDark ? Colors.white70 : AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           ...methods.map((method) {
             final isSelected = selectedMethod?.id == method.id;
             final isExpress = method.id.contains('express');

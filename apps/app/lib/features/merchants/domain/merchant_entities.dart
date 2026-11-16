@@ -13,6 +13,12 @@ String _extractString(dynamic value) {
     if (title != null) return title.toString();
     final address = value['address'];
     if (address != null) return address.toString();
+    final parts = [
+      value['street_address'] ?? value['streetAddress'],
+      value['city'],
+      value['state'],
+    ].where((p) => p != null && p.toString().trim().isNotEmpty).toList();
+    if (parts.isNotEmpty) return parts.join(', ');
   }
   return value.toString();
 }
@@ -54,6 +60,7 @@ class Merchant {
     this.bio,
     this.verifiedAt,
     this.user,
+    this.location,
   });
 
   final String id;
@@ -85,6 +92,7 @@ class Merchant {
   final String? bio;
   final DateTime? verifiedAt;
   final Map<String, dynamic>? user;
+  final String? location;
 
   int get joinedYear => onboardedAt.year;
 
@@ -102,21 +110,15 @@ class Merchant {
           json['phone'] ??
           json['phoneNumber'],
     );
-    final email = _extractString(
-      json['business_owner_email'] ?? json['email'],
-    );
-    final address = _extractString(
-      json['business_address'] ?? json['address'],
-    );
+    final email = _extractString(json['business_owner_email'] ?? json['email']);
+    final address = _extractString(json['business_address'] ?? json['address']);
     final rcTax = _extractString(
       json['rc_tax_id'] ??
           json['rcTaxId'] ??
           json['rcNumber'] ??
           json['merchantNo'],
     );
-    final bioText = _extractString(
-      json['bio'] ?? json['description'],
-    );
+    final bioText = _extractString(json['bio'] ?? json['description']);
     final statusVal = (json['status'] as num?)?.toInt();
     final verifiedAt = json['verified_at'] != null
         ? DateTime.tryParse(json['verified_at'].toString())
@@ -126,9 +128,9 @@ class Merchant {
     final createdAt = json['createdAt'] != null
         ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
         : (json['onboardedAt'] != null
-            ? DateTime.tryParse(json['onboardedAt'].toString()) ??
-                DateTime.now()
-            : DateTime.now());
+              ? DateTime.tryParse(json['onboardedAt'].toString()) ??
+                    DateTime.now()
+              : DateTime.now());
 
     String state = _extractString(json['state']);
     String city = _extractString(json['city']);
@@ -190,7 +192,8 @@ class Merchant {
       isVerified: isVerified,
       isFeatured: json['isFeatured'] as bool? ?? false,
       onboardedAt: createdAt,
-      userId: (json['user_id'] as num?)?.toInt() ??
+      userId:
+          (json['user_id'] as num?)?.toInt() ??
           (json['userId'] as num?)?.toInt(),
       website: _extractOptionalString(json['website']),
       rcTaxId: rcTax.isNotEmpty ? rcTax : null,
@@ -201,6 +204,7 @@ class Merchant {
       user: json['user'] is Map
           ? Map<String, dynamic>.from(json['user'] as Map)
           : null,
+      location: _extractOptionalString(json['location']),
     );
   }
 
@@ -233,5 +237,6 @@ class Merchant {
     if (bio != null) 'bio': bio,
     if (verifiedAt != null) 'verified_at': verifiedAt!.toIso8601String(),
     if (user != null) 'user': user,
+    if (location != null) 'location': location,
   };
 }

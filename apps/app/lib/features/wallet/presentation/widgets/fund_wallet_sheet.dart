@@ -138,122 +138,130 @@ class _FundWalletSheetState extends ConsumerState<FundWalletSheet> {
           top: false,
           bottom: true,
           child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white24 : AppColors.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Fund Wallet', style: AppTypography.h4),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 20),
-                  onPressed: _isLoading
-                      ? null
-                      : () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-            Text(
-              'Instant deposit via Paystack (Card, Bank Transfer, USSD, or OPay).',
-              style: AppTypography.caption.copyWith(color: cs.onSurfaceVariant),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'Amount (NGN)',
-              style: AppTypography.bodySmall.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            AppTextField(
-              controller: _amountCtrl,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              hintText: '5000.00',
-              prefixIcon: const Padding(
-                padding: EdgeInsets.all(14),
-                child: Text(
-                  '₦',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ),
-              enabled: !_isLoading,
-              onChanged: (_) {
-                if (_errorText != null) setState(() => _errorText = null);
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _presets.map((preset) {
-                final isSelected = _amountCtrl.text.trim() == preset.toString();
-                return ActionChip(
-                  label: Text('₦${preset ~/ 1000},000'),
-                  backgroundColor: isSelected
-                      ? AppColors.primary.withValues(alpha: 0.15)
-                      : null,
-                  side: BorderSide(
-                    color: isSelected
-                        ? AppColors.primary
-                        : (isDark ? Colors.white12 : AppColors.border),
-                  ),
-                  onPressed: _isLoading ? null : () => _selectPreset(preset),
-                );
-              }).toList(),
-            ),
-            if (_errorText != null) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.sm),
-                decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.1),
-                  borderRadius: AppSpacing.borderRadiusMD,
-                ),
-                child: Row(
-                  children: [
-                    const HugeIcon(
-                      icon: HugeIcons.strokeRoundedAlert02,
-                      color: AppColors.error,
-                      size: 16,
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : AppColors.border,
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _errorText!,
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.error,
-                        ),
-                      ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Fund Wallet', style: AppTypography.h4),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 20),
+                      onPressed: _isLoading
+                          ? null
+                          : () => Navigator.of(context).pop(),
                     ),
                   ],
                 ),
-              ),
-            ],
-            const SizedBox(height: AppSpacing.lg),
-            AppButton.primary(
-              label: _isLoading ? 'Initializing...' : 'Proceed to Paystack',
-              isLoading: _isLoading,
-              onPressed: _isLoading ? null : _handleProceed,
+                Text(
+                  'Instant deposit via Paystack (Card, Bank Transfer, USSD, or OPay).',
+                  style: AppTypography.caption.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'Amount (NGN)',
+                  style: AppTypography.bodySmall.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                AppTextField(
+                  controller: _amountCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  hintText: '5000.00',
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.all(14),
+                    child: Text(
+                      '₦',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  enabled: !_isLoading,
+                  onChanged: (_) {
+                    if (_errorText != null) setState(() => _errorText = null);
+                  },
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _presets.map((preset) {
+                    final isSelected =
+                        _amountCtrl.text.trim() == preset.toString();
+                    return ActionChip(
+                      label: Text('₦${preset ~/ 1000},000'),
+                      backgroundColor: isSelected
+                          ? AppColors.primary.withValues(alpha: 0.15)
+                          : null,
+                      side: BorderSide(
+                        color: isSelected
+                            ? AppColors.primary
+                            : (isDark ? Colors.white12 : AppColors.border),
+                      ),
+                      onPressed: _isLoading
+                          ? null
+                          : () => _selectPreset(preset),
+                    );
+                  }).toList(),
+                ),
+                if (_errorText != null) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: AppSpacing.borderRadiusMD,
+                    ),
+                    child: Row(
+                      children: [
+                        const HugeIcon(
+                          icon: HugeIcons.strokeRoundedAlert02,
+                          color: AppColors.error,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _errorText!,
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.lg),
+                AppButton.primary(
+                  label: _isLoading ? 'Initializing...' : 'Proceed to Paystack',
+                  isLoading: _isLoading,
+                  onPressed: _isLoading ? null : _handleProceed,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-    ),
-  ),
-);
+    );
   }
 }

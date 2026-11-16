@@ -1,4 +1,7 @@
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../shop/domain/shop_entities.dart';
+import '../domain/cart_repository.dart';
 
 /// Helper for encoding, decoding, and resolving local user-scoped cart cache.
 class CartCacheHelper {
@@ -90,5 +93,56 @@ class CartCacheHelper {
       return product.variants.first.id;
     }
     return int.tryParse(product.id) ?? 1;
+  }
+
+  /// Finds the authoritative server cart item ID for a local [CartItem] after
+  /// fetching the live cart, matching by item id, variant id, or product id.
+  static String? findRemoteItemId(Cart remoteCart, CartItem localItem) {
+    final vId = localItem.effectiveVariantId;
+    for (final r in remoteCart.items) {
+      if (localItem.id != null && r.id == localItem.id) return r.id;
+      if (vId != null && r.effectiveVariantId == vId) return r.id;
+      if (r.product.id == localItem.product.id) return r.id;
+    }
+    return null;
+  }
+
+  static Future<String?> resolveServerItemId(
+    CartRepository repo,
+    CartItem? item,
+  ) async {
+    if (item == null) return null;
+    if (item.id != null && item.id!.isNotEmpty) return item.id;
+    return findRemoteItemId(await repo.getCart(), item);
+  }
+
+  static Future<void> persistCart(
+    SharedPreferences? prefs,
+    Cart cart,
+    String? userId,
+  ) async {
+    if (prefs == null) return;
+    await prefs.setStringList(keyForUser(userId), encode(cart));
+  }
+
+  static Future<void> syncGuestCartOnLogin(
+    SharedPreferences? prefs,
+    CartRepository repo,
+  ) async {
+    final guestKey = keyForUser(null);
+    final raw = prefs?.getStringList(guestKey);
+    if (raw == null || raw.isEmpty) return;
+
+    final guestItems = decode(raw, const {});
+    for (final item in guestItems) {
+      final vId = item.effectiveVariantId ?? int.tryParse(item.product.id) ?? 0;
+      if (vId <= 0) continue;
+      try {
+        await repo.addItem(productVariantId: vId, quantity: item.quantity);
+      } catch (e) {
+        AppLogger.w('CartCacheHelper: guest item sync skipped ($e)');
+      }
+    }
+    await prefs?.remove(guestKey);
   }
 }

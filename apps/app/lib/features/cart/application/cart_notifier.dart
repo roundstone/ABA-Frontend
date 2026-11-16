@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/network/api_error.dart';
 import '../../../core/providers/shared_preferences_provider.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../auth/domain/auth_entities.dart';
@@ -8,18 +10,24 @@ import '../../shop/domain/shop_entities.dart';
 import 'cart_cache_helper.dart';
 import 'cart_providers.dart';
 
-/// Cart state notifier with remote API synchronization and user-scoped local cache.
+/// Cart state notifier with optimistic UI, debounced quantity sync,
+/// guest-to-user merge on login, and rollback on backend errors.
 class CartNotifier extends AsyncNotifier<Cart> {
+  final Map<String, Timer> _qtyTimers = {};
+  final Map<String, Cart> _qtyRollbackSnapshots = {};
+  String? lastErrorMessage;
+
   @override
   Future<Cart> build() async {
+    ref.onDispose(() {
+      for (final t in _qtyTimers.values) { t.cancel(); }
+      _qtyTimers.clear();
+    });
+
     ref.listen<AuthUser?>(currentUserProvider, (previous, next) {
       if (previous?.id != next?.id) {
         state = const AsyncValue.data(Cart());
-        if (previous != null) {
-          ref
-              .read(cartMockRepositoryProvider)
-              .clearForUser(previous.id.toString());
-        }
+        if (previous != null) ref.read(cartMockRepositoryProvider).clearForUser(previous.id.toString());
       }
       if (next == null) {
         state = const AsyncValue.data(Cart());
@@ -32,75 +40,62 @@ class CartNotifier extends AsyncNotifier<Cart> {
     final repo = ref.read(cartRepositoryProvider);
     final prefs = ref.read(sharedPreferencesProvider);
 
-    // Clean up any legacy global un-scoped cart cache
     if (prefs?.containsKey(CartCacheHelper.legacyKey) ?? false) {
       await prefs?.remove(CartCacheHelper.legacyKey);
     }
 
-    // Unauthenticated/logged-out state has an empty cart
     if (userId == null) {
-      return const Cart();
+      return _loadCachedCart(CartCacheHelper.keyForUser(null));
     }
 
-    final userCartKey = CartCacheHelper.keyForUser(userId);
-
-    // 1. Try fetching live cart from API for this user
+    await CartCacheHelper.syncGuestCartOnLogin(prefs, repo);
     try {
       final remoteCart = await repo.getCart();
-      await _persistForUser(remoteCart, userCartKey);
+      await CartCacheHelper.persistCart(prefs, remoteCart, userId);
       return remoteCart;
     } catch (e) {
-      AppLogger.w(
-        'CartNotifier.build: remote cart fetch failed ($e), checking user cache',
-      );
+      AppLogger.w('CartNotifier.build: remote fetch failed ($e), using cache');
+      return _loadCachedCart(CartCacheHelper.keyForUser(userId));
     }
+  }
 
-    // 2. Fallback to locally cached cart for THIS USER ONLY in SharedPreferences
-    final raw = prefs?.getStringList(userCartKey);
+  Future<Cart> _loadCachedCart(String key) async {
+    final raw = ref.read(sharedPreferencesProvider)?.getStringList(key);
     if (raw == null || raw.isEmpty) return const Cart();
-
     try {
       final catalogue = await ref.read(shopCatalogueProvider.future);
       final productMap = {for (final p in catalogue.products) p.id: p};
-      final items = CartCacheHelper.decode(raw, productMap);
-      return Cart(items: items);
+      return Cart(items: CartCacheHelper.decode(raw, productMap));
     } catch (_) {
       return const Cart();
     }
   }
 
-  Future<void> _persist(Cart cart) async {
-    final user = ref.read(currentUserProvider);
-    final userId = user?.id.toString();
-    if (userId == null) return;
-    await _persistForUser(cart, CartCacheHelper.keyForUser(userId));
+  Future<void> _rollback(Cart previous, Object error) async {
+    lastErrorMessage = ApiError.toUserFriendlyMessage(error);
+    state = AsyncValue.data(previous);
+    await _persist(previous);
   }
 
-  Future<void> _persistForUser(Cart cart, String key) async {
-    final prefs = ref.read(sharedPreferencesProvider);
-    if (prefs == null) return;
-    final encoded = CartCacheHelper.encode(cart);
-    await prefs.setStringList(key, encoded);
-  }
+  Future<void> _persist(Cart cart) => CartCacheHelper.persistCart(
+        ref.read(sharedPreferencesProvider),
+        cart,
+        ref.read(currentUserProvider)?.id.toString(),
+      );
 
-  Future<void> addToCart(
+  Future<bool> addToCart(
     Product product, {
     int quantity = 1,
     String? color,
     String? size,
     int? variantId,
   }) async {
+    lastErrorMessage = null;
     var effectiveProduct = product;
-
-    // Fetch full product only when variant information is required.
     if (effectiveProduct.variants.isEmpty && variantId == null) {
       try {
-        final repo = ref.read(shopRepositoryProvider);
-        final full = await repo.fetchProductById(product.id);
-
-        if (full != null) {
-          effectiveProduct = full;
-        }
+        final full = await ref.read(shopRepositoryProvider).fetchProductById(product.id);
+        if (full != null) effectiveProduct = full;
       } catch (e) {
         AppLogger.w('CartNotifier.addToCart product lookup failed: $e');
       }
@@ -112,162 +107,145 @@ class CartNotifier extends AsyncNotifier<Cart> {
       size: size,
       variantId: variantId,
     );
-
-    final optItem = CartItem(
+    final previous = state.valueOrNull ?? const Cart();
+    final optimisticCart = previous.addItem(CartItem(
       product: effectiveProduct,
       quantity: quantity,
       productVariantId: vId,
       selectedColor: color,
       selectedSize: size,
-    );
-
-    // Optimistic update.
-    final current = state.valueOrNull ?? const Cart();
-    final optimisticCart = current.addItem(optItem);
-
+    ));
     state = AsyncValue.data(optimisticCart);
-
-    // Persist immediately.
     await _persist(optimisticCart);
+    if (ref.read(currentUserProvider) == null) return true;
 
-    // Synchronize with backend.
     try {
-      final repo = ref.read(cartRepositoryProvider);
-
-      final created = await repo.addItem(
-        productVariantId: vId,
-        quantity: quantity,
-        product: effectiveProduct,
-      );
-
+      final created = await ref.read(cartRepositoryProvider).addItem(
+            productVariantId: vId, quantity: quantity, product: effectiveProduct);
+      final latest = state.valueOrNull ?? optimisticCart;
       if (created.id != null) {
-        // Always reconcile against the latest state.
-        final latest = state.valueOrNull ?? optimisticCart;
-
-        final syncedItems = latest.items.map((item) {
-          if (item.product.id == effectiveProduct.id &&
-              item.effectiveVariantId == vId) {
-            return item.copyWith(id: created.id, productVariantId: vId);
-          }
-          return item;
-        }).toList();
-
-        final syncedCart = Cart(
-          id: latest.id ?? optimisticCart.id,
-          items: syncedItems,
-        );
-
+        final syncedItems = latest.items.map((item) =>
+            (item.product.id == effectiveProduct.id && item.effectiveVariantId == vId)
+                ? item.copyWith(id: created.id, productVariantId: vId)
+                : item).toList();
+        final syncedCart = Cart(id: latest.id, items: syncedItems);
         state = AsyncValue.data(syncedCart);
         await _persist(syncedCart);
       }
+      return true;
     } catch (e) {
-      AppLogger.w('CartNotifier.addToCart remote failed: $e');
+      AppLogger.w('CartNotifier.addToCart remote failed, rolling back: $e');
+      await _rollback(previous, e);
+      return false;
     }
   }
 
-  Future<void> removeFromCart(String productIdOrItemId) async {
-    final current = state.valueOrNull ?? const Cart();
+  Future<bool> removeFromCart(String productIdOrItemId) async {
+    lastErrorMessage = null;
+    _qtyTimers.remove(productIdOrItemId)?.cancel();
+    _qtyRollbackSnapshots.remove(productIdOrItemId);
 
-    final item = current.items
-        .where(
-          (i) =>
-              i.id == productIdOrItemId ||
-              i.product.id == productIdOrItemId ||
-              i.effectiveId == productIdOrItemId,
-        )
-        .firstOrNull;
-
-    final targetId = item?.id ?? productIdOrItemId;
-
-    // Optimistic update.
-    final next = current.removeItem(productIdOrItemId);
+    final previous = state.valueOrNull ?? const Cart();
+    final item = _findItem(previous, productIdOrItemId);
+    final next = previous.removeItem(productIdOrItemId);
     state = AsyncValue.data(next);
-
-    // Persist locally first.
     await _persist(next);
 
-    // Synchronize with backend.
+    if (ref.read(currentUserProvider) == null) return true;
+
     try {
       final repo = ref.read(cartRepositoryProvider);
-      await repo.removeItem(targetId);
+      final targetId = await CartCacheHelper.resolveServerItemId(repo, item);
+      if (targetId != null && targetId.isNotEmpty) await repo.removeItem(targetId);
+      return true;
     } catch (e) {
-      AppLogger.w('CartNotifier.removeFromCart remote failed: $e');
+      AppLogger.w('CartNotifier.removeFromCart remote failed, rolling back: $e');
+      await _rollback(previous, e);
+      return false;
     }
   }
 
   Future<void> updateQuantity(String productIdOrItemId, int quantity) async {
     if (quantity <= 0) {
-      return removeFromCart(productIdOrItemId);
+      await removeFromCart(productIdOrItemId);
+      return;
     }
-
+    lastErrorMessage = null;
     final current = state.valueOrNull ?? const Cart();
-
-    final item = current.items
-        .where(
-          (i) =>
-              i.id == productIdOrItemId ||
-              i.product.id == productIdOrItemId ||
-              i.effectiveId == productIdOrItemId,
-        )
-        .firstOrNull;
-
+    final item = _findItem(current, productIdOrItemId);
     if (item == null) return;
 
-    final targetId = item.id ?? productIdOrItemId;
-
-    // Optimistic update.
+    _qtyRollbackSnapshots.putIfAbsent(productIdOrItemId, () => current);
     final next = current.updateQuantity(productIdOrItemId, quantity);
     state = AsyncValue.data(next);
-
-    // Persist locally first.
     await _persist(next);
 
-    // Synchronize with backend.
-    try {
-      final repo = ref.read(cartRepositoryProvider);
+    if (ref.read(currentUserProvider) == null) {
+      _qtyRollbackSnapshots.remove(productIdOrItemId);
+      return;
+    }
 
-      await repo.updateItemQuantity(itemId: targetId, quantity: quantity);
+    _qtyTimers.remove(productIdOrItemId)?.cancel();
+    _qtyTimers[productIdOrItemId] = Timer(const Duration(milliseconds: 350), () async {
+      final rollbackCart = _qtyRollbackSnapshots.remove(productIdOrItemId);
+      try {
+        final repo = ref.read(cartRepositoryProvider);
+        final targetId = await CartCacheHelper.resolveServerItemId(repo, item);
+        if (targetId == null || targetId.isEmpty) return;
+        await repo.updateItemQuantity(itemId: targetId, quantity: quantity);
+      } catch (e) {
+        AppLogger.w('CartNotifier.updateQuantity remote failed, rolling back: $e');
+        if (rollbackCart != null) await _rollback(rollbackCart, e);
+      }
+    });
+  }
+
+  Future<void> _resetTimersAndCache(String? userId) async {
+    for (final t in _qtyTimers.values) { t.cancel(); }
+    _qtyTimers.clear();
+    _qtyRollbackSnapshots.clear();
+    state = const AsyncValue.data(Cart());
+    await ref.read(sharedPreferencesProvider)?.remove(CartCacheHelper.keyForUser(userId));
+  }
+
+  /// Syncs local cart with the backend after checkout payment succeeds
+  /// (backend clears the cart on payment; fetches latest state as source of truth).
+  Future<void> syncAfterPayment() async {
+    final user = ref.read(currentUserProvider);
+    await _resetTimersAndCache(user?.id.toString());
+    if (user == null) return;
+    try {
+      final remoteCart = await ref.read(cartRepositoryProvider).getCart();
+      state = AsyncValue.data(remoteCart);
+      await _persist(remoteCart);
     } catch (e) {
-      AppLogger.w('CartNotifier.updateQuantity remote failed: $e');
+      AppLogger.w('CartNotifier.syncAfterPayment fetch failed: $e');
     }
   }
 
   Future<void> clearCart() async {
+    lastErrorMessage = null;
+    final previous = state.valueOrNull ?? const Cart();
     final user = ref.read(currentUserProvider);
-    final userId = user?.id.toString();
+    await _resetTimersAndCache(user?.id.toString());
+    if (user == null) return;
 
-    // 1. Immediately update the UI
-    state = const AsyncValue.data(Cart());
-
-    // 2. Clear local cache
-    if (userId != null) {
-      final prefs = ref.read(sharedPreferencesProvider);
-      await prefs?.remove(CartCacheHelper.keyForUser(userId));
-    }
-
-    // 3. Synchronize with the backend
     try {
-      final repo = ref.read(cartRepositoryProvider);
-      await repo.clearCart();
+      await ref.read(cartRepositoryProvider).clearCart();
     } catch (e) {
-      AppLogger.w('CartNotifier.clearCart remote failed: $e');
-
-      // Consider scheduling a retry or notifying the user
-      // that the cart could not be synchronized.
+      AppLogger.w('CartNotifier.clearCart remote failed, rolling back: $e');
+      await _rollback(previous, e);
+      rethrow;
     }
   }
 
   Future<CartAvailabilityResult> checkAvailability() async {
-    try {
-      final repo = ref.read(cartRepositoryProvider);
-      return await repo.checkAvailability();
-    } catch (e) {
-      AppLogger.w('CartNotifier.checkAvailability failed: $e');
-      return const CartAvailabilityResult(isAvailable: true);
-    }
+    try { return await ref.read(cartRepositoryProvider).checkAvailability(); }
+    catch (e) { AppLogger.w('CartNotifier.checkAvailability failed: $e'); return const CartAvailabilityResult(isAvailable: true); }
   }
+
+  CartItem? _findItem(Cart cart, String id) =>
+      cart.items.where((i) => i.id == id || i.product.id == id || i.effectiveId == id).firstOrNull;
 }
 
-final cartProvider = AsyncNotifierProvider<CartNotifier, Cart>(
-  CartNotifier.new,
-);
+final cartProvider = AsyncNotifierProvider<CartNotifier, Cart>(CartNotifier.new);

@@ -76,20 +76,20 @@ class MarketerProfileHeader extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Text(
-                          '•',
-                          style: AppTypography.caption.copyWith(
-                            color: cs.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Text(
-                          'Joined ${profile.joinedDate?.year ?? "N/A"}',
-                          style: AppTypography.caption.copyWith(
-                            color: cs.onSurfaceVariant,
-                          ),
-                        ),
+                        // const SizedBox(width: AppSpacing.sm),
+                        // Text(
+                        //   '•',
+                        //   style: AppTypography.caption.copyWith(
+                        //     color: cs.onSurfaceVariant,
+                        //   ),
+                        // ),
+                        // const SizedBox(width: AppSpacing.sm),
+                        // Text(
+                        //   'Joined ${profile.joinedDate?.year ?? "N/A"}',
+                        //   style: AppTypography.caption.copyWith(
+                        //     color: cs.onSurfaceVariant,
+                        //   ),
+                        // ),
                       ],
                     ),
                     if (profile.performancePercentile != null) ...[

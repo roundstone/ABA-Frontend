@@ -1,5 +1,24 @@
 import '../../account/domain/customer_order.dart';
 
+/// Centralized delivery fee configuration and temporary flat-rate override.
+class CheckoutDeliveryPricing {
+  CheckoutDeliveryPricing._();
+
+  static const bool enableShipping = true;
+  static const double standardDeliveryCost = 1500.0;
+  static const double expressDeliveryCost = 3000.0;
+
+  /// Temporary promotional flat delivery fee applied regardless of tier.
+  static const bool useTemporaryFlatFee = true;
+  static const double temporaryFlatFee = 1500.0;
+
+  static double effectiveFee(DeliveryMethod? method) {
+    if (!enableShipping) return 0.0;
+    if (useTemporaryFlatFee) return temporaryFlatFee;
+    return method?.cost ?? standardDeliveryCost;
+  }
+}
+
 class CheckoutCustomerInfo {
   const CheckoutCustomerInfo({
     required this.firstName,

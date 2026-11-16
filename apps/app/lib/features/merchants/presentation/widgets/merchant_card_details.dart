@@ -20,9 +20,7 @@ class MerchantRatingRow extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           merchant.rating.toStringAsFixed(1),
-          style: AppTypography.bodySmall.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+          style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(width: 4),
         Text(
@@ -40,8 +38,6 @@ class MerchantMetaRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final joinedYear = merchant.onboardedAt.year;
-
     return Column(
       children: [
         Row(
@@ -54,26 +50,7 @@ class MerchantMetaRow extends StatelessWidget {
             const SizedBox(width: 4),
             Expanded(
               child: Text(
-                '${merchant.city}, ${merchant.state}',
-                style: AppTypography.caption.copyWith(color: AppColors.grey),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 3),
-        Row(
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedShoppingBag01,
-              color: AppColors.grey,
-              size: 13,
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Text(
-                'Joined $joinedYear · ${merchant.ordersCount} orders',
+                merchant.location ?? "Not specified",
                 style: AppTypography.caption.copyWith(color: AppColors.grey),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

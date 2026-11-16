@@ -10,7 +10,8 @@ class CheckoutMockRepository implements CheckoutRepository {
   static const bool enableVat = false;
 
   /// Toggleable shipping configuration. Option 2: Free / ₦0 Delivery everywhere.
-  static const bool enableShipping = false;
+  /// Toggleable shipping configuration.
+  static const bool enableShipping = CheckoutDeliveryPricing.enableShipping;
 
   static const List<ReferralCandidate> _candidates = [
     ReferralCandidate(
@@ -110,13 +111,13 @@ class CheckoutMockRepository implements CheckoutRepository {
       id: 'dm_standard',
       name: 'Standard Delivery',
       duration: '3-5 Business Days',
-      cost: 0.0,
+      cost: CheckoutDeliveryPricing.standardDeliveryCost,
     ),
     DeliveryMethod(
       id: 'dm_express',
       name: 'Express Delivery',
       duration: '1-2 Business Days',
-      cost: 0.0,
+      cost: CheckoutDeliveryPricing.expressDeliveryCost,
     ),
   ];
 
@@ -163,7 +164,7 @@ class CheckoutMockRepository implements CheckoutRepository {
   }) async {
     await Future.delayed(const Duration(milliseconds: 1000));
 
-    final deliveryCost = enableShipping ? deliveryMethod.cost : 0.0;
+    final deliveryCost = CheckoutDeliveryPricing.effectiveFee(deliveryMethod);
     final grandTotal =
         cart.subtotal + deliveryCost + (enableVat ? cart.tax : 0.0);
     final totalInKobo = (grandTotal * 100).round();

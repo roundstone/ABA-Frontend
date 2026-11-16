@@ -137,92 +137,93 @@ class AboutSellerTab extends StatelessWidget {
         const Divider(),
         const SizedBox(height: AppSpacing.xl),
 
-        const SellerRatingsSection(),
+        // All this would be implemented in the future
+        // const SellerRatingsSection(),
 
-        const SizedBox(height: AppSpacing.xl),
-        const Divider(),
-        const SizedBox(height: AppSpacing.xl),
+        // const SizedBox(height: AppSpacing.xl),
+        // const Divider(),
+        // const SizedBox(height: AppSpacing.xl),
 
-        // Popular categories
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              'Popular categories',
-              style: AppTypography.bodyMedium.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Text(
-              'See all',
-              style: AppTypography.label.copyWith(
-                color: color,
-                decoration: TextDecoration.underline,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Wrap(
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xs,
-          children: [
-            Chip(
-              label: const Text('Consumer Electronics'),
-              labelStyle: AppTypography.label,
-              backgroundColor: cs.surfaceContainerHighest.withAlpha(100),
-              side: const BorderSide(color: AppColors.border),
-            ),
-            Chip(
-              label: const Text('Fashion & Apparel'),
-              labelStyle: AppTypography.label,
-              backgroundColor: cs.surfaceContainerHighest.withAlpha(100),
-              side: const BorderSide(color: AppColors.border),
-            ),
-          ],
-        ),
+        // // Popular categories
+        // Row(
+        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //   crossAxisAlignment: CrossAxisAlignment.end,
+        //   children: [
+        //     Text(
+        //       'Popular categories',
+        //       style: AppTypography.bodyMedium.copyWith(
+        //         fontWeight: FontWeight.w700,
+        //       ),
+        //     ),
+        //     Text(
+        //       'See all',
+        //       style: AppTypography.label.copyWith(
+        //         color: color,
+        //         decoration: TextDecoration.underline,
+        //         fontWeight: FontWeight.w600,
+        //       ),
+        //     ),
+        //   ],
+        // ),
+        // const SizedBox(height: AppSpacing.sm),
+        // Wrap(
+        //   spacing: AppSpacing.xs,
+        //   runSpacing: AppSpacing.xs,
+        //   children: [
+        //     Chip(
+        //       label: const Text('Consumer Electronics'),
+        //       labelStyle: AppTypography.label,
+        //       backgroundColor: cs.surfaceContainerHighest.withAlpha(100),
+        //       side: const BorderSide(color: AppColors.border),
+        //     ),
+        //     Chip(
+        //       label: const Text('Fashion & Apparel'),
+        //       labelStyle: AppTypography.label,
+        //       backgroundColor: cs.surfaceContainerHighest.withAlpha(100),
+        //       side: const BorderSide(color: AppColors.border),
+        //     ),
+        //   ],
+        // ),
 
-        const SizedBox(height: AppSpacing.xl),
-        const Divider(),
-        const SizedBox(height: AppSpacing.xl),
+        // const SizedBox(height: AppSpacing.xl),
+        // const Divider(),
+        // const SizedBox(height: AppSpacing.xl),
 
         // Referral Network
-        Text(
-          'Referral Network',
-          style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: color.withAlpha(20),
-            borderRadius: AppSpacing.borderRadiusLG,
-            border: Border.all(color: color.withAlpha(50)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'This merchant is part of the Aba Online referral network. You can earn commissions by referring their products!',
-                style: AppTypography.bodySmall.copyWith(color: color),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              AppButton.outlined(
-                label: 'Join their network',
-                foregroundColor: color,
-                borderSide: BorderSide(color: color.withAlpha(100)),
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                onPressed: () => context.push('/referrals'),
-              ),
-            ],
-          ),
-        ),
+        // Text(
+        //   'Referral Network',
+        //   style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w700),
+        // ),
+        // const SizedBox(height: AppSpacing.sm),
+        // Container(
+        //   padding: const EdgeInsets.all(AppSpacing.md),
+        //   decoration: BoxDecoration(
+        //     color: color.withAlpha(20),
+        //     borderRadius: AppSpacing.borderRadiusLG,
+        //     border: Border.all(color: color.withAlpha(50)),
+        //   ),
+        //   child: Column(
+        //     crossAxisAlignment: CrossAxisAlignment.start,
+        //     children: [
+        //       Text(
+        //         'This merchant is part of the Aba Online referral network. You can earn commissions by referring their products!',
+        //         style: AppTypography.bodySmall.copyWith(color: color),
+        //       ),
+        //       const SizedBox(height: AppSpacing.md),
+        //       AppButton.outlined(
+        //         label: 'Join their network',
+        //         foregroundColor: color,
+        //         borderSide: BorderSide(color: color.withAlpha(100)),
+        //         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        //         onPressed: () => context.push('/referrals'),
+        //       ),
+        //     ],
+        //   ),
+        // ),
 
-        const SizedBox(height: AppSpacing.xl),
-        const Divider(),
-        const SizedBox(height: AppSpacing.xl),
+        // const SizedBox(height: AppSpacing.xl),
+        // const Divider(),
+        // const SizedBox(height: AppSpacing.xl),
         ProductReviewsSection(key: reviewsKey, productId: productId),
       ],
     );

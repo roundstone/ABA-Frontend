@@ -95,8 +95,17 @@ class _CartBody extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.sm),
               itemBuilder: (context, i) => CartItemTile(
                 item: cart.items[i],
-                onRemove: () =>
-                    notifier.removeFromCart(cart.items[i].effectiveId),
+                onRemove: () async {
+                  final ok = await notifier.removeFromCart(
+                    cart.items[i].effectiveId,
+                  );
+                  if (!ok && context.mounted) {
+                    AppSnackbar.error(
+                      context,
+                      notifier.lastErrorMessage ?? 'Could not remove item.',
+                    );
+                  }
+                },
                 onDecrease: () => notifier.updateQuantity(
                   cart.items[i].effectiveId,
                   cart.items[i].quantity - 1,

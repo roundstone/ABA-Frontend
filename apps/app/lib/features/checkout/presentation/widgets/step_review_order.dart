@@ -32,14 +32,15 @@ class StepReviewOrder extends StatelessWidget {
   /// Toggleable VAT configuration. Currently disabled: prices already include VAT.
   static const bool enableVat = false;
 
-  /// Toggleable shipping configuration. Option 2: Free / ₦0 Delivery everywhere.
-  static const bool enableShipping = false;
+  /// Toggleable shipping configuration.
+  static const bool enableShipping = CheckoutDeliveryPricing.enableShipping;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final deliveryCost =
-        enableShipping ? (state.selectedDeliveryMethod?.cost ?? 0.0) : 0.0;
+    final deliveryCost = enableShipping
+        ? CheckoutDeliveryPricing.effectiveFee(state.selectedDeliveryMethod)
+        : 0.0;
     final vatAmount = enableVat ? cart.tax : 0.0;
     final grandTotal = cart.subtotal + deliveryCost + vatAmount;
 
@@ -48,9 +49,7 @@ class StepReviewOrder extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: AppSpacing.borderRadiusLG,
-        border: Border.all(
-          color: isDark ? Colors.white12 : AppColors.border,
-        ),
+        border: Border.all(color: isDark ? Colors.white12 : AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,22 +80,19 @@ class StepReviewOrder extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  state.selectedAddress?.fullName ?? state.customerInfo.fullName,
+                  state.selectedAddress?.fullName ??
+                      state.customerInfo.fullName,
                   style: AppTypography.bodySmall.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 Text(
                   '${state.selectedAddress?.street ?? ''}, ${state.selectedAddress?.city ?? ''}',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.grey,
-                  ),
+                  style: AppTypography.caption.copyWith(color: AppColors.grey),
                 ),
                 Text(
                   state.selectedAddress?.phone ?? state.customerInfo.phone,
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.grey,
-                  ),
+                  style: AppTypography.caption.copyWith(color: AppColors.grey),
                 ),
               ],
             ),
@@ -116,12 +112,21 @@ class StepReviewOrder extends StatelessWidget {
                 ),
                 Text(
                   enableShipping
-                      ? 'Shipping: ${state.selectedDeliveryMethod?.name ?? 'Standard Delivery'} (${state.selectedDeliveryMethod?.duration ?? ''})'
+                      ? 'Shipping: ${state.selectedDeliveryMethod?.name ?? 'Standard Delivery'} (${formatNaira(deliveryCost)}${CheckoutDeliveryPricing.useTemporaryFlatFee ? ' temp. flat rate' : ''})'
                       : 'Shipping: ${state.selectedDeliveryMethod?.name ?? 'Standard Delivery'} (Free Delivery)',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.grey,
-                  ),
+                  style: AppTypography.caption.copyWith(color: AppColors.grey),
                 ),
+                if (state.paymentType == CheckoutPaymentType.paystack ||
+                    state.paymentType == CheckoutPaymentType.card) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Note: Paystack gateway charges apply to the payable amount.',
+                    style: AppTypography.caption.copyWith(
+                      color: const Color(0xFF0BA4DB),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(
                   'Prices include VAT.',
@@ -156,12 +161,13 @@ class StepReviewOrder extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: AppButton.primary(
-                  label: (state.paymentType == CheckoutPaymentType.paystack ||
+                  label:
+                      (state.paymentType == CheckoutPaymentType.paystack ||
                           state.paymentType == CheckoutPaymentType.card)
                       ? 'Pay (${formatNaira(grandTotal)})'
                       : state.paymentType == CheckoutPaymentType.wallet
-                          ? 'Pay (${formatNaira(grandTotal)})'
-                          : 'Place Order (${formatNaira(grandTotal)})',
+                      ? 'Pay (${formatNaira(grandTotal)})'
+                      : 'Place Order (${formatNaira(grandTotal)})',
                   isLoading: state.isSubmitting,
                   onPressed: state.isSubmitting ? null : onPlaceOrder,
                 ),
@@ -179,9 +185,7 @@ class StepReviewOrder extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.warning.withAlpha(20),
         borderRadius: AppSpacing.borderRadiusMD,
-        border: Border.all(
-          color: AppColors.warning.withAlpha(80),
-        ),
+        border: Border.all(color: AppColors.warning.withAlpha(80)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,9 +214,9 @@ class StepReviewOrder extends StatelessWidget {
       case CheckoutPaymentType.paystack:
         return 'Paystack Gateway';
       case CheckoutPaymentType.card:
-        return 'Paystack (Card)';
+        return 'Paystack';
       case CheckoutPaymentType.wallet:
-        return 'ABA Wallet';
+        return 'Wallet';
       case CheckoutPaymentType.bankTransfer:
         return 'Bank Transfer';
     }

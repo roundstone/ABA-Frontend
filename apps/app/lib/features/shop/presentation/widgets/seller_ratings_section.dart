@@ -106,4 +106,3 @@ class _SellerRatingBar extends StatelessWidget {
     );
   }
 }
-

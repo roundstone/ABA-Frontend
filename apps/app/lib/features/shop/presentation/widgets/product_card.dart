@@ -157,42 +157,60 @@ class _GridCard extends ConsumerWidget {
                         ),
                         // Quick add to cart
                         GestureDetector(
-                          onTap: () {
-                            if (!inCart) {
-                              cartNotifier.addToCart(product);
-                              AppSnackbar.success(
-                                context,
-                                'Added to cart!',
-                                actionLabel: 'View Cart',
-                                onAction: () => context.push('/cart'),
-                              );
-                            }
-                          },
-                          child: AnimatedContainer(
-                            duration: AppSpacing.animationFast,
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              color: inCart
-                                  ? (isDark ? AppColors.secondary : cs.primary)
-                                  : (isDark
-                                        ? AppColors.secondary.withAlpha(20)
-                                        : cs.primary.withAlpha(20)),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: HugeIcon(
-                                icon: inCart
-                                    ? HugeIcons.strokeRoundedTick01
-                                    : HugeIcons.strokeRoundedShoppingCart01,
-                                size: 15,
-                                color: inCart
-                                    ? (isDark
-                                          ? const Color(0xFF1E1E1E)
-                                          : Colors.white)
-                                    : (isDark
-                                          ? AppColors.secondary
-                                          : cs.primary),
+                          onTap: !product.inStock
+                              ? () {}
+                              : () async {
+                                  if (!inCart) {
+                                    final ok = await cartNotifier.addToCart(product);
+                                    if (!context.mounted) return;
+                                    if (ok) {
+                                      AppSnackbar.success(
+                                        context,
+                                        'Added to cart!',
+                                        actionLabel: 'View Cart',
+                                        onAction: () => context.push('/cart'),
+                                      );
+                                    } else {
+                                      AppSnackbar.error(
+                                        context,
+                                        cartNotifier.lastErrorMessage ??
+                                            'Could not add item to cart.',
+                                      );
+                                    }
+                                  }
+                                },
+                          child: Tooltip(
+                            message: !product.inStock ? 'Out of stock' : 'Add to cart',
+                            child: AnimatedContainer(
+                              duration: AppSpacing.animationFast,
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                color: !product.inStock
+                                    ? (isDark ? Colors.white10 : AppColors.border.withAlpha(120))
+                                    : inCart
+                                        ? (isDark ? AppColors.secondary : cs.primary)
+                                        : (isDark
+                                              ? AppColors.secondary.withAlpha(20)
+                                              : cs.primary.withAlpha(20)),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: HugeIcon(
+                                  icon: inCart
+                                      ? HugeIcons.strokeRoundedTick01
+                                      : HugeIcons.strokeRoundedShoppingCart01,
+                                  size: 15,
+                                  color: !product.inStock
+                                      ? AppColors.grey
+                                      : inCart
+                                          ? (isDark
+                                                ? const Color(0xFF1E1E1E)
+                                                : Colors.white)
+                                          : (isDark
+                                                ? AppColors.secondary
+                                                : cs.primary),
+                                ),
                               ),
                             ),
                           ),
@@ -301,17 +319,28 @@ class _ListCard extends ConsumerWidget {
                         ],
                         const Spacer(),
                         GestureDetector(
-                          onTap: () {
-                            if (!inCart) {
-                              cartNotifier.addToCart(product);
-                              AppSnackbar.success(
-                                context,
-                                'Added to cart!',
-                                actionLabel: 'View Cart',
-                                onAction: () => context.push('/cart'),
-                              );
-                            }
-                          },
+                          onTap: !product.inStock
+                              ? () {}
+                              : () async {
+                                  if (!inCart) {
+                                    final ok = await cartNotifier.addToCart(product);
+                                    if (!context.mounted) return;
+                                    if (ok) {
+                                      AppSnackbar.success(
+                                        context,
+                                        'Added to cart!',
+                                        actionLabel: 'View Cart',
+                                        onAction: () => context.push('/cart'),
+                                      );
+                                    } else {
+                                      AppSnackbar.error(
+                                        context,
+                                        cartNotifier.lastErrorMessage ??
+                                            'Could not add item to cart.',
+                                      );
+                                    }
+                                  }
+                                },
                           child: AnimatedContainer(
                             duration: AppSpacing.animationFast,
                             padding: const EdgeInsets.symmetric(
@@ -319,23 +348,29 @@ class _ListCard extends ConsumerWidget {
                               vertical: AppSpacing.xs,
                             ),
                             decoration: BoxDecoration(
-                              color: inCart
-                                  ? (isDark ? AppColors.secondary : cs.primary)
-                                  : (isDark
-                                        ? AppColors.secondary.withAlpha(15)
-                                        : cs.primary.withAlpha(15)),
+                              color: !product.inStock
+                                  ? (isDark ? Colors.white10 : AppColors.border.withAlpha(120))
+                                  : inCart
+                                      ? (isDark ? AppColors.secondary : cs.primary)
+                                      : (isDark
+                                            ? AppColors.secondary.withAlpha(15)
+                                            : cs.primary.withAlpha(15)),
                               borderRadius: AppSpacing.borderRadiusSM,
                             ),
                             child: Text(
-                              inCart ? 'In cart' : 'Add',
+                              !product.inStock
+                                  ? 'Out of stock'
+                                  : (inCart ? 'In cart' : 'Add'),
                               style: AppTypography.label.copyWith(
-                                color: inCart
-                                    ? (isDark
-                                          ? const Color(0xFF1E1E1E)
-                                          : Colors.white)
-                                    : (isDark
-                                          ? AppColors.secondary
-                                          : cs.primary),
+                                color: !product.inStock
+                                    ? AppColors.grey
+                                    : inCart
+                                        ? (isDark
+                                              ? const Color(0xFF1E1E1E)
+                                              : Colors.white)
+                                        : (isDark
+                                              ? AppColors.secondary
+                                              : cs.primary),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

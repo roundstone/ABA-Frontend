@@ -10,6 +10,7 @@ import '../../../../core/widgets/app_widgets.dart';
 import '../../../cart/application/cart_providers.dart';
 import '../../../wallet/application/wallet_providers.dart';
 import '../../../wallet/presentation/widgets/fund_wallet_sheet.dart';
+import '../../application/checkout_providers.dart';
 import '../../domain/checkout_entities.dart';
 import 'payment_option_tile.dart';
 
@@ -32,7 +33,9 @@ class StepPaymentMethod extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final walletAsync = ref.watch(walletInfoProvider);
     final cartAsync = ref.watch(cartProvider);
-    final orderTotal = cartAsync.value?.subtotal ?? 0.0;
+    final selectedMethod = ref.watch(checkoutProvider).selectedDeliveryMethod;
+    final orderTotal = (cartAsync.value?.subtotal ?? 0.0) +
+        CheckoutDeliveryPricing.effectiveFee(selectedMethod);
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -70,7 +73,7 @@ class StepPaymentMethod extends ConsumerWidget {
             onTap: () => onSelectType(CheckoutPaymentType.paystack),
             icon: HugeIcons.strokeRoundedCreditCard,
             title: 'Paystack Gateway',
-            subtitle: 'Debit card, Bank Transfer, USSD (Secured by Paystack)',
+            subtitle: 'Debit card, Bank Transfer, USSD • Paystack charges apply',
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
@@ -88,7 +91,7 @@ class StepPaymentMethod extends ConsumerWidget {
             ),
           ),
 
-          // 2. ABA Wallet (paymentMethod: 2)
+          // 2. Wallet (paymentMethod: 2)
           walletAsync.when(
             data: (info) {
               final isSufficient = info.balance >= orderTotal;
@@ -129,6 +132,39 @@ class StepPaymentMethod extends ConsumerWidget {
           ),
 
           const SizedBox(height: AppSpacing.md),
+          if (selectedType == CheckoutPaymentType.paystack ||
+              selectedType == CheckoutPaymentType.card) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0BA4DB).withValues(alpha: 0.1),
+                borderRadius: AppSpacing.borderRadiusMD,
+                border: Border.all(
+                  color: const Color(0xFF0BA4DB).withValues(alpha: 0.35),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const HugeIcon(
+                    icon: HugeIcons.strokeRoundedInformationCircle,
+                    color: Color(0xFF0BA4DB),
+                    size: 18,
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: Text(
+                      'Paystack gateway processing charges apply to the payable amount.',
+                      style: AppTypography.caption.copyWith(
+                        color: isDark ? Colors.white70 : const Color(0xFF075985),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(

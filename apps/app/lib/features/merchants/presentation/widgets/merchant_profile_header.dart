@@ -52,11 +52,16 @@ class MerchantProfileHeader extends StatelessWidget {
                     top: AppSpacing.sm,
                     right: AppSpacing.sm,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: const BoxDecoration(
                         color: Colors.white,
                         borderRadius: AppSpacing.borderRadiusSM,
-                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                        boxShadow: [
+                          BoxShadow(color: Colors.black12, blurRadius: 4),
+                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -97,7 +102,10 @@ class MerchantProfileHeader extends StatelessWidget {
                 if (merchant.category.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withAlpha(25),
                       borderRadius: AppSpacing.borderRadiusSM,
@@ -127,14 +135,9 @@ class MerchantProfileHeader extends StatelessWidget {
                     Text(
                       '(${merchant.reviewCount} reviews)',
                       style: AppTypography.caption.copyWith(
-                        color: isDark ? Colors.white60 : AppColors.textSecondary,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      'Joined ${merchant.joinedYear}',
-                      style: AppTypography.caption.copyWith(
-                        color: isDark ? Colors.white60 : AppColors.textSecondary,
+                        color: isDark
+                            ? Colors.white60
+                            : AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -152,13 +155,31 @@ class MerchantProfileHeader extends StatelessWidget {
                 const Divider(height: 1),
                 const SizedBox(height: AppSpacing.sm),
                 if (merchant.address.isNotEmpty)
-                  _buildMetaTile(context, HugeIcons.strokeRoundedLocation01, merchant.address),
+                  _buildMetaTile(
+                    context,
+                    HugeIcons.strokeRoundedLocation01,
+                    merchant.address,
+                  ),
                 if (merchant.ownerName.isNotEmpty)
-                  _buildMetaTile(context, HugeIcons.strokeRoundedUser, 'Owner: ${merchant.ownerName}'),
+                  _buildMetaTile(
+                    context,
+                    HugeIcons.strokeRoundedUser,
+                    'Owner: ${merchant.ownerName}',
+                  ),
                 if (merchant.phone.isNotEmpty)
-                  _buildMetaTile(context, HugeIcons.strokeRoundedCall, merchant.phone, canCopy: true),
+                  _buildMetaTile(
+                    context,
+                    HugeIcons.strokeRoundedCall,
+                    merchant.phone,
+                    canCopy: true,
+                  ),
                 if (merchant.email.isNotEmpty)
-                  _buildMetaTile(context, HugeIcons.strokeRoundedMail01, merchant.email, canCopy: true),
+                  _buildMetaTile(
+                    context,
+                    HugeIcons.strokeRoundedMail01,
+                    merchant.email,
+                    canCopy: true,
+                  ),
               ],
             ),
           ),
@@ -167,7 +188,12 @@ class MerchantProfileHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildMetaTile(BuildContext context, dynamic icon, String text, {bool canCopy = false}) {
+  Widget _buildMetaTile(
+    BuildContext context,
+    dynamic icon,
+    String text, {
+    bool canCopy = false,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),

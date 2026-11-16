@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_confirm_dialog.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../shop/domain/shop_entities.dart';
 
@@ -23,6 +24,26 @@ class CartOrderSummary extends StatelessWidget {
 
   /// Toggleable shipping configuration. Shipping method is selected during checkout.
   static const bool enableShipping = false;
+
+  Future<void> _confirmClear(BuildContext context) async {
+    final count = cart.itemCount;
+    final itemLabel = count == 1 ? 'item' : 'items';
+    await AppConfirmDialog.show(
+      context,
+      icon: const HugeIcon(
+        icon: HugeIcons.strokeRoundedDelete02,
+        size: 28,
+        color: AppColors.error,
+      ),
+      title: 'Clear Cart?',
+      message:
+          'Remove all $count $itemLabel from your cart? This action cannot be undone.',
+      confirmText: 'Clear Cart',
+      cancelText: 'Keep Items',
+      isDestructive: true,
+      onConfirm: onClear,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,26 +137,38 @@ class CartOrderSummary extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
-              OutlinedButton(
-                onPressed: onClear,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.error,
-                  side: const BorderSide(color: AppColors.error),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
+              Tooltip(
+                message: 'Clear cart',
+                child: OutlinedButton(
+                  onPressed: () => _confirmClear(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: BorderSide(color: AppColors.error.withAlpha(110)),
+                    minimumSize: const Size(48, 48),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: AppSpacing.borderRadiusMD,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                    ),
                   ),
-                ),
-                child: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedDelete02,
-                  size: AppSpacing.iconSizeSM,
-                  color: AppColors.error,
+                  child: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedDelete02,
+                    size: AppSpacing.iconSizeSM,
+                    color: AppColors.error,
+                  ),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: FilledButton(
                   onPressed: onCheckout,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: AppSpacing.borderRadiusMD,
+                    ),
+                  ),
                   child: const Text('Checkout'),
                 ),
               ),
