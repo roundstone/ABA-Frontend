@@ -15,6 +15,7 @@ import '../../merchants/application/merchant_providers.dart';
 import '../../wishlist/application/wishlist_providers.dart';
 import '../../wishlist/presentation/widgets/wishlist_button.dart';
 import 'widgets/about_seller_tab.dart';
+import 'widgets/product_image_gallery_viewer.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   const ProductDetailScreen({
@@ -1072,7 +1073,7 @@ class _ProductDetailBody extends ConsumerWidget {
 
 // ─── Image gallery sliver app bar ─────────────────────────────────────────
 
-class _ImageSliverAppBar extends StatelessWidget {
+class _ImageSliverAppBar extends StatefulWidget {
   const _ImageSliverAppBar({
     required this.product,
     required this.selectedIndex,
@@ -1083,12 +1084,61 @@ class _ImageSliverAppBar extends StatelessWidget {
   final ValueChanged<int> onImageSelect;
 
   @override
+  State<_ImageSliverAppBar> createState() => _ImageSliverAppBarState();
+}
+
+class _ImageSliverAppBarState extends State<_ImageSliverAppBar> {
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: widget.selectedIndex);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ImageSliverAppBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedIndex != widget.selectedIndex &&
+        _pageController.hasClients &&
+        _pageController.page?.round() != widget.selectedIndex) {
+      _pageController.animateToPage(
+        widget.selectedIndex,
+        duration: AppSpacing.animationFast,
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openFullView() async {
+    final images = widget.product.images;
+    if (images.isEmpty) return;
+    final returnedIndex = await ProductImageGalleryViewer.show(
+      context,
+      images: images,
+      initialIndex: widget.selectedIndex,
+      title: widget.product.name,
+    );
+    if (returnedIndex != null && returnedIndex != widget.selectedIndex) {
+      widget.onImageSelect(returnedIndex);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final product = widget.product;
     final images = product.images;
+    final selectedIndex = widget.selectedIndex;
 
     return SliverAppBar(
-      expandedHeight: 320,
+      expandedHeight: 360,
       pinned: true,
       backgroundColor: cs.surface,
       leading: GestureDetector(
@@ -1138,12 +1188,60 @@ class _ImageSliverAppBar extends StatelessWidget {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            AppNetworkImage.product(
-              imageUrl: images.isNotEmpty ? images[selectedIndex] : null,
-              fit: BoxFit.cover,
+            PageView.builder(
+              controller: _pageController,
+              itemCount: images.isEmpty ? 1 : images.length,
+              onPageChanged: widget.onImageSelect,
+              itemBuilder: (_, i) => GestureDetector(
+                onTap: _openFullView,
+                child: AppNetworkImage.product(
+                  imageUrl: images.isNotEmpty ? images[i] : null,
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
 
-            // Thumbnail strip
+            // Full-view / count pill
+            if (images.isNotEmpty)
+              Positioned(
+                bottom: AppSpacing.md,
+                right: AppSpacing.md,
+                child: GestureDetector(
+                  onTap: _openFullView,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withAlpha(150),
+                      borderRadius: AppSpacing.avatarRadius,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.fullscreen_rounded,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                        if (images.length > 1) ...[
+                          const SizedBox(width: 4),
+                          Text(
+                            '${selectedIndex + 1}/${images.length}',
+                            style: AppTypography.caption.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+            // Thumbnail dots
             if (images.length > 1)
               Positioned(
                 bottom: AppSpacing.md,
@@ -1154,7 +1252,7 @@ class _ImageSliverAppBar extends StatelessWidget {
                   children: List.generate(
                     images.length,
                     (i) => GestureDetector(
-                      onTap: () => onImageSelect(i),
+                      onTap: () => widget.onImageSelect(i),
                       child: AnimatedContainer(
                         duration: AppSpacing.animationFast,
                         margin: const EdgeInsets.symmetric(

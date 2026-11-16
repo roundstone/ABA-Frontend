@@ -9,6 +9,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../account/application/orders_providers.dart';
 import '../../account/domain/customer_order.dart';
+import '../../auth/application/auth_providers.dart';
 import '../../rewards/application/rewards_providers.dart';
 import '../../wallet/application/wallet_providers.dart';
 import '../application/customer_providers.dart' hide customerOrdersProvider;
@@ -32,6 +33,7 @@ class DashboardScreen extends ConsumerWidget {
     final ordersAsync = ref.watch(customerOrdersProvider);
     final referralAsync = ref.watch(referralDataProvider);
     final rewardSummaryAsync = ref.watch(rewardSummaryProvider);
+    final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -62,20 +64,27 @@ class DashboardScreen extends ConsumerWidget {
               await ref.read(dashboardSummaryProvider.future);
             },
             child: _DashboardBody(
-              profile: summary.profile,
+              profile: currentUser == null
+                  ? summary.profile
+                  : customer_domain.CustomerProfile(
+                      id: currentUser.id,
+                      firstName: currentUser.name.trim().split(RegExp(r'\s+')).first,
+                      lastName: currentUser.name.trim().split(RegExp(r'\s+')).skip(1).join(' '),
+                      email: currentUser.email,
+                      phone: currentUser.phone,
+                      referralCode: currentUser.referralCode ?? summary.profile.referralCode,
+                    ),
               walletInfoAsync: walletInfoAsync,
               shoppingCreditsAsync: shoppingCreditsAsync,
               orders: ordersAsync.value ?? [],
               isOrdersLoading: ordersAsync.isLoading,
               transactions: walletTransactionsAsync.value ?? [],
               isTransactionsLoading: walletTransactionsAsync.isLoading,
-              referralEarned: referralAsync.value != null
-                  ? referralAsync.value!.metrics.totalEarned.toDouble()
-                  : summary.totalEarned,
+              referralEarned:
+                  referralAsync.value?.metrics.totalEarned.toDouble() ?? 0.0,
               networkMembersCount:
-                  referralAsync.value?.metrics.totalNetwork ?? 142,
-              rewardPoints:
-                  rewardSummaryAsync.value?.available ?? summary.totalPoints,
+                  referralAsync.value?.metrics.totalNetwork ?? 0,
+              rewardPoints: rewardSummaryAsync.value?.available ?? 0,
               ref: ref,
             ),
           ),

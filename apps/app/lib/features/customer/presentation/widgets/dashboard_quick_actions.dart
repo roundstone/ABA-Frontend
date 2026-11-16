@@ -27,12 +27,12 @@ class DashboardQuickActions extends StatelessWidget {
       color: Color(0xFFEC4899),
       route: '/referrals',
     ),
-    _QuickActionItem(
-      label: 'Rewards',
-      icon: HugeIcons.strokeRoundedAward01,
-      color: Color(0xFFF59E0B),
-      route: '/rewards',
-    ),
+    // _QuickActionItem(
+    //   label: 'Rewards',
+    //   icon: HugeIcons.strokeRoundedAward01,
+    //   color: Color(0xFFF59E0B),
+    //   route: '/rewards',
+    // ),
   ];
 
   @override
@@ -105,11 +105,7 @@ class _QuickActionButton extends StatelessWidget {
                   borderRadius: AppSpacing.borderRadiusSM,
                 ),
                 child: Center(
-                  child: HugeIcon(
-                    icon: item.icon,
-                    color: item.color,
-                    size: 18,
-                  ),
+                  child: HugeIcon(icon: item.icon, color: item.color, size: 18),
                 ),
               ),
               const SizedBox(height: AppSpacing.xs),

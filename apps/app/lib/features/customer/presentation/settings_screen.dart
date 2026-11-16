@@ -108,39 +108,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 );
               },
             ),
-            ListTile(
-              leading: const Icon(
-                Icons.notifications_active_outlined,
-                size: 20,
-              ),
-              title: const Text('Push Diagnostics & Live Test'),
-              subtitle: const Text('View device FCM token & simulate flows'),
-              trailing: const Icon(Icons.chevron_right, size: 20),
-              onTap: () => NotificationDebugSheet.show(context),
-            ),
-            SwitchListTile.adaptive(
-              title: const Text('Email Updates'),
-              subtitle: const Text('Receipts and monthly summary'),
-              value: _emailUpdates,
-              onChanged: (v) => setState(() => _emailUpdates = v),
-            ),
-            const ListTile(
-              leading: Icon(Icons.currency_exchange, size: 20),
-              title: Text('Currency'),
-              trailing: Text(
-                'NGN (₦)',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
+            // ListTile(
+            //   leading: const Icon(
+            //     Icons.notifications_active_outlined,
+            //     size: 20,
+            //   ),
+            //   title: const Text('Push Diagnostics & Live Test'),
+            //   subtitle: const Text('View device FCM token & simulate flows'),
+            //   trailing: const Icon(Icons.chevron_right, size: 20),
+            //   onTap: () => NotificationDebugSheet.show(context),
+            // ),
+            // SwitchListTile.adaptive(
+            //   title: const Text('Email Updates'),
+            //   subtitle: const Text('Receipts and monthly summary'),
+            //   value: _emailUpdates,
+            //   onChanged: (v) => setState(() => _emailUpdates = v),
+            // ),
+            // const ListTile(
+            //   leading: Icon(Icons.currency_exchange, size: 20),
+            //   title: Text('Currency'),
+            //   trailing: Text(
+            //     'NGN (₦)',
+            //     style: TextStyle(fontWeight: FontWeight.bold),
+            //   ),
+            // ),
             const SizedBox(height: AppSpacing.md),
 
             const _SectionTitle(title: 'Security'),
-            SwitchListTile.adaptive(
-              title: const Text('Biometric Login'),
-              subtitle: const Text('Use FaceID / Fingerprint to open app'),
-              value: _biometrics,
-              onChanged: (v) => setState(() => _biometrics = v),
-            ),
+            // SwitchListTile.adaptive(
+            //   title: const Text('Biometric Login'),
+            //   subtitle: const Text('Use FaceID / Fingerprint to open app'),
+            //   value: _biometrics,
+            //   onChanged: (v) => setState(() => _biometrics = v),
+            // ),
             ListTile(
               leading: const Icon(Icons.verified_user_outlined, size: 20),
               title: const Text('KYC Verification'),

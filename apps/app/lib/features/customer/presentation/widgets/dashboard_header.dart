@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/notification_icon_button.dart';
+import '../../../auth/application/auth_providers.dart';
 import '../../domain/customer_entities.dart';
 
 class DashboardHeader extends ConsumerWidget {
@@ -17,6 +18,19 @@ class DashboardHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final user = ref.watch(currentUserProvider);
+    final rawName = user?.name.trim() ?? '';
+    final nameParts = rawName.isEmpty
+        ? const <String>[]
+        : rawName.split(RegExp(r'\s+'));
+    final displayName = nameParts.isNotEmpty
+        ? nameParts.first
+        : profile.firstName;
+    final initials = nameParts.length >= 2
+        ? '${nameParts.first[0]}${nameParts.last[0]}'.toUpperCase()
+        : nameParts.length == 1
+        ? nameParts.first.substring(0, nameParts.first.length >= 2 ? 2 : 1).toUpperCase()
+        : profile.initials;
 
     return SliverAppBar(
       expandedHeight: 150,
@@ -58,7 +72,7 @@ class DashboardHeader extends ConsumerWidget {
                     radius: 26,
                     backgroundColor: Colors.white.withAlpha(40),
                     child: Text(
-                      profile.initials,
+                      initials,
                       style: AppTypography.h5.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -78,7 +92,7 @@ class DashboardHeader extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          profile.firstName,
+                          displayName,
                           style: AppTypography.h4.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
