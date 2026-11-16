@@ -1,3 +1,4 @@
+import '../../../core/network/api_endpoints.dart';
 import 'product_variant.dart';
 import 'shop_category.dart';
 
@@ -149,18 +150,26 @@ class Product {
     if (json['colors'] is List) colorsList.addAll((json['colors'] as List).map((e) => e.toString()));
     if (json['sizes'] is List) sizesList.addAll((json['sizes'] as List).map((e) => e.toString()));
 
+    String normalizeImageUrl(String raw) {
+      final trimmed = raw.trim();
+      if (trimmed.startsWith('/')) return ApiEndpoints.url(trimmed);
+      return trimmed;
+    }
+
     final imagesList = <String>[];
     if (json['images'] is List) {
       for (final item in json['images'] as List) {
         if (item is Map) {
           final u = item['url'] ?? item['image_url'] ?? item['path'];
-          if (u != null && u.toString().trim().isNotEmpty) imagesList.add(u.toString().trim());
+          if (u != null && u.toString().trim().isNotEmpty) {
+            imagesList.add(normalizeImageUrl(u.toString()));
+          }
         } else if (item != null && item.toString().trim().isNotEmpty) {
-          imagesList.add(item.toString().trim());
+          imagesList.add(normalizeImageUrl(item.toString()));
         }
       }
     } else if (json['image_url'] != null && json['image_url'].toString().trim().isNotEmpty) {
-      imagesList.add(json['image_url'].toString().trim());
+      imagesList.add(normalizeImageUrl(json['image_url'].toString()));
     }
 
     final prodId = int.tryParse(json['id']?.toString() ?? '') ?? 0;

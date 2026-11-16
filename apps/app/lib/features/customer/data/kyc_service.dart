@@ -71,6 +71,19 @@ class KycService {
     }
   }
 
+  /// Returns `null` if the user has not created a KYC profile yet (404 / not found).
+  Future<KycProfile?> getOptionalProfile() async {
+    try {
+      return await getProfile();
+    } on ApiError catch (e) {
+      if (e.statusCode == 404 ||
+          e.message.toLowerCase().contains('not found')) {
+        return null;
+      }
+      rethrow;
+    }
+  }
+
   /// PUT: /api/v1/kyc/mobile-app/profile
   Future<KycProfile> updateProfile({
     required String dateOfBirth,
@@ -152,6 +165,32 @@ class KycService {
         AppLogger.w('KYC profile already submitted; continuing.');
         return null;
       }
+      AppLogger.e('Failed to submit KYC profile', error: e);
+      throw ApiError.fromDio(e);
+    }
+  }
+
+  /// POST: /api/v1/kyc/mobile-app/profile/submit
+  Future<KycProfile?> submitProfile() async {
+    if (AppConfig.isMockMode) {
+      return KycProfile(
+        id: 608,
+        userId: 10,
+        status: 2,
+        submittedAt: DateTime.now(),
+      );
+    }
+
+    final endpoint = ApiEndpoints.kyc.submitProfile;
+    try {
+      AppLogger.d('POST $endpoint');
+      final response = await dio.post(endpoint);
+      final body = response.data;
+      if (body is Map<String, dynamic>) {
+        return KycProfile.fromJson(body);
+      }
+      return null;
+    } on DioException catch (e) {
       AppLogger.e('Failed to submit KYC profile', error: e);
       throw ApiError.fromDio(e);
     }

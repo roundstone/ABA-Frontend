@@ -16,6 +16,7 @@ import '../../features/marketer/presentation/marketer_add_customer_screen.dart';
 import '../../features/marketer/presentation/marketer_merchant_profile_screen.dart';
 import '../../features/customer/presentation/customer_shell.dart';
 import '../../features/customer/presentation/dashboard_screen.dart';
+import '../../features/customer/presentation/kyc_profile_screen.dart';
 import '../../features/customer/presentation/marketer_profile_screen.dart';
 import '../../features/customer/presentation/referrals_screen.dart';
 import '../../features/customer/presentation/commission_ledger_screen.dart';
@@ -115,6 +116,8 @@ List<RouteBase> buildAppRoutes(GlobalKey<NavigatorState> rootKey) => [
   GoRoute(path: '/account/network', redirect: (_, __) => '/referrals/profile'),
   GoRoute(path: '/account/earnings', redirect: (_, __) => '/referrals'),
   GoRoute(path: '/account/addresses', parentNavigatorKey: rootKey, builder: (_, __) => const SavedAddressesScreen()),
+  GoRoute(path: '/account/kyc', parentNavigatorKey: rootKey, builder: (_, __) => const KycProfileScreen()),
+  GoRoute(path: '/portal/kyc', redirect: (_, __) => '/account/kyc'),
   GoRoute(path: '/wishlist', parentNavigatorKey: rootKey, builder: (_, __) => const WishlistScreen()),
   GoRoute(path: '/account/wishlist', redirect: (_, __) => '/wishlist'),
   GoRoute(path: '/settings', parentNavigatorKey: rootKey, builder: (_, __) => const SettingsScreen()),

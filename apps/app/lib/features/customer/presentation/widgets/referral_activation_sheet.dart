@@ -12,15 +12,18 @@ import 'referral_activation_steps.dart';
 
 /// Interactive modal sheet to complete KYC and Pay Referral Activation Fee.
 class ReferralActivationSheet extends ConsumerStatefulWidget {
-  const ReferralActivationSheet({super.key});
+  const ReferralActivationSheet({super.key, this.initialStep = 0});
 
-  static Future<void> show(BuildContext context) => showModalBottomSheet(
+  final int initialStep;
+
+  static Future<void> show(BuildContext context, {int initialStep = 0}) =>
+      showModalBottomSheet(
         context: rootNavigatorKey.currentContext ?? context,
         useRootNavigator: true,
         useSafeArea: true,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (_) => const ReferralActivationSheet(),
+        builder: (_) => ReferralActivationSheet(initialStep: initialStep),
       );
 
   @override
@@ -48,6 +51,7 @@ class _ReferralActivationSheetState
   @override
   void initState() {
     super.initState();
+    _step = widget.initialStep;
     _prefillFromExistingProfile();
   }
 
@@ -79,17 +83,15 @@ class _ReferralActivationSheetState
     } catch (_) {}
   }
 
+  bool get _isAlreadyPaid {
+    final profile = ref.read(optionalKycProfileProvider).valueOrNull;
+    final credit = ref.read(shoppingCreditsProvider).valueOrNull;
+    return (profile?.isActivationPaid ?? false) || (credit?.isActivated ?? false);
+  }
+
   @override
   void dispose() {
-    for (final c in [
-      _ninController,
-      _dobController,
-      _nationalityController,
-      _addressController,
-      _cityController,
-      _stateController,
-      _lgaController,
-    ]) {
+    for (final c in [_ninController, _dobController, _nationalityController, _addressController, _cityController, _stateController, _lgaController]) {
       c.dispose();
     }
     super.dispose();
@@ -116,10 +118,13 @@ class _ReferralActivationSheetState
             lga: _lgaController.text.trim(),
           );
       if (!mounted) return;
-      setState(() {
-        _isSubmittingKyc = false;
-        _step = 1;
-      });
+      if (_isAlreadyPaid) {
+        setState(() => _isSubmittingKyc = false);
+        Navigator.of(context).pop();
+        AppSnackbar.success(context, 'KYC submitted! Your activation fee is already settled.');
+        return;
+      }
+      setState(() { _isSubmittingKyc = false; _step = 1; });
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSubmittingKyc = false);
@@ -128,6 +133,13 @@ class _ReferralActivationSheetState
   }
 
   Future<void> _processPayment() async {
+    if (_isAlreadyPaid) {
+      if (mounted) {
+        AppSnackbar.info(context, 'Activation fee is already paid.');
+        setState(() => _step = 2);
+      }
+      return;
+    }
     setState(() => _isProcessingPayment = true);
     try {
       final notifier = ref.read(referralActivationProvider.notifier);
@@ -156,6 +168,8 @@ class _ReferralActivationSheetState
       ref.invalidate(walletInfoProvider);
       ref.invalidate(shoppingCreditsProvider);
       ref.invalidate(walletTransactionsProvider);
+      ref.invalidate(optionalKycProfileProvider);
+      ref.invalidate(kycProfileProvider);
 
       if (!mounted) return;
       setState(() { _isProcessingPayment = false; _step = 2; });
@@ -177,20 +191,12 @@ class _ReferralActivationSheetState
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: mq.size.height * 0.90),
         child: Container(
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
+          decoration: BoxDecoration(color: bg, borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
           child: SafeArea(
             top: false,
             bottom: true,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.lg + mq.padding.bottom,
-              ),
+              padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.lg + mq.padding.bottom),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -200,10 +206,7 @@ class _ReferralActivationSheetState
                       child: Container(
                         width: 40,
                         height: 4,
-                        decoration: BoxDecoration(
-                          color: isDark ? Colors.white24 : Colors.black12,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
+                        decoration: BoxDecoration(color: isDark ? Colors.white24 : Colors.black12, borderRadius: BorderRadius.circular(2)),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.lg),

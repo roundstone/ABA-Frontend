@@ -1,5 +1,6 @@
 import 'package:app/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 export 'app_dropdown_field.dart';
 export 'app_network_image.dart';
 export 'app_snackbar.dart';
@@ -10,6 +11,7 @@ import '../../features/customer/domain/customer_entities.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import 'app_snackbar.dart';
 
 /// Formats numbers as Nigerian Naira (₦ 1,500.00).
 String formatNaira(double amount) {
@@ -197,5 +199,47 @@ class OrderStatusBadge extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+String getWhatsAppLink(String phoneNumber, String name) {
+  // Remove all non-digit characters
+  final cleanedNumber = phoneNumber.replaceAll(RegExp(r'\D'), '');
+
+  // Convert Nigerian local numbers to international format
+  final formattedNumber = cleanedNumber.startsWith('0')
+      ? '234${cleanedNumber.substring(1)}'
+      : cleanedNumber;
+
+  final message = "Hello $name, I'm interested in your products";
+
+  final encodedMessage = Uri.encodeComponent(message);
+
+  return 'https://wa.me/$formattedNumber?text=$encodedMessage';
+}
+
+/// Launches WhatsApp chat for a seller using [getWhatsAppLink].
+Future<bool> launchWhatsAppChat(
+  BuildContext context, {
+  required String phoneNumber,
+  required String sellerName,
+}) async {
+  final cleaned = phoneNumber.replaceAll(RegExp(r'\D'), '');
+  if (cleaned.isEmpty) {
+    AppSnackbar.info(context, 'Seller WhatsApp contact is not available.');
+    return false;
+  }
+  final uri = Uri.parse(getWhatsAppLink(phoneNumber, sellerName));
+  try {
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched && context.mounted) {
+      AppSnackbar.error(context, 'Could not open WhatsApp.');
+    }
+    return launched;
+  } catch (_) {
+    if (context.mounted) {
+      AppSnackbar.error(context, 'Could not open WhatsApp.');
+    }
+    return false;
   }
 }

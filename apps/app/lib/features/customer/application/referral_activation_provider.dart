@@ -228,6 +228,7 @@ class ReferralActivationNotifier
     }
 
     _ref.invalidate(kycProfileProvider);
+    _ref.invalidate(optionalKycProfileProvider);
     _ref.invalidate(kycDocumentsProvider);
 
     state = state.copyWith(
@@ -302,6 +303,14 @@ final kycProfileProvider = FutureProvider.autoDispose<KycProfile>((ref) {
   final timer = Timer(const Duration(minutes: 5), link.close);
   ref.onDispose(timer.cancel);
   return ref.watch(kycServiceProvider).getProfile();
+});
+
+final optionalKycProfileProvider =
+    FutureProvider.autoDispose<KycProfile?>((ref) {
+  final link = ref.keepAlive();
+  final timer = Timer(const Duration(minutes: 5), link.close);
+  ref.onDispose(timer.cancel);
+  return ref.watch(kycServiceProvider).getOptionalProfile();
 });
 
 final kycDocumentsProvider =

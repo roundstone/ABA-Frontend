@@ -1,7 +1,9 @@
 import 'package:app/features/customer/application/referral_activation_provider.dart';
 import 'package:app/features/customer/data/kyc_service.dart';
+import 'package:app/features/customer/domain/kyc_models.dart';
 import 'package:app/features/customer/domain/referral_activation_model.dart';
 import 'package:app/features/customer/presentation/widgets/referral_activation_card.dart';
+import 'package:app/features/wallet/application/wallet_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -42,7 +44,7 @@ void main() {
   });
 
   group('ReferralActivationCard Widget Tests', () {
-    testWidgets('renders generate referral code CTA when user has no referral code', (tester) async {
+    testWidgets('renders activation CTA when KYC is not approved and fee is unpaid', (tester) async {
       final notifier = _MockReferralNotifier(
         const ReferralActivationState(
           referralCode: null,
@@ -59,6 +61,10 @@ void main() {
         ProviderScope(
           overrides: [
             referralActivationProvider.overrideWith((ref) => notifier),
+            optionalKycProfileProvider.overrideWith((_) async => null),
+            shoppingCreditsProvider.overrideWith(
+              (_) async => const ShoppingCreditInfo(balance: 0.0, isActivated: false),
+            ),
           ],
           child: const MaterialApp(
             home: Scaffold(
@@ -73,11 +79,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('COMMISSION INACTIVE'), findsOneWidget);
-      expect(find.text('Complete KYC & Activate (₦5,000)'), findsOneWidget);
-      expect(find.text('Generate Referral Code'), findsOneWidget);
+      expect(find.text('Activate Earning (KYC & ₦5,000 Fee)'), findsOneWidget);
+      expect(find.text('View KYC Profile'), findsOneWidget);
     });
 
-    testWidgets('renders Share Referral Code when user already has code', (tester) async {
+    testWidgets('renders Commission Earning Active when KYC is approved and fee is paid', (tester) async {
       final notifier = _MockReferralNotifier(
         const ReferralActivationState(
           referralCode: 'CUSTOMER-4-C701F16C',
@@ -94,6 +100,12 @@ void main() {
         ProviderScope(
           overrides: [
             referralActivationProvider.overrideWith((ref) => notifier),
+            optionalKycProfileProvider.overrideWith(
+              (_) async => const KycProfile(id: 1, userId: 10, status: 3),
+            ),
+            shoppingCreditsProvider.overrideWith(
+              (_) async => const ShoppingCreditInfo(balance: 5000.0, isActivated: true),
+            ),
           ],
           child: const MaterialApp(
             home: Scaffold(
@@ -107,47 +119,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Share Referral Code'), findsOneWidget);
-    });
-
-    testWidgets('tapping Generate Referral Code triggers generateReferralCode', (tester) async {
-      final notifier = _MockReferralNotifier(
-        const ReferralActivationState(
-          referralCode: null,
-          id: null,
-          isActive: false,
-          status: ReferralActivationStatus.inactive,
-          feeAmountNaira: 5000,
-          isKycCompleted: false,
-          isFeePaid: false,
-        ),
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            referralActivationProvider.overrideWith((ref) => notifier),
-          ],
-          child: const MaterialApp(
-            home: Scaffold(
-              body: SingleChildScrollView(
-                child: ReferralActivationCard(),
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      final generateButton = find.text('Generate Referral Code');
-      expect(generateButton, findsOneWidget);
-
-      await tester.tap(generateButton);
-      await tester.pumpAndSettle();
-
-      expect(notifier.generateCalled, isTrue);
-      expect(find.text('Share Referral Code'), findsOneWidget);
+      expect(find.text('Commission Earning Active'), findsOneWidget);
+      expect(find.text('VERIFIED'), findsOneWidget);
     });
   });
 }

@@ -1,3 +1,23 @@
+import 'kyc_payment_models.dart';
+export 'kyc_payment_models.dart';
+
+String kycDocumentTypeLabel(int type) {
+  switch (type) {
+    case 1:
+      return 'National ID';
+    case 2:
+      return 'International passport';
+    case 3:
+      return "Driver's license";
+    case 4:
+      return 'Proof of address';
+    case 5:
+      return 'Business registration';
+    default:
+      return 'Document';
+  }
+}
+
 class KycDocument {
   const KycDocument({
     required this.id,
@@ -59,6 +79,7 @@ class KycProfile {
     this.rejectionReason,
     this.submittedAt,
     this.reviewedAt,
+    this.activationPayment,
     this.documents = const [],
   });
 
@@ -74,9 +95,31 @@ class KycProfile {
   final String? rejectionReason;
   final DateTime? submittedAt;
   final DateTime? reviewedAt;
+  final KycActivationPayment? activationPayment;
   final List<KycDocument> documents;
 
+  bool get isPending => status == 1;
+  bool get isUnderReview => status == 2;
+  bool get isApproved => status == 3;
+  bool get isRejected => status == 4;
+  bool get isEditable => status == 0 || status == 1 || status == 4;
   bool get isSubmitted => submittedAt != null || status >= 2;
+  bool get isActivationPaid => activationPayment?.isSuccessful == true;
+
+  String get statusLabel {
+    switch (status) {
+      case 1:
+        return 'Pending';
+      case 2:
+        return 'Under review';
+      case 3:
+        return 'Approved';
+      case 4:
+        return 'Rejected';
+      default:
+        return 'Pending';
+    }
+  }
 
   factory KycProfile.fromJson(Map<String, dynamic> json) {
     final data = json['data'] is Map ? json['data'] : json;
@@ -89,6 +132,14 @@ class KycProfile {
     final docsList = (map['documents'] ?? profileMap['documents']) is List
         ? ((map['documents'] ?? profileMap['documents']) as List)
         : const [];
+    final rawPayment =
+        map['activationPayment'] ??
+        map['activation_payment'] ??
+        profileMap['activationPayment'] ??
+        profileMap['activation_payment'];
+    final payment = rawPayment is Map
+        ? KycActivationPayment.fromJson(Map<String, dynamic>.from(rawPayment))
+        : null;
 
     return KycProfile(
       id: (profileMap['id'] as num?)?.toInt() ?? 0,
@@ -122,62 +173,11 @@ class KycProfile {
                       .toString(),
                 )
               : null,
+      activationPayment: payment,
       documents: docsList
           .whereType<Map>()
           .map((d) => KycDocument.fromJson(Map<String, dynamic>.from(d)))
           .toList(),
-    );
-  }
-}
-
-class KycPaymentInitResult {
-  const KycPaymentInitResult({
-    required this.reference,
-    required this.email,
-    required this.amountInKobo,
-    required this.publicKey,
-    this.authorizationUrl,
-    this.paymentId,
-    this.status,
-  });
-
-  final String reference;
-  final String email;
-  final int amountInKobo;
-  final String publicKey;
-  final String? authorizationUrl;
-  final int? paymentId;
-  final String? status;
-
-  double get amountNaira => amountInKobo / 100.0;
-
-  factory KycPaymentInitResult.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] is Map
-        ? Map<String, dynamic>.from(json['data'] as Map)
-        : json;
-    final payment = data['payment'] is Map
-        ? Map<String, dynamic>.from(data['payment'] as Map)
-        : null;
-    final rawAmount = data['amount'];
-    int kobo = 500000;
-    if (rawAmount is int) {
-      kobo = rawAmount;
-    } else if (rawAmount is num) {
-      kobo = rawAmount.toInt();
-    } else if (rawAmount != null) {
-      kobo = int.tryParse(rawAmount.toString()) ?? 500000;
-    }
-
-    return KycPaymentInitResult(
-      reference:
-          (data['reference'] ?? payment?['reference'])?.toString() ?? '',
-      email: data['email']?.toString() ?? '',
-      amountInKobo: kobo,
-      publicKey: data['publicKey']?.toString() ?? '',
-      authorizationUrl: (data['authorizationUrl'] ?? data['authorization_url'])
-          ?.toString(),
-      paymentId: (payment?['id'] as num?)?.toInt(),
-      status: payment?['status']?.toString(),
     );
   }
 }

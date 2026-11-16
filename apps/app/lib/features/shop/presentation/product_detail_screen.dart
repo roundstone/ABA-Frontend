@@ -11,6 +11,7 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../application/shop_providers.dart';
 import '../domain/shop_entities.dart';
+import '../../merchants/application/merchant_providers.dart';
 import '../../wishlist/application/wishlist_providers.dart';
 import '../../wishlist/presentation/widgets/wishlist_button.dart';
 import 'widgets/about_seller_tab.dart';
@@ -189,6 +190,10 @@ class _ProductDetailBody extends ConsumerWidget {
     final cart = ref.watch(cartProvider).valueOrNull ?? const Cart();
     final inCart = cart.containsProduct(product);
     final isWishlisted = ref.watch(isProductInWishlistProvider(product.id));
+    final merchantId = (product.merchantId ?? product.vendorId)?.toString();
+    if (merchantId != null && merchantId.isNotEmpty) {
+      ref.watch(merchantDetailProvider(merchantId));
+    }
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -344,7 +349,8 @@ class _ProductDetailBody extends ConsumerWidget {
                         ),
                       ),
                       OutlinedButton(
-                        onPressed: () {},
+                        onPressed: () =>
+                            _messageSeller(context, ref, product, merchantId),
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size(0, 32),
                           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -991,8 +997,10 @@ class _ProductDetailBody extends ConsumerWidget {
                     key: aboutSellerKey,
                     reviewsKey: reviewsKey,
                     merchantName: product.brand,
-                    merchantId: (product.merchantId ?? product.vendorId)?.toString(),
+                    merchantId: merchantId,
                     productId: product.id,
+                    onMessageSeller: () =>
+                        _messageSeller(context, ref, product, merchantId),
                   ),
                 ],
               ),
@@ -1023,6 +1031,33 @@ class _ProductDetailBody extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+
+  Future<void> _messageSeller(
+    BuildContext context,
+    WidgetRef ref,
+    Product product,
+    String? merchantId,
+  ) async {
+    var phone = '';
+    var sellerName = product.brand;
+    if (merchantId != null && merchantId.isNotEmpty) {
+      try {
+        final cached = ref.read(merchantDetailProvider(merchantId)).valueOrNull;
+        final merchant =
+            cached ?? await ref.read(merchantDetailProvider(merchantId).future);
+        if (merchant != null) {
+          phone = merchant.phone;
+          if (merchant.name.isNotEmpty) sellerName = merchant.name;
+        }
+      } catch (_) {}
+    }
+    if (!context.mounted) return;
+    await launchWhatsAppChat(
+      context,
+      phoneNumber: phone,
+      sellerName: sellerName,
     );
   }
 }

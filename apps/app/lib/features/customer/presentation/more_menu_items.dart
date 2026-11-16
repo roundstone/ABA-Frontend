@@ -43,12 +43,13 @@ List<MoreMenuItem> buildMoreMenuItems({
         color: Color(0xFFEC4899),
         route: '/referrals',
       ),
-      const MoreMenuItem(
-        icon: HugeIcons.strokeRoundedAward01,
-        label: 'Reward Points',
-        color: Color(0xFFF59E0B),
-        route: '/rewards',
-      ),
+      // Reward points are not yet implemented
+      // const MoreMenuItem(
+      //   icon: HugeIcons.strokeRoundedAward01,
+      //   label: 'Reward Points',
+      //   color: Color(0xFFF59E0B),
+      //   route: '/rewards',
+      // ),
       const MoreMenuItem(
         icon: HugeIcons.strokeRoundedSettings01,
         label: 'Settings',
@@ -84,17 +85,24 @@ List<MoreMenuItem> buildMoreMenuItems({
       color: Color(0xFFC28B38),
       route: '/community',
     ),
-    const MoreMenuItem(
-      icon: HugeIcons.strokeRoundedAward01,
-      label: 'Reward Points',
-      color: Color(0xFFF59E0B),
-      route: '/rewards',
-    ),
+    // Reward points are not yet implemented
+    // const MoreMenuItem(
+    //   icon: HugeIcons.strokeRoundedAward01,
+    //   label: 'Reward Points',
+    //   color: Color(0xFFF59E0B),
+    //   route: '/rewards',
+    // ),
     const MoreMenuItem(
       icon: HugeIcons.strokeRoundedNetwork,
       label: 'Referrals',
       color: Color(0xFFEC4899),
       route: '/referrals',
+    ),
+    const MoreMenuItem(
+      icon: HugeIcons.strokeRoundedShieldKey,
+      label: 'KYC Verification',
+      color: Color(0xFF0EA5E9),
+      route: '/account/kyc',
     ),
     const MoreMenuItem(
       icon: HugeIcons.strokeRoundedShoppingBag01,

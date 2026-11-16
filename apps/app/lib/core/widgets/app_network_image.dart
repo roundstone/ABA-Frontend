@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../network/api_endpoints.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
@@ -88,6 +89,20 @@ class AppNetworkImage extends StatelessWidget {
   final int? memCacheHeight;
   final String? cacheKey;
 
+  /// Resolves relative API media paths (e.g. `/api/v1/media/...`) to full URLs.
+  static String? resolveUrl(String? url) {
+    if (url == null) return null;
+    final trimmed = url.trim();
+    if (trimmed.isEmpty) return null;
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('/')) {
+      return ApiEndpoints.url(trimmed);
+    }
+    return null;
+  }
+
   /// Returns a [CachedNetworkImageProvider] for use with [CircleAvatar] or [DecorationImage].
   static ImageProvider provider(
     String imageUrl, {
@@ -95,29 +110,24 @@ class AppNetworkImage extends StatelessWidget {
     int? maxHeight,
     int? maxWidth,
   }) {
+    final resolved = resolveUrl(imageUrl) ?? imageUrl;
     return CachedNetworkImageProvider(
-      imageUrl,
+      resolved,
       cacheKey: cacheKey,
       maxHeight: maxHeight,
       maxWidth: maxWidth,
     );
   }
 
-  bool get _isValidUrl {
-    if (imageUrl == null) return false;
-    final trimmed = imageUrl!.trim();
-    return trimmed.isNotEmpty &&
-        (trimmed.startsWith('http://') || trimmed.startsWith('https://'));
-  }
-
   @override
   Widget build(BuildContext context) {
+    final resolvedUrl = resolveUrl(imageUrl);
     final Widget imageContent;
-    if (!_isValidUrl) {
+    if (resolvedUrl == null) {
       imageContent = _buildFallback(context);
     } else {
       imageContent = CachedNetworkImage(
-        imageUrl: imageUrl!.trim(),
+        imageUrl: resolvedUrl,
         cacheKey: cacheKey,
         width: width,
         height: height,

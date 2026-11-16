@@ -142,6 +142,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onChanged: (v) => setState(() => _biometrics = v),
             ),
             ListTile(
+              leading: const Icon(Icons.verified_user_outlined, size: 20),
+              title: const Text('KYC Verification'),
+              subtitle: const Text('View verification status & identity profile'),
+              trailing: const Icon(Icons.chevron_right, size: 20),
+              onTap: () => context.push('/account/kyc'),
+            ),
+            ListTile(
               leading: const Icon(Icons.lock_outline, size: 20),
               title: const Text('Change Password'),
               trailing: const Icon(Icons.chevron_right, size: 20),

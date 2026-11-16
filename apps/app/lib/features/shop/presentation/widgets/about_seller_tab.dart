@@ -15,12 +15,14 @@ class AboutSellerTab extends StatelessWidget {
     required this.productId,
     this.merchantId,
     this.reviewsKey,
+    this.onMessageSeller,
   });
 
   final String merchantName;
   final String productId;
   final String? merchantId;
   final Key? reviewsKey;
+  final VoidCallback? onMessageSeller;
 
   void _navigateToMerchant(BuildContext context) {
     final target = (merchantId != null && merchantId!.isNotEmpty)
@@ -128,7 +130,7 @@ class AboutSellerTab extends StatelessWidget {
           ),
           foregroundColor: color,
           borderSide: BorderSide(color: color.withAlpha(50)),
-          onPressed: () {},
+          onPressed: onMessageSeller,
         ),
 
         const SizedBox(height: AppSpacing.xl),
