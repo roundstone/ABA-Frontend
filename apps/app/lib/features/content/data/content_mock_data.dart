@@ -4,13 +4,13 @@ import '../domain/content_entities.dart';
 class ContentMockData {
   static const ContentPage aboutPage = ContentPage(
     slug: 'about',
-    title: 'About BuyNaija',
+    title: 'About Naijahands',
     sections: [
       ContentPageSection(
         name: 'Hero/Intro',
         title: 'Connecting Buyers and Makers',
         content:
-            'BuyNaija is a premier digital marketplace connecting buyers nationwide directly with authentic artisans, manufacturers, and merchants from Aba and across Nigeria.\n\nWe provide verified sellers with the digital infrastructure, logistics support, and reach to scale their businesses sustainably.',
+            'Naijahands is a premier digital marketplace connecting buyers nationwide directly with authentic artisans, manufacturers, and merchants from Aba and across Nigeria.\n\nWe provide verified sellers with the digital infrastructure, logistics support, and reach to scale their businesses sustainably.',
         order: 1,
       ),
       ContentPageSection(
@@ -31,7 +31,7 @@ class ContentMockData {
         name: 'Earn (For Members)',
         title: 'Community Rewards',
         content:
-            'Turn your network into recurring income. Introduce shoppers and businesses to BuyNaija, build an active downline network, and earn eligible commissions on every qualifying sale.',
+            'Turn your network into recurring income. Introduce shoppers and businesses to Naijahands, build an active downline network, and earn eligible commissions on every qualifying sale.',
         order: 4,
       ),
     ],
@@ -46,7 +46,7 @@ class ContentMockData {
     CommunityFaqItem(
       question: 'How many tiers does the network support?',
       answer:
-          'BuyNaija supports a structured multi-tier hierarchy: Level 1 (Direct Referrals), Level 2 (Sub-network), and Level 3 (Community leadership tiers). Earnings unlock progressively as your network grows.',
+          'Naijahands supports a structured multi-tier hierarchy: Level 1 (Direct Referrals), Level 2 (Sub-network), and Level 3 (Community leadership tiers). Earnings unlock progressively as your network grows.',
     ),
     CommunityFaqItem(
       question: 'When and how are commissions paid out?',
@@ -56,7 +56,7 @@ class ContentMockData {
     CommunityFaqItem(
       question: 'Is there any fee to join the community?',
       answer:
-          'No! Becoming a BuyNaija Community Member and generating referral links is completely free. We believe in empowering every Nigerian to grow through collective commerce.',
+          'No! Becoming a Naijahands Community Member and generating referral links is completely free. We believe in empowering every Nigerian to grow through collective commerce.',
     ),
   ];
 
@@ -68,7 +68,8 @@ class ContentMockData {
       salesVolumeKobo: 325000000, // ₦3,250,000
       performancePercentile: 98,
       referralCode: 'BNG-CHIDI3',
-      bio: 'Artisan leather specialist & community leader based in Ariaria International Market.',
+      bio:
+          'Artisan leather specialist & community leader based in Ariaria International Market.',
       state: 'Abia',
     ),
     'amaka_biz': CommunityPartnerProfile(
@@ -78,7 +79,8 @@ class ContentMockData {
       salesVolumeKobo: 184000000, // ₦1,840,000
       performancePercentile: 92,
       referralCode: 'BNG-AMAKA2',
-      bio: 'Fashion entrepreneur mentoring emerging designers in eastern Nigeria.',
+      bio:
+          'Fashion entrepreneur mentoring emerging designers in eastern Nigeria.',
       state: 'Enugu',
     ),
     'emeka_direct': CommunityPartnerProfile(
@@ -88,7 +90,7 @@ class ContentMockData {
       salesVolumeKobo: 890000000, // ₦8,900,000
       performancePercentile: 99,
       referralCode: 'BNG-EMEKA4',
-      bio: 'Wholesale textile distributor and top BuyNaija growth partner.',
+      bio: 'Wholesale textile distributor and top Naijahands growth partner.',
       state: 'Lagos',
     ),
   };
@@ -111,8 +113,9 @@ class ContentMockData {
       downlineCount: 12,
       salesVolumeKobo: 85000000,
       performancePercentile: 85,
-      referralCode: 'BNG-${handle.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '').padRight(5, 'X').substring(0, 5)}',
-      bio: 'Verified BuyNaija community ambassador.',
+      referralCode:
+          'BNG-${handle.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '').padRight(5, 'X').substring(0, 5)}',
+      bio: 'Verified Naijahands community ambassador.',
       state: 'Abia',
     );
   }

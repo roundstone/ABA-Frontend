@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../../../core/location/nigeria_location_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import 'kyc_profile_form_card.dart';
 
 class ReferralKycStepView extends StatelessWidget {
   const ReferralKycStepView({
@@ -130,10 +132,8 @@ class ReferralKycStepView extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: AppTextField(
-                  label: 'Date of Birth',
-                  hintText: 'YYYY-MM-DD',
-                  controller: dobController,
+                child: KycDobField(
+                  controller: dobController!,
                   enabled: !isSubmitting,
                 ),
               ),
@@ -168,19 +168,22 @@ class ReferralKycStepView extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
-                child: AppTextField(
+                child: NigeriaLocationField(
                   label: 'State',
-                  hintText: 'Lagos',
-                  controller: stateController,
+                  hintText: 'Select state',
+                  controller: stateController!,
                   enabled: !isSubmitting,
+                  onChanged: () => lgaController?.clear(),
                 ),
               ),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
-                child: AppTextField(
+                child: NigeriaLocationField(
                   label: 'LGA',
-                  hintText: 'Eti Osa',
-                  controller: lgaController,
+                  hintText: 'Select LGA',
+                  controller: lgaController!,
+                  stateController: stateController,
+                  isLga: true,
                   enabled: !isSubmitting,
                 ),
               ),

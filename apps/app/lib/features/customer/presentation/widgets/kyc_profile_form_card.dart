@@ -1,9 +1,67 @@
 import 'package:flutter/material.dart';
+import '../../../../core/location/nigeria_location_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
+
+/// Opens a date picker for Date of Birth and writes `YYYY-MM-DD` to [controller].
+Future<void> pickDateOfBirth(
+  BuildContext context,
+  TextEditingController controller,
+) async {
+  final now = DateTime.now();
+  final firstDate = DateTime(1920);
+  final lastDate = DateTime(now.year - 16, now.month, now.day);
+  final parsed = DateTime.tryParse(controller.text.trim());
+  final initial =
+      (parsed != null && !parsed.isBefore(firstDate) && !parsed.isAfter(lastDate))
+          ? parsed
+          : DateTime(1995, 1, 1);
+  final picked = await showDatePicker(
+    context: context,
+    initialDate: initial,
+    firstDate: firstDate,
+    lastDate: lastDate,
+  );
+  if (picked != null && context.mounted) {
+    controller.text =
+        '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+  }
+}
+
+/// Read-only date of birth field that opens a date picker on tap.
+class KycDobField extends StatelessWidget {
+  const KycDobField({
+    super.key,
+    required this.controller,
+    required this.enabled,
+    this.label = 'Date of Birth',
+    this.onTap,
+  });
+
+  final TextEditingController controller;
+  final bool enabled;
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? (onTap ?? () => pickDateOfBirth(context, controller)) : null,
+      child: AbsorbPointer(
+        child: AppTextField(
+          label: label,
+          hintText: 'YYYY-MM-DD',
+          controller: controller,
+          enabled: enabled,
+          suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
+        ),
+      ),
+    );
+  }
+}
 
 class KycProfileFormCard extends StatelessWidget {
   const KycProfileFormCard({
@@ -55,17 +113,11 @@ class KycProfileFormCard extends StatelessWidget {
             style: AppTypography.h6.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: AppSpacing.md),
-          GestureDetector(
-            onTap: isEditable ? onPickDob : null,
-            child: AbsorbPointer(
-              child: AppTextField(
-                label: 'Date of birth',
-                hintText: 'YYYY-MM-DD',
-                controller: dobCtrl,
-                enabled: isEditable,
-                suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
-              ),
-            ),
+          KycDobField(
+            controller: dobCtrl,
+            enabled: isEditable,
+            label: 'Date of birth',
+            onTap: onPickDob,
           ),
           const SizedBox(height: AppSpacing.sm),
           AppTextField(
@@ -91,18 +143,23 @@ class KycProfileFormCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: AppTextField(
+                child: NigeriaLocationField(
                   label: 'State',
+                  hintText: 'Select state',
                   controller: stateCtrl,
                   enabled: isEditable,
+                  onChanged: () => lgaCtrl.clear(),
                 ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          AppTextField(
+          NigeriaLocationField(
             label: 'LGA (optional)',
+            hintText: 'Select LGA',
             controller: lgaCtrl,
+            stateController: stateCtrl,
+            isLga: true,
             enabled: isEditable,
           ),
           if (isEditable) ...[

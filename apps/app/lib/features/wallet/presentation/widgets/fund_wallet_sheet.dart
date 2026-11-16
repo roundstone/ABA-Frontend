@@ -76,7 +76,7 @@ class _FundWalletSheetState extends ConsumerState<FundWalletSheet> {
         amount: initResult.amountNaira > 0 ? initResult.amountNaira : amount,
         email: initResult.email.isNotEmpty
             ? initResult.email
-            : 'customer@buynaija.com',
+            : 'customer@naijahands.com',
         reference: initResult.reference,
         authorizationUrl: initResult.authorizationUrl,
       );

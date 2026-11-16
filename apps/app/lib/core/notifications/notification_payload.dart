@@ -25,20 +25,24 @@ class NotificationPayload {
   /// Creates a [NotificationPayload] from a Firebase [RemoteMessage].
   factory NotificationPayload.fromRemoteMessage(RemoteMessage message) {
     final data = Map<String, dynamic>.from(message.data);
-    final title = message.notification?.title ??
+    final title =
+        message.notification?.title ??
         (data['title'] as String?) ??
-        'BuyNaija Update';
-    final body = message.notification?.body ??
+        'Naijahands Update';
+    final body =
+        message.notification?.body ??
         (data['body'] as String?) ??
         'You have a new update.';
-    final type = (data['type'] as String?) ??
+    final type =
+        (data['type'] as String?) ??
         (data['notification_type'] as String?) ??
         NotificationConstants.typeSystemAlert;
 
     final resolvedRoute = _resolveRoute(type: type, data: data);
 
     return NotificationPayload(
-      id: message.messageId ??
+      id:
+          message.messageId ??
           data['id']?.toString() ??
           DateTime.now().millisecondsSinceEpoch.toString(),
       title: title,
@@ -55,7 +59,8 @@ class NotificationPayload {
     final data = map['data'] != null
         ? Map<String, dynamic>.from(map['data'] as Map)
         : <String, dynamic>{};
-    final type = (map['type'] as String?) ??
+    final type =
+        (map['type'] as String?) ??
         (data['type'] as String?) ??
         NotificationConstants.typeSystemAlert;
     final explicitRoute = map['route'] as String?;
@@ -64,9 +69,10 @@ class NotificationPayload {
         : _resolveRoute(type: type, data: data);
 
     return NotificationPayload(
-      id: (map['id'] as String?) ??
+      id:
+          (map['id'] as String?) ??
           DateTime.now().millisecondsSinceEpoch.toString(),
-      title: (map['title'] as String?) ?? 'BuyNaija Update',
+      title: (map['title'] as String?) ?? 'Naijahands Update',
       body: (map['body'] as String?) ?? '',
       type: type,
       route: resolvedRoute,
@@ -81,14 +87,14 @@ class NotificationPayload {
       NotificationPayload.fromMap(json.decode(source) as Map<String, dynamic>);
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'title': title,
-        'body': body,
-        'type': type,
-        'route': route,
-        'data': data,
-        'receivedAt': receivedAt.toIso8601String(),
-      };
+    'id': id,
+    'title': title,
+    'body': body,
+    'type': type,
+    'route': route,
+    'data': data,
+    'receivedAt': receivedAt.toIso8601String(),
+  };
 
   String toJson() => json.encode(toMap());
 

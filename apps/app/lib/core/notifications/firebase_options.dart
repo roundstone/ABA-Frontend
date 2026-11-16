@@ -2,7 +2,7 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
-/// Default [FirebaseOptions] for BuyNaija.
+/// Default [FirebaseOptions] for Naijahands.
 ///
 /// Generated with fallback configuration to ensure the application compiles
 /// and runs out-of-the-box across Android, iOS, and Web.

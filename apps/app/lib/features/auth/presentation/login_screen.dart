@@ -287,13 +287,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 Center(
                   child: TextButton(
-                    onPressed: () => context.go(
-                      _isMerchant ? '/login/customer' : '/login/merchant',
-                    ),
+                    onPressed: () => {
+                      _isMarketer
+                          ? AppSnackbar.show(
+                              context,
+                              message: 'Marketer flow is coming soon',
+                            )
+                          : context.go('/login/customer'),
+                    },
                     child: Text(
                       _isMerchant
                           ? 'Looking to buy products? Sign in as Customer'
-                          : 'Are you a seller? Sign in as Merchant',
+                          : 'Are you a seller? Sign in as Marketer',
                       style: AppTypography.caption.copyWith(
                         color: isDark ? AppColors.secondary : AppColors.primary,
                         fontWeight: FontWeight.w600,
@@ -301,6 +306,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                 ),
+                // if (!_isMerchant && !_isMarketer)
+                //   Center(
+                //     child: TextButton(
+                //       onPressed: () => context.go('/home'),
+                //       child: Text(
+                //         'Continue as Guest',
+                //         style: AppTypography.caption.copyWith(
+                //           color: AppColors.grey,
+                //           fontWeight: FontWeight.w600,
+                //         ),
+                //       ),
+                //     ),
+                //   ),
               ],
             ),
           ),

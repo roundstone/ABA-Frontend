@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>BuyNaija</string>
+	<string>Naijahands</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -58,11 +58,10 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.abaerp.app</string>
+			<string>com.naijahands.app</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>abaerp</string>
-				<string>buynaija</string>
+				<string>naijahands</string>
 			</array>
 		</dict>
 	</array>

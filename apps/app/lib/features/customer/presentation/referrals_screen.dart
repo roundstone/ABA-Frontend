@@ -91,7 +91,7 @@ class _ReferralsScreenState extends ConsumerState<ReferralsScreen> {
                     SharePlus.instance.share(
                       ShareParams(
                         text:
-                            'Join me on BuyNaija! Use my referral code: $activeCode when signing up: $activeLink',
+                            'Join me on Naijahands! Use my referral code: $activeCode when signing up: $activeLink',
                       ),
                     );
                   }

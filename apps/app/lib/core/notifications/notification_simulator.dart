@@ -88,12 +88,7 @@ class NotificationSimulator {
         ? 'You earned $amount from a downline purchase in your network.'
         : '$amount has been successfully credited to your main balance.';
 
-    await _emit(
-      type: type,
-      title: title,
-      body: body,
-      data: {'amount': amount},
-    );
+    await _emit(type: type, title: title, body: body, data: {'amount': amount});
   }
 
   /// Simulates a Referral Network milestone
@@ -103,7 +98,7 @@ class NotificationSimulator {
     await _emit(
       type: NotificationConstants.typeReferralJoined,
       title: 'New Downline Registered! 👥',
-      body: '$refereeName just joined BuyNaija using your referral link.',
+      body: '$refereeName just joined Naijahands using your referral link.',
       data: {'referee': refereeName},
     );
   }
@@ -135,9 +130,7 @@ class NotificationSimulator {
   }
 
   /// Simulates an Abandoned Cart reminder
-  static Future<void> simulateCartReminder({
-    int itemCount = 2,
-  }) async {
+  static Future<void> simulateCartReminder({int itemCount = 2}) async {
     await _emit(
       type: NotificationConstants.typeCartReminder,
       title: 'Items waiting in your cart 🛒',

@@ -9,7 +9,7 @@ import 'widgets/role_selection_card.dart';
 import 'widgets/role_selection_illustrations.dart';
 
 /// Screen allowing the user to choose their journey: Customer or Merchant.
-/// Faithfully designed after the BuyNaija Figma UI specification.
+/// Faithfully designed after the Naijahands Figma UI specification.
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
 
@@ -44,8 +44,8 @@ class RoleSelectionScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Top Bar: BuyNaija Logo & Notification Bell
-                    const BuyNaijaLogo(fontSize: 22, iconSize: 26),
+                    // Top Bar: Naijahands Logo & Notification Bell
+                    const NaijahandsLogo(fontSize: 22, iconSize: 26),
 
                     const SizedBox(height: AppSpacing.lg),
 
@@ -104,7 +104,7 @@ class RoleSelectionScreen extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildFooterLink(
-          'About BuyNaija',
+          'About Naijahands',
           () => context.push('/about'),
           linkColor,
         ),
@@ -185,7 +185,7 @@ class RoleSelectionScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Shop, sell and grow\nwith BuyNaija.',
+                'Shop, sell and grow\nwith Naijahands.',
                 style: TextStyle(
                   color: isDark
                       ? AppColors.darkTextSecondary

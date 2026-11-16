@@ -13,7 +13,7 @@ enum UserRole {
     if (r == 'merchant' || r == 'seller' || r == 'vendor') {
       return UserRole.merchant;
     }
-    if (r == 'marketer') {
+    if (r == 'marketer' || r == 'market') {
       return UserRole.marketer;
     }
     if (r == 'admin' || r == 'super admin' || r == 'superadmin') {

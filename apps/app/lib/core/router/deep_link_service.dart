@@ -27,15 +27,15 @@ class DeepLinkService {
   static final DeepLinkService instance = DeepLinkService._();
 
   static const List<String> supportedHosts = [
-    'app.abaerp.com',
-    'abaerp.com',
-    'www.abaerp.com',
+    'app.naijahands.com',
+    'naijahands.com',
+    'www.naijahands.com',
   ];
 
   static const List<String> supportedSchemes = [
     'https',
     'http',
-    'abaerp',
+    'naijahands',
     'buynaija',
   ];
 
@@ -48,13 +48,13 @@ class DeepLinkService {
 
   /// Preset URLs for manual and automated simulation.
   static List<String> get presetTestUrls => [
-        'https://app.abaerp.com/reset-password?token=0001',
-        'https://app.abaerp.com/reset-password?token=0002',
-        'https://app.abaerp.com/reset-password?token=0003',
-        'https://app.abaerp.com/reset-password?token=0004',
-        'abaerp://reset-password?token=0001',
-        'https://app.abaerp.com/shop',
-        'https://app.abaerp.com/merchants',
+        'https://app.naijahands.com/reset-password?token=0001',
+        'https://app.naijahands.com/reset-password?token=0002',
+        'https://app.naijahands.com/reset-password?token=0003',
+        'https://app.naijahands.com/reset-password?token=0004',
+        'naijahands://reset-password?token=0001',
+        'https://app.naijahands.com/shop',
+        'https://app.naijahands.com/merchants',
       ];
 
   /// Parses a given URL string into an in-app route and query parameters.
@@ -71,9 +71,9 @@ class DeepLinkService {
 
     String path = uri.path;
 
-    // Handle custom schemes like abaerp://reset-password?token=0001
+    // Handle custom schemes like naijahands://reset-password?token=0001
     // where URI parser treats 'reset-password' as host instead of path.
-    if ((uri.scheme == 'abaerp' || uri.scheme == 'buynaija') && path.isEmpty) {
+    if ((uri.scheme == 'naijahands' || uri.scheme == 'buynaija') && path.isEmpty) {
       if (uri.host.isNotEmpty && !supportedHosts.contains(uri.host)) {
         path = '/${uri.host}';
       }

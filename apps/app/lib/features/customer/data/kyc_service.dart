@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
@@ -200,3 +201,25 @@ class KycService {
 final kycServiceProvider = Provider<KycService>((ref) {
   return KycService(dio: ref.watch(dioProvider));
 });
+
+/// Opens the system file picker for a KYC document (image or PDF).
+Future<KycUploadDocument?> pickKycDocument() async {
+  final file = await FilePicker.pickFile(
+    type: FileType.custom,
+    allowedExtensions: const ['png', 'jpg', 'jpeg', 'pdf'],
+  );
+  if (file == null) return null;
+  final ext = (file.extension ?? '').toLowerCase();
+  final mimeType = switch (ext) {
+    'pdf' => 'application/pdf',
+    'jpg' || 'jpeg' => 'image/jpeg',
+    _ => 'image/png',
+  };
+  final bytes = file.path == null ? await file.readAsBytes() : null;
+  return KycUploadDocument(
+    fileName: file.name,
+    filePath: file.path,
+    bytes: bytes,
+    mimeType: mimeType,
+  );
+}

@@ -101,45 +101,70 @@ class Product {
     final slugOrId = slug.trim().isNotEmpty
         ? slug.trim()
         : (name.trim().isNotEmpty
-            ? name
-                .trim()
-                .toLowerCase()
-                .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-                .replaceAll(RegExp(r'^-+|-+$'), '')
-            : id);
+              ? name
+                    .trim()
+                    .toLowerCase()
+                    .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+                    .replaceAll(RegExp(r'^-+|-+$'), '')
+              : id);
     return 'https://abaonline.vercel.app/products/$slugOrId';
   }
 
   factory Product.fromJson(Map<String, dynamic> json) {
     final rawSelling = json['base_selling_price'] ?? json['price'];
     final parsedSelling = rawSelling != null
-        ? double.tryParse(rawSelling.toString()) ?? 0.0 : 0.0;
+        ? double.tryParse(rawSelling.toString()) ?? 0.0
+        : 0.0;
     final rawCost = json['base_cost_price'] ?? json['cost_price'];
-    final parsedCost = rawCost != null ? double.tryParse(rawCost.toString()) : null;
+    final parsedCost = rawCost != null
+        ? double.tryParse(rawCost.toString())
+        : null;
 
-    final catId = (json['category_id'] as num?)?.toInt() ?? (json['categoryId'] as num?)?.toInt();
-    final subCatId = (json['subcategory_id'] as num?)?.toInt() ?? (json['subcategoryId'] as num?)?.toInt();
+    final catId =
+        (json['category_id'] as num?)?.toInt() ??
+        (json['categoryId'] as num?)?.toInt();
+    final subCatId =
+        (json['subcategory_id'] as num?)?.toInt() ??
+        (json['subcategoryId'] as num?)?.toInt();
 
     final parsedCat = json['category'] is Map
-        ? ShopCategory.fromJson(Map<String, dynamic>.from(json['category'] as Map)) : null;
+        ? ShopCategory.fromJson(
+            Map<String, dynamic>.from(json['category'] as Map),
+          )
+        : null;
     final parsedSubCat = json['subcategory'] is Map
-        ? ShopCategory.fromJson(Map<String, dynamic>.from(json['subcategory'] as Map)) : null;
+        ? ShopCategory.fromJson(
+            Map<String, dynamic>.from(json['subcategory'] as Map),
+          )
+        : null;
 
-    final catName = parsedCat?.name ?? (json['category'] is String
-        ? json['category'] as String : (catId != null ? 'Category $catId' : 'General'));
+    final catName =
+        parsedCat?.name ??
+        (json['category'] is String
+            ? json['category'] as String
+            : (catId != null ? 'Category $catId' : 'General'));
 
-    final bId = (json['brand_id'] as num?)?.toInt() ?? (json['brandId'] as num?)?.toInt();
-    final brandName = (json['brand'] is Map
-            ? (json['brand']['name'] as String?) : json['brand'] as String?) ??
-        (bId != null ? 'Brand $bId' : 'BuyNaija');
+    final bId =
+        (json['brand_id'] as num?)?.toInt() ??
+        (json['brandId'] as num?)?.toInt();
+    final brandName =
+        (json['brand'] is Map
+            ? (json['brand']['name'] as String?)
+            : json['brand'] as String?) ??
+        (bId != null ? 'Brand $bId' : 'Naijahands');
 
-    final mId = (json['merchant_id'] as num?)?.toInt() ?? (json['merchantId'] as num?)?.toInt() ??
-        (json['vendor_id'] as num?)?.toInt() ?? (json['vendorId'] as num?)?.toInt();
+    final mId =
+        (json['merchant_id'] as num?)?.toInt() ??
+        (json['merchantId'] as num?)?.toInt() ??
+        (json['vendor_id'] as num?)?.toInt() ??
+        (json['vendorId'] as num?)?.toInt();
 
-    final parsedVariants = (json['variants'] as List<dynamic>?)
+    final parsedVariants =
+        (json['variants'] as List<dynamic>?)
             ?.whereType<Map>()
             .map((v) => ProductVariant.fromJson(Map<String, dynamic>.from(v)))
-            .toList() ?? const <ProductVariant>[];
+            .toList() ??
+        const <ProductVariant>[];
 
     final colorsList = <String>{};
     final sizesList = <String>{};
@@ -147,8 +172,10 @@ class Product {
       if (v.color != null && v.color!.isNotEmpty) colorsList.add(v.color!);
       if (v.size != null && v.size!.isNotEmpty) sizesList.add(v.size!);
     }
-    if (json['colors'] is List) colorsList.addAll((json['colors'] as List).map((e) => e.toString()));
-    if (json['sizes'] is List) sizesList.addAll((json['sizes'] as List).map((e) => e.toString()));
+    if (json['colors'] is List)
+      colorsList.addAll((json['colors'] as List).map((e) => e.toString()));
+    if (json['sizes'] is List)
+      sizesList.addAll((json['sizes'] as List).map((e) => e.toString()));
 
     String normalizeImageUrl(String raw) {
       final trimmed = raw.trim();
@@ -168,13 +195,16 @@ class Product {
           imagesList.add(normalizeImageUrl(item.toString()));
         }
       }
-    } else if (json['image_url'] != null && json['image_url'].toString().trim().isNotEmpty) {
+    } else if (json['image_url'] != null &&
+        json['image_url'].toString().trim().isNotEmpty) {
       imagesList.add(normalizeImageUrl(json['image_url'].toString()));
     }
 
     final prodId = int.tryParse(json['id']?.toString() ?? '') ?? 0;
     if (imagesList.isEmpty) {
-      imagesList.add(_kDefaultProductImages[(prodId.abs()) % _kDefaultProductImages.length]);
+      imagesList.add(
+        _kDefaultProductImages[(prodId.abs()) % _kDefaultProductImages.length],
+      );
     }
 
     final reorderQty = (json['reorder_quantity'] as num?)?.toInt();
@@ -188,8 +218,10 @@ class Product {
       category: catName,
       brand: brandName,
       rating: (json['rating'] as num?)?.toDouble() ?? 4.5,
-      reviewCount: (json['review_count'] as num?)?.toInt() ??
-          (json['reviewCount'] as num?)?.toInt() ?? 12,
+      reviewCount:
+          (json['review_count'] as num?)?.toInt() ??
+          (json['reviewCount'] as num?)?.toInt() ??
+          12,
       stock: stockVal,
       images: imagesList,
       description: json['description'] as String?,
@@ -197,7 +229,9 @@ class Product {
       colors: colorsList.isNotEmpty ? colorsList.toList() : null,
       sizes: sizesList.isNotEmpty ? sizesList.toList() : null,
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList(),
-      isFeatured: json['is_featured'] as bool? ?? (json['isFeatured'] as bool? ?? false),
+      isFeatured:
+          json['is_featured'] as bool? ??
+          (json['isFeatured'] as bool? ?? false),
       isNew: json['is_new'] as bool? ?? (json['isNew'] as bool? ?? false),
       categoryId: catId,
       subcategoryId: subCatId,
@@ -209,7 +243,8 @@ class Product {
       type: (json['type'] as num?)?.toInt(),
       reorderLevel: (json['reorder_level'] as num?)?.toInt(),
       reorderQuantity: reorderQty,
-      isActive: json['is_active'] as bool? ?? (json['isActive'] as bool? ?? true),
+      isActive:
+          json['is_active'] as bool? ?? (json['isActive'] as bool? ?? true),
       categoryObj: parsedCat,
       subcategoryObj: parsedSubCat,
       variants: parsedVariants,
@@ -220,30 +255,31 @@ class Product {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'slug': slug,
-        'base_selling_price': price.toStringAsFixed(2),
-        if (baseCostPrice != null) 'base_cost_price': baseCostPrice!.toStringAsFixed(2),
-        if (categoryId != null) 'category_id': categoryId,
-        if (subcategoryId != null) 'subcategory_id': subcategoryId,
-        'category': category,
-        if (brandId != null) 'brand_id': brandId,
-        'brand': brand,
-        if (merchantId != null) 'merchant_id': merchantId,
-        if (vendorId != null) 'vendor_id': vendorId,
-        'rating': rating,
-        'review_count': reviewCount,
-        'stock': stock,
-        'images': images,
-        if (description != null) 'description': description,
-        if (discount != null) 'discount': discount,
-        if (colors != null) 'colors': colors,
-        if (sizes != null) 'sizes': sizes,
-        if (tags != null) 'tags': tags,
-        'is_featured': isFeatured,
-        'is_new': isNew,
-        'is_active': isActive,
-        'variants': variants.map((v) => v.toJson()).toList(),
-      };
+    'id': id,
+    'name': name,
+    'slug': slug,
+    'base_selling_price': price.toStringAsFixed(2),
+    if (baseCostPrice != null)
+      'base_cost_price': baseCostPrice!.toStringAsFixed(2),
+    if (categoryId != null) 'category_id': categoryId,
+    if (subcategoryId != null) 'subcategory_id': subcategoryId,
+    'category': category,
+    if (brandId != null) 'brand_id': brandId,
+    'brand': brand,
+    if (merchantId != null) 'merchant_id': merchantId,
+    if (vendorId != null) 'vendor_id': vendorId,
+    'rating': rating,
+    'review_count': reviewCount,
+    'stock': stock,
+    'images': images,
+    if (description != null) 'description': description,
+    if (discount != null) 'discount': discount,
+    if (colors != null) 'colors': colors,
+    if (sizes != null) 'sizes': sizes,
+    if (tags != null) 'tags': tags,
+    'is_featured': isFeatured,
+    'is_new': isNew,
+    'is_active': isActive,
+    'variants': variants.map((v) => v.toJson()).toList(),
+  };
 }

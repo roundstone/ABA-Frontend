@@ -872,7 +872,7 @@ class _ProductDetailBody extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Aba Buyer Protection',
+                              'Naijahands Protection',
                               style: AppTypography.bodySmall.copyWith(
                                 fontWeight: FontWeight.w700,
                               ),

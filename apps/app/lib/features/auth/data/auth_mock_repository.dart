@@ -236,4 +236,10 @@ class AuthMockRepository implements AuthRepository {
     await persistUser(updated);
     return updated;
   }
+
+  @override
+  Future<void> deleteProfile() async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    await logout();
+  }
 }

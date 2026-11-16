@@ -51,12 +51,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        final auth = ref.read(authStateProvider);
-        if (auth.isAuthenticated) {
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (mounted) _navigateToNext();
-          });
-        }
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) _navigateToNext();
+        });
       }
     });
 
@@ -79,7 +76,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         context.go('/home');
       }
     } else {
-      context.go('/role-select');
+      context.go('/login');
     }
   }
 
@@ -142,7 +139,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           color: AppColors.primary,
                           alignment: Alignment.center,
                           child: const Text(
-                            'BUYNAIJA',
+                            'NAIJAHANDS',
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -166,7 +163,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     child: Column(
                       children: [
                         Text(
-                          'BUYNAIJA',
+                          'NAIJAHANDS',
                           style: AppTypography.h2.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w900,

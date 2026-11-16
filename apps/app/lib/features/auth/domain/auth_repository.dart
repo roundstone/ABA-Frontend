@@ -42,4 +42,6 @@ abstract class AuthRepository {
     String? phone,
     String? businessName,
   });
+
+  Future<void> deleteProfile();
 }

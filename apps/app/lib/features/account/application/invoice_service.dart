@@ -108,7 +108,7 @@ class InvoiceService {
       List<int>? pdfBytes;
 
       // Handle case where server returns a JSON response containing a download URL
-      if (rawBytes.isNotEmpty && rawBytes.first == 123 /* '{' */) {
+      if (rawBytes.isNotEmpty && rawBytes.first == 123 /* '{' */ ) {
         try {
           final jsonStr = utf8.decode(rawBytes);
           final decoded = jsonDecode(jsonStr);
@@ -116,9 +116,9 @@ class InvoiceService {
             final data = decoded['data'];
             final downloadUrl = data is Map
                 ? (data['url'] ??
-                    data['invoice_url'] ??
-                    data['pdfUrl'] ??
-                    data['downloadUrl'])
+                      data['invoice_url'] ??
+                      data['pdfUrl'] ??
+                      data['downloadUrl'])
                 : data;
 
             if (downloadUrl is String && downloadUrl.startsWith('http')) {
@@ -142,7 +142,7 @@ class InvoiceService {
         RegExp(r'[^a-zA-Z0-9_-]'),
         '_',
       );
-      final filename = 'BuyNaija_Invoice_$safeNumber.pdf';
+      final filename = 'Naijahands_Invoice_$safeNumber.pdf';
       final file = File('${dir.path}/$filename');
 
       await file.writeAsBytes(pdfBytes);
@@ -161,14 +161,17 @@ class InvoiceService {
           files: [
             XFile(file.path, mimeType: 'application/pdf', name: filename),
           ],
-          text: 'BuyNaija Invoice #${order.orderNumber}',
-          subject: 'BuyNaija Invoice #${order.orderNumber}',
-          title: 'BuyNaija Invoice #${order.orderNumber}',
+          text: 'Naijahands Invoice #${order.orderNumber}',
+          subject: 'Naijahands Invoice #${order.orderNumber}',
+          title: 'Naijahands Invoice #${order.orderNumber}',
         ),
       );
     } catch (e, stack) {
-      AppLogger.e('Failed to download order invoice',
-          error: e, stackTrace: stack);
+      AppLogger.e(
+        'Failed to download order invoice',
+        error: e,
+        stackTrace: stack,
+      );
       if (context.mounted) {
         AppSnackbar.show(
           context,

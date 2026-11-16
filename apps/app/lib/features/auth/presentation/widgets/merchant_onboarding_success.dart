@@ -8,10 +8,7 @@ import '../../../../core/widgets/app_button.dart';
 
 /// Screen displayed upon successful completion of the merchant onboarding wizard.
 class MerchantOnboardingSuccess extends StatelessWidget {
-  const MerchantOnboardingSuccess({
-    super.key,
-    this.isProvisional = false,
-  });
+  const MerchantOnboardingSuccess({super.key, this.isProvisional = false});
 
   final bool isProvisional;
 
@@ -42,7 +39,9 @@ class MerchantOnboardingSuccess extends StatelessWidget {
                     icon: isProvisional
                         ? HugeIcons.strokeRoundedHourglass
                         : HugeIcons.strokeRoundedCheckmarkCircle02,
-                    color: isProvisional ? const Color(0xFFC28B38) : AppColors.success,
+                    color: isProvisional
+                        ? const Color(0xFFC28B38)
+                        : AppColors.success,
                     size: 40,
                   ),
                 ),
@@ -57,7 +56,10 @@ class MerchantOnboardingSuccess extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: isProvisional
                       ? const Color(0xFFC28B38).withAlpha(25)
@@ -70,7 +72,9 @@ class MerchantOnboardingSuccess extends StatelessWidget {
                       : 'STATUS: UNDER ADMIN VERIFICATION',
                   style: AppTypography.caption.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: isProvisional ? const Color(0xFFC28B38) : AppColors.primary,
+                    color: isProvisional
+                        ? const Color(0xFFC28B38)
+                        : AppColors.primary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -78,7 +82,7 @@ class MerchantOnboardingSuccess extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               Text(
                 isProvisional
-                    ? 'Welcome to BuyNaija! Your store is provisionally active. Please complete and submit your CAC registration within 60 days to unlock full verified merchant status.'
+                    ? 'Welcome to Naijahands! Your store is provisionally active. Please complete and submit your CAC registration within 60 days to unlock full verified merchant status.'
                     : 'Our verification team is reviewing your CAC, NIN, and workshop details. Verification typically completes within 24–48 hours.',
                 style: AppTypography.bodySmall.copyWith(
                   color: isDark ? AppColors.darkTextSecondary : AppColors.grey,

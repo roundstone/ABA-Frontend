@@ -144,7 +144,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ListTile(
               leading: const Icon(Icons.verified_user_outlined, size: 20),
               title: const Text('KYC Verification'),
-              subtitle: const Text('View verification status & identity profile'),
+              subtitle: const Text(
+                'View verification status & identity profile',
+              ),
               trailing: const Icon(Icons.chevron_right, size: 20),
               onTap: () => context.push('/account/kyc'),
             ),
@@ -185,19 +187,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 style: TextStyle(color: Colors.grey),
               ),
             ),
-            ListTile(
-              leading: const Icon(
-                Icons.link_rounded,
-                size: 20,
-                color: AppColors.primary,
-              ),
-              title: const Text('Deep Link Simulator'),
-              subtitle: const Text('Test reset-password tokens & app links'),
-              trailing: const Icon(Icons.chevron_right, size: 20),
-              onTap: () => showDeepLinkSimulatorSheet(context),
-            ),
-            const SizedBox(height: AppSpacing.xl),
 
+            // ListTile(
+            //   leading: const Icon(
+            //     Icons.link_rounded,
+            //     size: 20,
+            //     color: AppColors.primary,
+            //   ),
+            //   title: const Text('Deep Link Simulator'),
+            //   subtitle: const Text('Test reset-password tokens & app links'),
+            //   trailing: const Icon(Icons.chevron_right, size: 20),
+            //   onTap: () => showDeepLinkSimulatorSheet(context),
+            // ),
+            const SizedBox(height: AppSpacing.xl),
             const _SectionTitle(title: 'Account Actions'),
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(

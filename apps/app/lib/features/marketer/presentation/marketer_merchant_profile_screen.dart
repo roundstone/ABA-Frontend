@@ -116,7 +116,7 @@ class MarketerMerchantProfileScreen extends ConsumerWidget {
                           Clipboard.setData(
                             ClipboardData(
                               text:
-                                  'https://buynaija.ng/merchants/${merchant.id}?ref=$code',
+                                  'https://naijahands.ng/merchants/${merchant.id}?ref=$code',
                             ),
                           );
                           AppSnackbar.info(context, 'Store promotional link copied!');

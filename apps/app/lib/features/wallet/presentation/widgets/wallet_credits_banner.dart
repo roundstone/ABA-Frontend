@@ -22,12 +22,22 @@ class WalletCreditsBanner extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final bgColor = isDark ? const Color(0xFF261C08) : const Color(0xFFFFFBEB);
-    final borderColor = isDark ? const Color(0xFF45300B) : const Color(0xFFFDE68A);
-    final primaryTextColor = isDark ? const Color(0xFFFDE68A) : const Color(0xFF78350F);
-    final secondaryTextColor = isDark ? const Color(0xFFFCD34D) : const Color(0xFF92400E);
+    final borderColor = isDark
+        ? const Color(0xFF45300B)
+        : const Color(0xFFFDE68A);
+    final primaryTextColor = isDark
+        ? const Color(0xFFFDE68A)
+        : const Color(0xFF78350F);
+    final secondaryTextColor = isDark
+        ? const Color(0xFFFCD34D)
+        : const Color(0xFF92400E);
     final badgeBg = isDark ? const Color(0xFF45300B) : const Color(0xFFFEF3C7);
-    final badgeTextColor = isDark ? const Color(0xFFFCD34D) : const Color(0xFF92400E);
-    final dividerColor = isDark ? const Color(0xFF45300B) : const Color(0xFFFDE68A);
+    final badgeTextColor = isDark
+        ? const Color(0xFFFCD34D)
+        : const Color(0xFF92400E);
+    final dividerColor = isDark
+        ? const Color(0xFF45300B)
+        : const Color(0xFFFDE68A);
 
     return Container(
       padding: AppSpacing.cardPadding,
@@ -99,7 +109,9 @@ class WalletCreditsBanner extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   'Loading credits...',
-                  style: AppTypography.caption.copyWith(color: secondaryTextColor),
+                  style: AppTypography.caption.copyWith(
+                    color: secondaryTextColor,
+                  ),
                 ),
               ],
             )
@@ -113,7 +125,7 @@ class WalletCreditsBanner extends StatelessWidget {
             ),
           const SizedBox(height: 6),
           Text(
-            'Credited from referral activation fee. Valid for purchasing all BuyNaija marketplace products.',
+            'Credited from referral activation fee. Valid for purchasing all Naijahands marketplace products.',
             style: AppTypography.caption.copyWith(
               color: secondaryTextColor.withAlpha(220),
               fontSize: 12,
@@ -152,4 +164,3 @@ class WalletCreditsBanner extends StatelessWidget {
     );
   }
 }
-

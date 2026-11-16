@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
-/// Horizontal selection card matching the Figma BuyNaija UI design.
+/// Horizontal selection card matching the Figma Naijahands UI design.
 class RoleSelectionCard extends StatelessWidget {
   const RoleSelectionCard({
     super.key,
@@ -124,9 +124,7 @@ class RoleSelectionCard extends StatelessWidget {
                 child: Center(
                   child: Icon(
                     Icons.arrow_forward_rounded,
-                    color: isDark
-                        ? AppColors.secondary
-                        : AppColors.primary,
+                    color: isDark ? AppColors.secondary : AppColors.primary,
                     size: 19,
                   ),
                 ),
@@ -146,9 +144,7 @@ class TrustBadgesRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final dividerColor = isDark
-        ? AppColors.darkBorder
-        : AppColors.border;
+    final dividerColor = isDark ? AppColors.darkBorder : AppColors.border;
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
@@ -182,9 +178,7 @@ class TrustBadgesRow extends StatelessWidget {
     required String label,
     required bool isDark,
   }) {
-    final iconColor = isDark
-        ? AppColors.secondary
-        : AppColors.primary;
+    final iconColor = isDark ? AppColors.secondary : AppColors.primary;
     final textColor = isDark
         ? AppColors.darkTextSecondary
         : AppColors.textSecondary;

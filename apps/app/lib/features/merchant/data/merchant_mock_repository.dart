@@ -12,7 +12,9 @@ class MerchantMockRepository implements MerchantRepository {
   final List<MerchantOrder> _orders = List.from(kInitialMerchantOrders);
 
   @override
-  Future<MerchantDashboardMetrics> getDashboardMetrics(String merchantId) async {
+  Future<MerchantDashboardMetrics> getDashboardMetrics(
+    String merchantId,
+  ) async {
     await Future.delayed(const Duration(milliseconds: 300));
 
     final today = DateTime.now();
@@ -24,20 +26,34 @@ class MerchantMockRepository implements MerchantRepository {
 
     final todaySales = todayOrders.fold<double>(
       0.0,
-      (sum, o) => sum + (o.paymentStatus == MerchantPaymentStatus.paid ? o.total : 0.0),
+      (sum, o) =>
+          sum + (o.paymentStatus == MerchantPaymentStatus.paid ? o.total : 0.0),
     );
 
     final totalRevenue = _orders.fold<double>(
       0.0,
-      (sum, o) => sum + (o.paymentStatus == MerchantPaymentStatus.paid ? o.total : 0.0),
+      (sum, o) =>
+          sum + (o.paymentStatus == MerchantPaymentStatus.paid ? o.total : 0.0),
     );
 
-    final lowStockCount = _products.where((p) => p.isLowStock || p.isOutOfStock).length;
-    final activeProductsCount = _products.where((p) => p.status == MerchantProductStatus.active).length;
-    final pendingOrdersCount = _orders.where((o) => o.status == MerchantOrderStatus.pending || o.status == MerchantOrderStatus.processing).length;
+    final lowStockCount = _products
+        .where((p) => p.isLowStock || p.isOutOfStock)
+        .length;
+    final activeProductsCount = _products
+        .where((p) => p.status == MerchantProductStatus.active)
+        .length;
+    final pendingOrdersCount = _orders
+        .where(
+          (o) =>
+              o.status == MerchantOrderStatus.pending ||
+              o.status == MerchantOrderStatus.processing,
+        )
+        .length;
 
     return MerchantDashboardMetrics(
-      todaySales: todaySales > 0 ? todaySales : 71500.0, // Seed today sales if mock is fresh
+      todaySales: todaySales > 0
+          ? todaySales
+          : 71500.0, // Seed today sales if mock is fresh
       todayOrdersCount: todayOrders.isNotEmpty ? todayOrders.length : 2,
       totalRevenue: totalRevenue + 1250000.0,
       lowStockCount: lowStockCount,
@@ -72,7 +88,9 @@ class MerchantMockRepository implements MerchantRepository {
     }
 
     if (category != null && category != 'All') {
-      results = results.where((p) => p.category.toLowerCase() == category.toLowerCase()).toList();
+      results = results
+          .where((p) => p.category.toLowerCase() == category.toLowerCase())
+          .toList();
     }
 
     if (categoryId != null) {
@@ -121,10 +139,7 @@ class MerchantMockRepository implements MerchantRepository {
   }
 
   @override
-  Future<void> deleteProduct(
-    String merchantId,
-    String productId,
-  ) async {
+  Future<void> deleteProduct(String merchantId, String productId) async {
     await Future.delayed(const Duration(milliseconds: 250));
     _products.removeWhere((p) => p.id == productId);
   }
@@ -151,9 +166,24 @@ class MerchantMockRepository implements MerchantRepository {
     await Future.delayed(const Duration(milliseconds: 200));
     return const [
       Brand(id: 1, name: 'Aba Craft', slug: 'aba-craft', isVerified: true),
-      Brand(id: 2, name: 'Ariaria Master', slug: 'ariaria-master', isVerified: true),
-      Brand(id: 3, name: 'BuyNaija Prime', slug: 'buynaija-prime', isVerified: true),
-      Brand(id: 4, name: 'Enyimba Stitch', slug: 'enyimba-stitch', isVerified: false),
+      Brand(
+        id: 2,
+        name: 'Ariaria Master',
+        slug: 'ariaria-master',
+        isVerified: true,
+      ),
+      Brand(
+        id: 3,
+        name: 'Naijahands Prime',
+        slug: 'buynaija-prime',
+        isVerified: true,
+      ),
+      Brand(
+        id: 4,
+        name: 'Enyimba Stitch',
+        slug: 'enyimba-stitch',
+        isVerified: false,
+      ),
     ];
   }
 

@@ -133,7 +133,7 @@
 
 Mentions of "ABA" or "Aba" were found in the following locations across the workspace:
 - **Components & Layouts**: `StorefrontFooter.tsx`, `StorefrontHeader.tsx` (e.g. `ABA Online`, logo alt text), `Sidebar.tsx`, `layout.tsx` (title/desc: `Aba E-commerce`)
-- **Pages**: `(storefront)/page.tsx` (e.g. `What is ABA Online?`, `Made in Aba`, `Built by Aba. Growing with Aba.`), `(storefront)/cart/page.tsx` (`Secure Checkout Powered by ABA Online`), `(storefront)/merchants/onboarding/page.tsx`, `(storefront)/merchants/page.tsx`, `(storefront)/products/[id]/page.tsx` (`ABA Buyer Protection`), `(storefront)/auth/register/page.tsx`, `(storefront)/auth/login/page.tsx`
+- **Pages**: `(storefront)/page.tsx` (e.g. `What is ABA Online?`, `Made in Aba`, `Built by Aba. Growing with Aba.`), `(storefront)/cart/page.tsx` (`Secure Checkout Powered by ABA Online`), `(storefront)/merchants/onboarding/page.tsx`, `(storefront)/merchants/page.tsx`, `(storefront)/products/[id]/page.tsx` (`Naijahands Protection`), `(storefront)/auth/register/page.tsx`, `(storefront)/auth/login/page.tsx`
 - **Mock Data**: `features/merchant/mocks.ts` (e.g. `ABA Retail Ltd`), `features/referrals/mocks.ts` (Referral IDs starting with `ABA-`), `services/mock/public.service.ts` (`Aba Leather Satchel`, `Aba Crafts`, `Aba Textiles`)
 - **Docs**: `docs/blueprint.md` (`ABA ERP Mobile Blueprint`), `docs/review/ABA-Client-Feedback-Implementation-Guide.md`, `docs/spec/ABA-ERP-06-Storefront-and-Marketplace.md`
 - **Other Code**: `features/referrals/components/NetworkExplorer.tsx`, `store/useAuthStore.ts`, `components/merchant/POSInterface.tsx`, `components/public/home/ServicesSection.tsx`, `app/(public)/about/page.tsx`

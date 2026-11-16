@@ -21,13 +21,16 @@ class _FakeCartNotifier extends CartNotifier {
 
 void main() {
   group('Payment Endpoints and Service paymentMethod tests', () {
-    test('api endpoints orderPaymentInitialize points to /orders/{orderId}', () {
-      final endpoint = ApiEndpoints.payments.orderPaymentInitialize(1807);
-      expect(
-        endpoint,
-        equals('${ApiEndpoints.apiV1}/payments/mobile-app/orders/1807'),
-      );
-    });
+    test(
+      'api endpoints orderPaymentInitialize points to /orders/{orderId}',
+      () {
+        final endpoint = ApiEndpoints.payments.orderPaymentInitialize(1807);
+        expect(
+          endpoint,
+          equals('${ApiEndpoints.apiV1}/payments/mobile-app/orders/1807'),
+        );
+      },
+    );
 
     test('initializePayment sends paymentMethod: 1 for Paystack', () async {
       final recordedRequests = <RequestOptions>[];
@@ -43,7 +46,8 @@ void main() {
                 data: {
                   'success': true,
                   'data': {
-                    'authorizationUrl': 'https://checkout.paystack.com/test-123',
+                    'authorizationUrl':
+                        'https://checkout.paystack.com/test-123',
                     'reference': 'PSK-test-123',
                   },
                 },
@@ -60,7 +64,10 @@ void main() {
         email: 'customer@aba.ng',
       );
 
-      expect(res.authorizationUrl, equals('https://checkout.paystack.com/test-123'));
+      expect(
+        res.authorizationUrl,
+        equals('https://checkout.paystack.com/test-123'),
+      );
       expect(recordedRequests.first.data['paymentMethod'], equals(1));
       expect(recordedRequests.first.path.endsWith('/orders/1807'), isTrue);
     });
@@ -78,10 +85,7 @@ void main() {
                 statusCode: 200,
                 data: {
                   'success': true,
-                  'data': {
-                    'status': 'success',
-                    'reference': 'WLT-tx-999',
-                  },
+                  'data': {'status': 'success', 'reference': 'WLT-tx-999'},
                 },
               ),
             );
@@ -104,7 +108,9 @@ void main() {
   });
 
   group('StepPaymentMethod Widget Tests', () {
-    testWidgets('allows selecting Wallet and Paystack payment methods', (tester) async {
+    testWidgets('allows selecting Wallet and Paystack payment methods', (
+      tester,
+    ) async {
       CheckoutPaymentType selected = CheckoutPaymentType.paystack;
 
       await tester.pumpWidget(
@@ -115,10 +121,7 @@ void main() {
             ),
             walletInfoProvider.overrideWith(
               (ref) => Future.value(
-                const WalletInfo(
-                  balance: 50000.0,
-                  currency: 'NGN',
-                ),
+                const WalletInfo(balance: 50000.0, currency: 'NGN'),
               ),
             ),
           ],
@@ -140,88 +143,91 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Paystack Gateway'), findsOneWidget);
-      expect(find.text('BuyNaija Wallet'), findsOneWidget);
+      expect(find.text('Naijahands Wallet'), findsOneWidget);
       expect(find.textContaining('Available Balance:'), findsOneWidget);
       expect(find.textContaining('50,000.00'), findsOneWidget);
 
       // Tap Wallet
-      await tester.tap(find.text('BuyNaija Wallet'));
+      await tester.tap(find.text('Naijahands Wallet'));
       await tester.pumpAndSettle();
 
       expect(selected, equals(CheckoutPaymentType.wallet));
     });
 
-    testWidgets('shows insufficient balance snackbar and opens FundWalletSheet without route crash', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            cartProvider.overrideWith(
-              () => _FakeCartNotifier(
-                const Cart(
-                  items: [
-                    CartItem(
-                      id: 'ci_1',
-                      product: Product(
-                        id: 'p1',
-                        name: 'Shoe',
-                        slug: 'shoe',
-                        price: 30000,
-                        discount: 0,
-                        category: 'Footwear',
-                        brand: 'Aba',
-                        rating: 5,
-                        reviewCount: 1,
-                        stock: 5,
-                        images: [],
-                        description: 'Shoes',
-                        tags: [],
+    testWidgets(
+      'shows insufficient balance snackbar and opens FundWalletSheet without route crash',
+      (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              cartProvider.overrideWith(
+                () => _FakeCartNotifier(
+                  const Cart(
+                    items: [
+                      CartItem(
+                        id: 'ci_1',
+                        product: Product(
+                          id: 'p1',
+                          name: 'Shoe',
+                          slug: 'shoe',
+                          price: 30000,
+                          discount: 0,
+                          category: 'Footwear',
+                          brand: 'Aba',
+                          rating: 5,
+                          reviewCount: 1,
+                          stock: 5,
+                          images: [],
+                          description: 'Shoes',
+                          tags: [],
+                        ),
+                        quantity: 1,
                       ),
-                      quantity: 1,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            walletInfoProvider.overrideWith(
-              (ref) => Future.value(
-                const WalletInfo(
-                  balance: 5000.0,
-                  currency: 'NGN',
+              walletInfoProvider.overrideWith(
+                (ref) => Future.value(
+                  const WalletInfo(balance: 5000.0, currency: 'NGN'),
                 ),
               ),
-            ),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: StepPaymentMethod(
-                selectedType: CheckoutPaymentType.wallet,
-                onSelectType: (_) {},
-                onBack: () {},
-                onContinue: () {},
+            ],
+            child: MaterialApp(
+              home: Scaffold(
+                body: StepPaymentMethod(
+                  selectedType: CheckoutPaymentType.wallet,
+                  onSelectType: (_) {},
+                  onBack: () {},
+                  onContinue: () {},
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      expect(find.textContaining('(Low balance)'), findsOneWidget);
+        expect(find.textContaining('(Low balance)'), findsOneWidget);
 
-      // Tap Review Order
-      await tester.tap(find.text('Review Order'));
-      await tester.pumpAndSettle();
+        // Tap Review Order
+        await tester.tap(find.text('Review Order'));
+        await tester.pumpAndSettle();
 
-      // Verify snackbar is displayed with Fund wallet action
-      expect(find.textContaining('Insufficient wallet balance'), findsOneWidget);
-      expect(find.text('Fund wallet'), findsOneWidget);
+        // Verify snackbar is displayed with Fund wallet action
+        expect(
+          find.textContaining('Insufficient wallet balance'),
+          findsOneWidget,
+        );
+        expect(find.text('Fund wallet'), findsOneWidget);
 
-      // Tap Fund wallet
-      await tester.tap(find.text('Fund wallet'));
-      await tester.pumpAndSettle();
+        // Tap Fund wallet
+        await tester.tap(find.text('Fund wallet'));
+        await tester.pumpAndSettle();
 
-      // Verify FundWalletSheet modal opened without navigator crash
-      expect(find.text('Fund Wallet'), findsOneWidget);
-    });
+        // Verify FundWalletSheet modal opened without navigator crash
+        expect(find.text('Fund Wallet'), findsOneWidget);
+      },
+    );
   });
 }

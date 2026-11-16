@@ -102,7 +102,9 @@ class MerchantStepCertifications extends StatelessWidget {
           activeColor: AppColors.primary,
           title: Text(
             'Supply Capacity Confirmation',
-            style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700),
+            style: AppTypography.bodySmall.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
           subtitle: Text(
             'I confirm that my workshop/store has the operational capacity to fulfill listed products reliably.',
@@ -118,10 +120,12 @@ class MerchantStepCertifications extends StatelessWidget {
           activeColor: AppColors.primary,
           title: Text(
             'Fulfillment & Dispatch Standards',
-            style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700),
+            style: AppTypography.bodySmall.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
           subtitle: Text(
-            'I agree to dispatch orders within 24–48 hours and adhere to BuyNaija buyer protection and packaging rules.',
+            'I agree to dispatch orders within 24–48 hours and adhere to Naijahands buyer protection and packaging rules.',
             style: AppTypography.caption.copyWith(
               color: isDark ? AppColors.darkTextSecondary : AppColors.grey,
             ),

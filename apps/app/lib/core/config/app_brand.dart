@@ -1,8 +1,8 @@
 class AppBrand {
-  static const String name = 'BuyNaija';
-  static const String shortName = 'BuyNaija';
-  static const String legalName = 'BuyNaija Ltd.';
-  static const String tagline = 'Shop Local, BuyNaija';
+  static const String name = 'Naijahands';
+  static const String shortName = 'Naijahands';
+  static const String legalName = 'Naijahands Ltd.';
+  static const String tagline = 'Shop Local, Naijahands';
 
   static const Map<String, String> logo = {
     'full': 'assets/images/logo-full.png',
@@ -22,6 +22,6 @@ class AppBrand {
 
   static const String rewardsName = 'Reward Points';
   static const String referralCodePrefix = 'BNG-';
-  static const String receiptFooter = 'Powered by BuyNaija';
-  static const String emailSenderName = 'BuyNaija';
+  static const String receiptFooter = 'Powered by Naijahands';
+  static const String emailSenderName = 'Naijahands';
 }

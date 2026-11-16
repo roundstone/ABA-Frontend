@@ -64,8 +64,9 @@ class WishlistMockRepository implements WishlistRepository {
       final start = DateTime.tryParse(startDate);
       if (start != null) {
         final startDay = DateTime(start.year, start.month, start.day);
-        filtered =
-            filtered.where((item) => !item.createdAt.isBefore(startDay)).toList();
+        filtered = filtered
+            .where((item) => !item.createdAt.isBefore(startDay))
+            .toList();
       }
     }
 
@@ -73,8 +74,9 @@ class WishlistMockRepository implements WishlistRepository {
       final end = DateTime.tryParse(endDate);
       if (end != null) {
         final endDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
-        filtered =
-            filtered.where((item) => !item.createdAt.isAfter(endDay)).toList();
+        filtered = filtered
+            .where((item) => !item.createdAt.isAfter(endDay))
+            .toList();
       }
     }
 
@@ -131,7 +133,7 @@ class WishlistMockRepository implements WishlistRepository {
         name: 'Product #$wishlistableId',
         slug: 'product-$wishlistableId',
         category: 'Marketplace',
-        brand: 'BuyNaija',
+        brand: 'Naijahands',
         rating: 4.0,
         reviewCount: 0,
         stock: 10,

@@ -17,8 +17,9 @@ final wishlistRepositoryProvider = Provider<WishlistRepository>((ref) {
 class WishlistNotifier extends StateNotifier<WishlistState> {
   final WishlistRepository _repository;
 
-  WishlistNotifier(this._repository) : super(const WishlistState()) {
-    loadInitial();
+  WishlistNotifier(this._repository, {bool autoLoad = true})
+      : super(const WishlistState()) {
+    if (autoLoad) loadInitial();
   }
 
   void _syncIdMaps(List<WishlistItem> items) {
@@ -48,6 +49,7 @@ class WishlistNotifier extends StateNotifier<WishlistState> {
         endDate: endStr,
         orderBy: state.orderBy,
       );
+      if (!mounted) return;
 
       final ids = res.items.map((i) => i.wishlistableId).toSet();
       final map = {for (final i in res.items) i.wishlistableId: i.id};
@@ -63,6 +65,7 @@ class WishlistNotifier extends StateNotifier<WishlistState> {
         productToWishlistIdMap: map,
       );
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(
         isLoading: false,
         errorMessage: ApiError.toUserFriendlyMessage(e),
@@ -86,6 +89,7 @@ class WishlistNotifier extends StateNotifier<WishlistState> {
         endDate: endStr,
         orderBy: state.orderBy,
       );
+      if (!mounted) return;
 
       final combined = [...state.items, ...res.items];
       _syncIdMaps(combined);
@@ -99,6 +103,7 @@ class WishlistNotifier extends StateNotifier<WishlistState> {
         isLoadingMore: false,
       );
     } catch (_) {
+      if (!mounted) return;
       state = state.copyWith(isLoadingMore: false);
     }
   }
@@ -132,8 +137,10 @@ class WishlistNotifier extends StateNotifier<WishlistState> {
         await _repository.removeFromWishlist(wishlistItemId);
         return false;
       } catch (e) {
-        _syncIdMaps(prevItems);
-        state = state.copyWith(items: prevItems);
+        if (mounted) {
+          _syncIdMaps(prevItems);
+          state = state.copyWith(items: prevItems);
+        }
         rethrow;
       }
     } else {
@@ -160,6 +167,7 @@ class WishlistNotifier extends StateNotifier<WishlistState> {
           wishlistableType: 'product',
           wishlistableId: pId,
         );
+        if (!mounted) return true;
 
         final finalizedItems = state.items.map((i) {
           return i.id == tempItem.id
@@ -181,8 +189,10 @@ class WishlistNotifier extends StateNotifier<WishlistState> {
         );
         return true;
       } catch (e) {
-        _syncIdMaps(prevItems);
-        state = state.copyWith(items: prevItems);
+        if (mounted) {
+          _syncIdMaps(prevItems);
+          state = state.copyWith(items: prevItems);
+        }
         rethrow;
       }
     }
@@ -205,8 +215,10 @@ class WishlistNotifier extends StateNotifier<WishlistState> {
     try {
       await _repository.removeFromWishlist(id);
     } catch (e) {
-      _syncIdMaps(prevItems);
-      state = state.copyWith(items: prevItems);
+      if (mounted) {
+        _syncIdMaps(prevItems);
+        state = state.copyWith(items: prevItems);
+      }
       rethrow;
     }
   }
@@ -214,9 +226,9 @@ class WishlistNotifier extends StateNotifier<WishlistState> {
 
 final wishlistNotifierProvider =
     StateNotifierProvider<WishlistNotifier, WishlistState>((ref) {
-  ref.watch(currentUserProvider);
+  final user = ref.watch(currentUserProvider);
   final repo = ref.watch(wishlistRepositoryProvider);
-  return WishlistNotifier(repo);
+  return WishlistNotifier(repo, autoLoad: user != null);
 });
 
 final isProductInWishlistProvider =

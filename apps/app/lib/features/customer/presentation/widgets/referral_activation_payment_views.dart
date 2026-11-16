@@ -75,7 +75,7 @@ class ReferralPaymentStepView extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Your fee is credited immediately to your BuyNaija wallet. It cannot be withdrawn, but you can use it anytime to purchase any products across BuyNaija.',
+                'Your fee is credited immediately to your Naijahands wallet. It cannot be withdrawn, but you can use it anytime to purchase any products across Naijahands.',
                 style: AppTypography.bodySmall.copyWith(
                   color: isDark ? AppColors.darkTextSecondary : AppColors.grey,
                   height: 1.4,
@@ -131,10 +131,7 @@ class ReferralSuccessStepView extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.xl),
-        AppButton.primary(
-          label: 'Start Sharing & Earning',
-          onPressed: onClose,
-        ),
+        AppButton.primary(label: 'Start Sharing & Earning', onPressed: onClose),
       ],
     );
   }

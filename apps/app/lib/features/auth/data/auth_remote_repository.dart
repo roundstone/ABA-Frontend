@@ -496,4 +496,26 @@ class AuthRemoteRepository implements AuthRepository {
       throw ApiError.fromDio(e);
     }
   }
+
+  @override
+  Future<void> deleteProfile() async {
+    try {
+      final token = _prefs?.getString(_tokenKey) ?? '';
+      await _dio.delete(
+        ApiEndpoints.profile.base,
+        options: token.isNotEmpty
+            ? Options(headers: {'Authorization': 'Bearer $token'})
+            : null,
+      );
+      await logout();
+    } on DioException catch (e) {
+      AppLogger.e('AuthRemoteRepository.deleteProfile failed', error: e);
+      if (AppConfig.isMockMode) {
+        await _mock.deleteProfile();
+        await logout();
+        return;
+      }
+      throw ApiError.fromDio(e);
+    }
+  }
 }

@@ -19,7 +19,9 @@ class OnboardingSuccessDialog extends StatelessWidget {
 
     return AlertDialog(
       backgroundColor: isDark ? AppColors.darkSurface : AppColors.surface,
-      shape: const RoundedRectangleBorder(borderRadius: AppSpacing.borderRadiusXL),
+      shape: const RoundedRectangleBorder(
+        borderRadius: AppSpacing.borderRadiusXL,
+      ),
       title: Row(
         children: [
           Container(
@@ -107,7 +109,7 @@ class OnboardingSuccessDialog extends StatelessWidget {
               buffer.writeln('Name: ${r.fullName}');
               buffer.writeln('Email: ${r.email}');
               buffer.writeln('Password: ${r.password}');
-              buffer.writeln('Login at: BuyNaija Mobile App\n');
+              buffer.writeln('Login at: Naijahands Mobile App\n');
             }
             Clipboard.setData(ClipboardData(text: buffer.toString()));
             AppSnackbar.info(context, 'Credentials copied to clipboard!');
@@ -115,10 +117,7 @@ class OnboardingSuccessDialog extends StatelessWidget {
           icon: const Icon(Icons.copy_rounded, size: 16),
           label: const Text('Copy Credentials'),
         ),
-        AppButton(
-          label: 'Done',
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        AppButton(label: 'Done', onPressed: () => Navigator.of(context).pop()),
       ],
     );
   }

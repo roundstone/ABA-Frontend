@@ -15,7 +15,7 @@ class DeepLinkSimulatorSheet extends StatefulWidget {
 
 class _DeepLinkSimulatorSheetState extends State<DeepLinkSimulatorSheet> {
   final _controller = TextEditingController(
-    text: 'https://app.abaerp.com/reset-password?token=0001',
+    text: 'https://app.naijahands.com/reset-password?token=0001',
   );
 
   @override
@@ -26,7 +26,7 @@ class _DeepLinkSimulatorSheetState extends State<DeepLinkSimulatorSheet> {
 
   void _applyToken(String token) {
     setState(() {
-      _controller.text = 'https://app.abaerp.com/reset-password?token=$token';
+      _controller.text = 'https://app.naijahands.com/reset-password?token=$token';
     });
   }
 
@@ -117,19 +117,19 @@ class _DeepLinkSimulatorSheetState extends State<DeepLinkSimulatorSheet> {
               ActionChip(
                 label: const Text('Storefront Shop'),
                 onPressed: () {
-                  setState(() => _controller.text = 'https://app.abaerp.com/shop');
+                  setState(() => _controller.text = 'https://app.naijahands.com/shop');
                 },
               ),
               ActionChip(
                 label: const Text('Merchants Directory'),
                 onPressed: () {
-                  setState(() => _controller.text = 'https://app.abaerp.com/merchants');
+                  setState(() => _controller.text = 'https://app.naijahands.com/merchants');
                 },
               ),
               ActionChip(
-                label: const Text('Custom Scheme (abaerp://)'),
+                label: const Text('Custom Scheme (naijahands://)'),
                 onPressed: () {
-                  setState(() => _controller.text = 'abaerp://reset-password?token=0001');
+                  setState(() => _controller.text = 'naijahands://reset-password?token=0001');
                 },
               ),
             ],
@@ -139,7 +139,7 @@ class _DeepLinkSimulatorSheetState extends State<DeepLinkSimulatorSheet> {
             controller: _controller,
             decoration: InputDecoration(
               labelText: 'Deep Link URL',
-              hintText: 'https://app.abaerp.com/reset-password?token=0001',
+              hintText: 'https://app.naijahands.com/reset-password?token=0001',
               border: const OutlineInputBorder(),
               suffixIcon: IconButton(
                 icon: const Icon(Icons.clear, size: 18),

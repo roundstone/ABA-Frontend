@@ -1,4 +1,4 @@
-/// Generic model for standardized API success responses from the BuyNaija backend.
+/// Generic model for standardized API success responses from the Naijahands backend.
 ///
 /// Handles both non-paginated and paginated envelopes:
 /// ```json
@@ -58,18 +58,15 @@ class ApiResponse<T> {
     Map<String, dynamic> json,
     ItemType Function(dynamic item) fromJsonItem,
   ) {
-    return ApiResponse<PaginatedData<ItemType>>.fromJson(
-      json,
-      (data) {
-        if (data is Map<String, dynamic>) {
-          return PaginatedData<ItemType>.fromJson(data, fromJsonItem);
-        }
-        return PaginatedData<ItemType>(
-          items: const [],
-          meta: PaginationMeta.empty(),
-        );
-      },
-    );
+    return ApiResponse<PaginatedData<ItemType>>.fromJson(json, (data) {
+      if (data is Map<String, dynamic>) {
+        return PaginatedData<ItemType>.fromJson(data, fromJsonItem);
+      }
+      return PaginatedData<ItemType>(
+        items: const [],
+        meta: PaginationMeta.empty(),
+      );
+    });
   }
 
   /// Safely extracts the inner `data` payload whether the response is wrapped
@@ -103,7 +100,9 @@ class ApiResponse<T> {
     if (unwrapped is List) {
       return unwrapped;
     }
-    if (unwrapped is Map && unwrapped.containsKey('data') && unwrapped['data'] is List) {
+    if (unwrapped is Map &&
+        unwrapped.containsKey('data') &&
+        unwrapped['data'] is List) {
       return unwrapped['data'] as List<dynamic>;
     }
     if (responseData is List) {
@@ -135,7 +134,8 @@ class PaginationMeta {
   final String? nextPageUrl;
   final String? previousPageUrl;
 
-  bool get hasNextPage => nextPageUrl != null || (totalPages > 0 && currentPage < totalPages);
+  bool get hasNextPage =>
+      nextPageUrl != null || (totalPages > 0 && currentPage < totalPages);
   bool get hasPreviousPage => previousPageUrl != null || currentPage > 1;
 
   factory PaginationMeta.empty() {
@@ -181,10 +181,7 @@ class PaginationMeta {
 
 /// Generic wrapper for paginated items with attached pagination metadata.
 class PaginatedData<T> {
-  const PaginatedData({
-    required this.items,
-    required this.meta,
-  });
+  const PaginatedData({required this.items, required this.meta});
 
   final List<T> items;
   final PaginationMeta meta;
@@ -209,10 +206,7 @@ class PaginatedData<T> {
             currentPage: 1,
           );
 
-    return PaginatedData<T>(
-      items: items,
-      meta: meta,
-    );
+    return PaginatedData<T>(items: items, meta: meta);
   }
 
   @override

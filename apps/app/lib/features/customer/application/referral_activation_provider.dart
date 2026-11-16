@@ -176,15 +176,15 @@ class ReferralActivationNotifier
       try {
         await kycService.updateProfile(
           dateOfBirth:
-              dateOfBirth ?? existingProfile?.dateOfBirth ?? '1990-04-28',
+              dateOfBirth ?? existingProfile?.dateOfBirth ?? '',
           nationality:
-              nationality ?? existingProfile?.nationality ?? 'Nigerian',
+              nationality ?? existingProfile?.nationality ?? '',
           residentialAddress: residentialAddress ??
               existingProfile?.residentialAddress ??
-              '14 Admiralty Way',
-          city: city ?? existingProfile?.city ?? 'Aba',
-          state: stateName ?? existingProfile?.state ?? 'Abia',
-          lga: lga ?? existingProfile?.lga ?? 'Aba North',
+              '',
+          city: city ?? existingProfile?.city ?? '',
+          state: stateName ?? existingProfile?.state ?? '',
+          lga: lga ?? existingProfile?.lga ?? '',
         );
       } catch (e) {
         AppLogger.w(

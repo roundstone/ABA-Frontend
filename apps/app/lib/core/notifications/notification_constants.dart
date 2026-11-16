@@ -1,10 +1,10 @@
-/// Constants for Push & Local Notifications across BuyNaija / ABA ERP.
+/// Constants for Push & Local Notifications across Naijahands / ABA ERP.
 class NotificationConstants {
   NotificationConstants._();
 
   // Notification Channel Configuration (Android)
   static const String channelId = 'aba_high_importance_channel';
-  static const String channelName = 'BuyNaija Orders & Alerts';
+  static const String channelName = 'Naijahands Orders & Alerts';
   static const String channelDescription =
       'Real-time updates for orders, payments, referrals, and account alerts.';
 

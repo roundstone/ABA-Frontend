@@ -13,10 +13,10 @@ void main() {
   group('Deep Linking Service & URL Parsing Tests', () {
     final service = DeepLinkService.instance;
 
-    test('Parses https://app.abaerp.com/reset-password with all tokens', () {
+    test('Parses https://app.naijahands.com/reset-password with all tokens', () {
       const tokens = ['0001', '0002', '0003', '0004'];
       for (final t in tokens) {
-        final url = 'https://app.abaerp.com/reset-password?token=$t';
+        final url = 'https://app.naijahands.com/reset-password?token=$t';
         final result = service.parseDeepLink(url);
 
         expect(result.path, '/reset-password');
@@ -25,8 +25,8 @@ void main() {
       }
     });
 
-    test('Parses custom schemes (abaerp:// and buynaija://)', () {
-      final res1 = service.parseDeepLink('abaerp://reset-password?token=0001');
+    test('Parses custom schemes (naijahands:// and buynaija://)', () {
+      final res1 = service.parseDeepLink('naijahands://reset-password?token=0001');
       expect(res1.path, '/reset-password');
       expect(res1.queryParams['token'], '0001');
 
@@ -36,7 +36,7 @@ void main() {
     });
 
     test('Parses alternative domains and relative paths safely', () {
-      final res1 = service.parseDeepLink('https://abaerp.com/reset-password?token=0003');
+      final res1 = service.parseDeepLink('https://naijahands.com/reset-password?token=0003');
       expect(res1.path, '/reset-password');
       expect(res1.queryParams['token'], '0003');
 
@@ -131,14 +131,14 @@ void main() {
           child: MaterialApp(
             home: ResetPasswordScreen(
               initialToken: '0001',
-              initialEmail: 'test@abaerp.com',
+              initialEmail: 'test@naijahands.com',
             ),
           ),
         ),
       );
 
       expect(find.text('0001'), findsOneWidget);
-      expect(find.text('test@abaerp.com'), findsOneWidget);
+      expect(find.text('test@naijahands.com'), findsOneWidget);
     });
 
     testWidgets('DeepLinkSimulatorSheet allows quick token selection (0001-0004)', (tester) async {
@@ -159,7 +159,7 @@ void main() {
       await tester.tap(find.text('Token 0003'));
       await tester.pump();
 
-      expect(find.text('https://app.abaerp.com/reset-password?token=0003'), findsOneWidget);
+      expect(find.text('https://app.naijahands.com/reset-password?token=0003'), findsOneWidget);
     });
   });
 }

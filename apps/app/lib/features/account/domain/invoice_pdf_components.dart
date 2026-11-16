@@ -36,8 +36,8 @@ class InvoicePdfComponents {
       data: order.items.map((item) {
         final variantSuffix =
             item.variantName != null && item.variantName!.isNotEmpty
-                ? ' (${item.variantName})'
-                : '';
+            ? ' (${item.variantName})'
+            : '';
         final lineTotal = item.totalPrice ?? (item.price * item.quantity);
         return [
           '${item.productName}$variantSuffix',
@@ -130,7 +130,7 @@ class InvoicePdfComponents {
         crossAxisAlignment: pw.CrossAxisAlignment.center,
         children: [
           pw.Text(
-            'Thank you for shopping on BuyNaija!',
+            'Thank you for shopping on Naijahands!',
             style: pw.TextStyle(
               color: racingGreen,
               fontSize: 10,
@@ -145,7 +145,7 @@ class InvoicePdfComponents {
           ),
           pw.SizedBox(height: 2),
           pw.Text(
-            'Support: support@buynaija.com | (c) 2026 BuyNaija Ltd.',
+            'Support: support@naijahands.com | (c) 2026 Naijahands Ltd.',
             style: const pw.TextStyle(color: textMuted, fontSize: 8),
           ),
         ],
@@ -153,4 +153,3 @@ class InvoicePdfComponents {
     );
   }
 }
-

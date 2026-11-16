@@ -1,9 +1,9 @@
 import 'package:app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
-/// Logo for BuyNaija featuring the iconic smiling shopping bag.
-class BuyNaijaLogo extends StatelessWidget {
-  const BuyNaijaLogo({super.key, this.fontSize = 22, this.iconSize = 28});
+/// Logo for Naijahands featuring the iconic smiling shopping bag.
+class NaijahandsLogo extends StatelessWidget {
+  const NaijahandsLogo({super.key, this.fontSize = 22, this.iconSize = 28});
 
   final double fontSize;
   final double iconSize;
@@ -20,7 +20,7 @@ class BuyNaijaLogo extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Text(
-          'BuyNaija',
+          'Naijahands',
           style: TextStyle(
             color: AppColors.primary,
             fontSize: fontSize,

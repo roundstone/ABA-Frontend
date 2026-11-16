@@ -7,6 +7,7 @@ import '../../../../core/widgets/app_widgets.dart';
 import '../../../checkout/presentation/widgets/paystack_payment_sheet.dart';
 import '../../../wallet/application/wallet_providers.dart';
 import '../../application/referral_activation_provider.dart';
+import '../../data/kyc_service.dart';
 import 'referral_activation_payment_views.dart';
 import 'referral_activation_steps.dart';
 
@@ -34,18 +35,19 @@ class ReferralActivationSheet extends ConsumerStatefulWidget {
 class _ReferralActivationSheetState
     extends ConsumerState<ReferralActivationSheet> {
   int _step = 0; // 0: KYC, 1: Payment, 2: Success
-  final _ninController = TextEditingController(text: '12345678901');
-  final _dobController = TextEditingController(text: '1990-04-28');
-  final _nationalityController = TextEditingController(text: 'Nigerian');
-  final _addressController = TextEditingController(text: '14 Admiralty Way');
-  final _cityController = TextEditingController(text: 'Lekki');
-  final _stateController = TextEditingController(text: 'Lagos');
-  final _lgaController = TextEditingController(text: 'Eti Osa');
+  final _ninController = TextEditingController(),
+      _dobController = TextEditingController(),
+      _nationalityController = TextEditingController(text: 'Nigerian'),
+      _addressController = TextEditingController(),
+      _cityController = TextEditingController(),
+      _stateController = TextEditingController(),
+      _lgaController = TextEditingController();
 
   String _idType = 'National Identity Number (NIN)';
-  bool _idUploaded = true, _addressUploaded = true;
+  bool _idUploaded = false, _addressUploaded = false;
   String _idFileName = 'nin_slip_verified.png';
   String _addressFileName = 'utility_bill.png';
+  KycUploadDocument? _idUploadDoc, _addressUploadDoc;
   bool _isSubmittingKyc = false, _isProcessingPayment = false;
 
   @override
@@ -61,14 +63,17 @@ class _ReferralActivationSheetState
       final docs = await ref.read(kycDocumentsProvider.future);
       if (!mounted) return;
       setState(() {
-        if (profile.dateOfBirth?.isNotEmpty == true) _dobController.text = profile.dateOfBirth!;
-        if (profile.nationality?.isNotEmpty == true) _nationalityController.text = profile.nationality!;
-        if (profile.residentialAddress?.isNotEmpty == true) _addressController.text = profile.residentialAddress!;
-        if (profile.city?.isNotEmpty == true) _cityController.text = profile.city!;
-        if (profile.state?.isNotEmpty == true) _stateController.text = profile.state!;
-        if (profile.lga?.isNotEmpty == true) _lgaController.text = profile.lga!;
+        void setIf(TextEditingController c, String? v) {
+          if (v?.isNotEmpty == true) c.text = v!;
+        }
+        setIf(_dobController, profile.dateOfBirth);
+        setIf(_nationalityController, profile.nationality);
+        setIf(_addressController, profile.residentialAddress);
+        setIf(_cityController, profile.city);
+        setIf(_stateController, profile.state);
+        setIf(_lgaController, profile.lga);
         for (final doc in docs) {
-          if (doc.documentReference?.isNotEmpty == true) _ninController.text = doc.documentReference!;
+          setIf(_ninController, doc.documentReference);
           if (doc.originalName?.isNotEmpty == true) {
             if (doc.documentType == 4) {
               _addressFileName = doc.originalName!;
@@ -97,25 +102,47 @@ class _ReferralActivationSheetState
     super.dispose();
   }
 
+  Future<void> _pickDocument(bool isIdentity) async {
+    try {
+      final doc = await pickKycDocument();
+      if (!mounted || doc == null) return;
+      setState(() {
+        if (isIdentity) {
+          _idUploadDoc = doc;
+          _idFileName = doc.fileName;
+          _idUploaded = true;
+        } else {
+          _addressUploadDoc = doc;
+          _addressFileName = doc.fileName;
+          _addressUploaded = true;
+        }
+      });
+    } catch (e) {
+      if (mounted) AppSnackbar.error(context, 'Failed to pick file: $e');
+    }
+  }
+
   Future<void> _submitKyc() async {
     if (_ninController.text.trim().length < 10) {
       AppSnackbar.warning(context, 'Please enter a valid ID / NIN number.');
       return;
     }
-
+    if (!_idUploaded || !_addressUploaded) {
+      AppSnackbar.warning(context, 'Please upload both your ID and proof of address.');
+      return;
+    }
     setState(() => _isSubmittingKyc = true);
     try {
+      final docs = (_idUploadDoc != null || _addressUploadDoc != null)
+          ? [_idUploadDoc ?? KycUploadDocument(fileName: _idFileName), _addressUploadDoc ?? KycUploadDocument(fileName: _addressFileName)]
+          : null;
       await ref.read(referralActivationProvider.notifier).submitKyc(
-            ninNumber: _ninController.text.trim(),
-            idType: _idType,
-            idDocumentName: _idFileName,
-            proofOfAddressName: _addressFileName,
-            dateOfBirth: _dobController.text.trim(),
-            nationality: _nationalityController.text.trim(),
-            residentialAddress: _addressController.text.trim(),
-            city: _cityController.text.trim(),
-            stateName: _stateController.text.trim(),
-            lga: _lgaController.text.trim(),
+            ninNumber: _ninController.text.trim(), idType: _idType,
+            idDocumentName: _idFileName, proofOfAddressName: _addressFileName,
+            dateOfBirth: _dobController.text.trim(), nationality: _nationalityController.text.trim(),
+            residentialAddress: _addressController.text.trim(), city: _cityController.text.trim(),
+            stateName: _stateController.text.trim(), lga: _lgaController.text.trim(),
+            uploadDocuments: docs,
           );
       if (!mounted) return;
       if (_isAlreadyPaid) {
@@ -134,43 +161,28 @@ class _ReferralActivationSheetState
 
   Future<void> _processPayment() async {
     if (_isAlreadyPaid) {
-      if (mounted) {
-        AppSnackbar.info(context, 'Activation fee is already paid.');
-        setState(() => _step = 2);
-      }
+      if (mounted) { AppSnackbar.info(context, 'Activation fee is already paid.'); setState(() => _step = 2); }
       return;
     }
     setState(() => _isProcessingPayment = true);
     try {
       final notifier = ref.read(referralActivationProvider.notifier);
       final initResult = await notifier.initializeActivationPayment();
-
       if (!mounted) return;
       setState(() => _isProcessingPayment = false);
-
       final paidRef = await PaystackPaymentSheet.show(
         context,
         amount: initResult.amountNaira > 0 ? initResult.amountNaira : 5000.0,
-        email: initResult.email.isNotEmpty
-            ? initResult.email
-            : 'customer@buynaija.com',
+        email: initResult.email.isNotEmpty ? initResult.email : 'customer@naijahands.com',
         reference: initResult.reference,
         authorizationUrl: initResult.authorizationUrl,
       );
-
       if (!mounted || paidRef == null || paidRef.isEmpty) return;
-
       setState(() => _isProcessingPayment = true);
-      final refToVerify =
-          initResult.reference.isNotEmpty ? initResult.reference : paidRef;
-      await notifier.completeActivationPayment(refToVerify);
-
-      ref.invalidate(walletInfoProvider);
-      ref.invalidate(shoppingCreditsProvider);
-      ref.invalidate(walletTransactionsProvider);
-      ref.invalidate(optionalKycProfileProvider);
-      ref.invalidate(kycProfileProvider);
-
+      await notifier.completeActivationPayment(initResult.reference.isNotEmpty ? initResult.reference : paidRef);
+      for (final p in [walletInfoProvider, shoppingCreditsProvider, walletTransactionsProvider, optionalKycProfileProvider, kycProfileProvider]) {
+        ref.invalidate(p);
+      }
       if (!mounted) return;
       setState(() { _isProcessingPayment = false; _step = 2; });
     } catch (e) {
@@ -185,6 +197,7 @@ class _ReferralActivationSheetState
     final mq = MediaQuery.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final pad = EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.lg + mq.padding.bottom);
 
     return Padding(
       padding: EdgeInsets.only(bottom: mq.viewInsets.bottom),
@@ -194,52 +207,35 @@ class _ReferralActivationSheetState
           decoration: BoxDecoration(color: bg, borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
           child: SafeArea(
             top: false,
-            bottom: true,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.lg + mq.padding.bottom),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(color: isDark ? Colors.white24 : Colors.black12, borderRadius: BorderRadius.circular(2)),
-                      ),
+            child: SingleChildScrollView(
+              padding: pad,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40, height: 4,
+                      decoration: BoxDecoration(color: isDark ? Colors.white24 : Colors.black12, borderRadius: BorderRadius.circular(2)),
                     ),
-                    const SizedBox(height: AppSpacing.lg),
-                    if (_step == 0)
-                      ReferralKycStepView(
-                        idType: _idType,
-                        ninController: _ninController,
-                        dobController: _dobController,
-                        nationalityController: _nationalityController,
-                        addressController: _addressController,
-                        cityController: _cityController,
-                        stateController: _stateController,
-                        lgaController: _lgaController,
-                        idUploaded: _idUploaded,
-                        addressUploaded: _addressUploaded,
-                        idFileName: _idFileName,
-                        addressFileName: _addressFileName,
-                        isSubmitting: _isSubmittingKyc,
-                        onIdTypeChanged: (v) => setState(() => _idType = v),
-                        onUploadId: () => setState(() => _idUploaded = true),
-                        onUploadAddress: () => setState(() => _addressUploaded = true),
-                        onSubmit: _submitKyc,
-                      ),
-                    if (_step == 1)
-                      ReferralPaymentStepView(
-                        isProcessing: _isProcessingPayment,
-                        onPay: _processPayment,
-                        onBack: () => setState(() => _step = 0),
-                      ),
-                    if (_step == 2)
-                      ReferralSuccessStepView(onClose: () => Navigator.of(context).pop()),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  if (_step == 0)
+                    ReferralKycStepView(
+                      idType: _idType, ninController: _ninController, dobController: _dobController,
+                      nationalityController: _nationalityController, addressController: _addressController,
+                      cityController: _cityController, stateController: _stateController, lgaController: _lgaController,
+                      idUploaded: _idUploaded, addressUploaded: _addressUploaded,
+                      idFileName: _idFileName, addressFileName: _addressFileName,
+                      isSubmitting: _isSubmittingKyc, onIdTypeChanged: (v) => setState(() => _idType = v),
+                      onUploadId: () => _pickDocument(true), onUploadAddress: () => _pickDocument(false),
+                      onSubmit: _submitKyc,
+                    ),
+                  if (_step == 1)
+                    ReferralPaymentStepView(isProcessing: _isProcessingPayment, onPay: _processPayment, onBack: () => setState(() => _step = 0)),
+                  if (_step == 2)
+                    ReferralSuccessStepView(onClose: () => Navigator.of(context).pop()),
+                ],
               ),
             ),
           ),

@@ -1,16 +1,28 @@
-/// Verification statuses representing the business approval workflow on BuyNaija.
+/// Verification statuses representing the business approval workflow on Naijahands.
 enum MerchantVerificationStatus {
   /// Initial submission under review by admin team (typically 24-48 hours).
-  pendingReview('Under Review', 'Your verification documents are being processed.'),
+  pendingReview(
+    'Under Review',
+    'Your verification documents are being processed.',
+  ),
 
   /// Successfully verified with valid CAC, identity, and address.
-  verified('Verified Merchant', 'Your store is fully verified with verified business badge.'),
+  verified(
+    'Verified Merchant',
+    'Your store is fully verified with verified business badge.',
+  ),
 
   /// Temporary onboarding without CAC registration (60-day provisional grace period).
-  provisional('Provisional Seller', 'You have 60 days to submit your CAC registration.'),
+  provisional(
+    'Provisional Seller',
+    'You have 60 days to submit your CAC registration.',
+  ),
 
   /// Rejected or requires correction of documents.
-  rejected('Action Required', 'Some verification documents could not be validated.');
+  rejected(
+    'Action Required',
+    'Some verification documents could not be validated.',
+  );
 
   const MerchantVerificationStatus(this.label, this.description);
   final String label;

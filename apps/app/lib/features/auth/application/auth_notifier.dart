@@ -17,9 +17,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _repository;
   final VoidCallback? onLogout;
 
+  static const String disallowedRoleError =
+      'Only customer or marketer accounts are allowed to use the mobile app.';
+
+  bool _isAllowedMobileRole(UserRole role) =>
+      role == UserRole.customer || role == UserRole.marketer;
+
   Future<void> _checkStoredUser() async {
     try {
       final user = await _repository.getStoredUser();
+      if (user != null && !_isAllowedMobileRole(user.role)) {
+        await logout();
+        state = state.copyWith(errorMessage: disallowedRoleError);
+        return;
+      }
       if (user != null && state.user != user) {
         state = state.copyWith(user: user);
       }
@@ -41,8 +52,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
         identifier: identifier,
         password: password,
       );
-      final user = await _repository.getStoredUser() ?? loggedInUser;
-      
+      AuthUser user = await _repository.getStoredUser() ?? loggedInUser;
+      try {
+        user = await _repository.getProfile();
+      } catch (_) {}
+
+      if (!_isAllowedMobileRole(user.role)) {
+        await logout();
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: disallowedRoleError,
+        );
+        return false;
+      }
+
       state = state.copyWith(user: user, isLoading: false);
       return true;
     } catch (e, stackTrace) {
@@ -162,6 +185,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<AuthUser?> fetchProfile() async {
     try {
       final user = await _repository.getProfile();
+      if (!_isAllowedMobileRole(user.role)) {
+        await logout();
+        state = state.copyWith(errorMessage: disallowedRoleError);
+        return null;
+      }
       state = state.copyWith(user: user);
       return user;
     } catch (e) {
@@ -202,6 +230,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
       AppLogger.w('AuthNotifier.updateProfile error: $e');
       state = state.copyWith(isLoading: false);
       rethrow;
+    }
+  }
+
+  Future<bool> deleteProfile() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _repository.deleteProfile();
+      state = const AuthState();
+      onLogout?.call();
+      return true;
+    } catch (e, stackTrace) {
+      AppLogger.e('Delete profile failed', error: e, stackTrace: stackTrace);
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: ApiError.toUserFriendlyMessage(e),
+      );
+      return false;
     }
   }
 

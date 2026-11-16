@@ -102,13 +102,13 @@ void main() {
       expect(await repository.getStoredUser(), isNull);
     });
 
-    test('forgotPassword succeeds with valid email and rejects empty', () async {
-      await repository.forgotPassword(email: 'customer@example.com');
-      expect(
-        () => repository.forgotPassword(email: ''),
-        throwsException,
-      );
-    });
+    test(
+      'forgotPassword succeeds with valid email and rejects empty',
+      () async {
+        await repository.forgotPassword(email: 'customer@example.com');
+        expect(() => repository.forgotPassword(email: ''), throwsException);
+      },
+    );
 
     test('resetPassword verifies token and matching passwords', () async {
       await repository.resetPassword(
@@ -199,13 +199,16 @@ void main() {
       expect(notifier.state.user, isNull);
     });
 
-    test('AuthNotifier initializes synchronously with stored user on startup', () {
-      repository.persistUser(AuthMockRepository.demoCustomer);
-      final preloadedNotifier = AuthNotifier(repository: repository);
-      expect(preloadedNotifier.state.isAuthenticated, isTrue);
-      expect(preloadedNotifier.state.user?.name, equals('Jane Doe'));
-      expect(preloadedNotifier.state.user?.isCustomer, isTrue);
-    });
+    test(
+      'AuthNotifier initializes synchronously with stored user on startup',
+      () {
+        repository.persistUser(AuthMockRepository.demoCustomer);
+        final preloadedNotifier = AuthNotifier(repository: repository);
+        expect(preloadedNotifier.state.isAuthenticated, isTrue);
+        expect(preloadedNotifier.state.user?.name, equals('Jane Doe'));
+        expect(preloadedNotifier.state.user?.isCustomer, isTrue);
+      },
+    );
   });
 
   group('Auth Presentation Widget Tests', () {
@@ -229,9 +232,7 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            authRepositoryProvider.overrideWithValue(repo),
-          ],
+          overrides: [authRepositoryProvider.overrideWithValue(repo)],
           child: const MaterialApp(home: SplashScreen()),
         ),
       );
@@ -252,7 +253,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('BuyNaija'), findsWidgets);
+      expect(find.text('Naijahands'), findsWidgets);
       expect(find.text('Customer'), findsOneWidget);
       expect(find.text('Shop & Save'), findsOneWidget);
       if (find.text('Merchant').evaluate().isNotEmpty) {
@@ -260,7 +261,7 @@ void main() {
       }
       expect(find.text('Marketer'), findsOneWidget);
       expect(find.text('Promote & Earn'), findsOneWidget);
-      expect(find.text('About BuyNaija'), findsOneWidget);
+      expect(find.text('About Naijahands'), findsOneWidget);
       expect(find.text('Community'), findsOneWidget);
     });
   });

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'log_sanitizer.dart';
 
-/// Global enterprise logger for BUYNAIJA mobile app.
+/// Global enterprise logger for Naijahands mobile app.
 /// Configured for both development and production use with built-in PII/credential sanitization.
 class AppLogger {
   AppLogger._();

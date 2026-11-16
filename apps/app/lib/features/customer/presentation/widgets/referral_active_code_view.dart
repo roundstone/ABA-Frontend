@@ -122,7 +122,7 @@
 //                   SharePlus.instance.share(
 //                     ShareParams(
 //                       text:
-//                           'Join me on BuyNaija! Use my referral code: $referralCode when signing up: https://abaonline.vercel.app/community/$referralCode',
+//                           'Join me on Naijahands! Use my referral code: $referralCode when signing up: https://abaonline.vercel.app/community/$referralCode',
 //                     ),
 //                   );
 //                 },

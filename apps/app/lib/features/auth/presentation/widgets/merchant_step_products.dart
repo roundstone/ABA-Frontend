@@ -72,7 +72,7 @@ class MerchantStepProducts extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSpacing.xs),
                   Text(
-                    'BuyNaija Product Quality Standards',
+                    'Naijahands Product Quality Standards',
                     style: AppTypography.bodySmall.copyWith(
                       fontWeight: FontWeight.w800,
                       color: AppColors.primary,
@@ -114,7 +114,9 @@ class MerchantStepProducts extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: hasPhoto
                         ? AppColors.primary.withAlpha(isDark ? 50 : 25)
-                        : (isDark ? const Color(0xFF282828) : AppColors.surface2),
+                        : (isDark
+                              ? const Color(0xFF282828)
+                              : AppColors.surface2),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: hasPhoto

@@ -51,8 +51,12 @@ class _HomeBody extends ConsumerWidget {
     final actionColor = isDark ? AppColors.secondary : AppColors.primary;
     final featuredAsync = ref.watch(featuredProductsProvider);
     final trendingAsync = ref.watch(trendingProductsProvider);
-    final featured = featuredAsync.valueOrNull ?? catalogue.products.where((p) => p.isFeatured).toList();
-    final trending = trendingAsync.valueOrNull ?? catalogue.products.where((p) => !p.isFeatured).toList();
+    final featured =
+        featuredAsync.valueOrNull ??
+        catalogue.products.where((p) => p.isFeatured).toList();
+    final trending =
+        trendingAsync.valueOrNull ??
+        catalogue.products.where((p) => !p.isFeatured).toList();
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -90,7 +94,7 @@ class _HomeBody extends ConsumerWidget {
                 letterSpacing: 2,
               ),
             ),
-            centerTitle: true,
+            centerTitle: false,
             actions: [
               IconButton(
                 tooltip: 'Search products',
@@ -138,7 +142,8 @@ class _HomeBody extends ConsumerWidget {
                   if (trending.isNotEmpty) ...[
                     HomeSectionHeader(
                       title: 'Trending on ${AppBrand.shortName}',
-                      subtitle: 'Popular items our customers are loving right now',
+                      subtitle:
+                          'Popular items our customers are loving right now',
                       onSeeAll: () => context.go('/shop'),
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -149,7 +154,8 @@ class _HomeBody extends ConsumerWidget {
                   // 4. Meet Businesses
                   HomeSectionHeader(
                     title: "Meet Nigeria's Businesses",
-                    subtitle: 'Connect directly with makers and sellers behind every product',
+                    subtitle:
+                        'Connect directly with makers and sellers behind every product',
                     onSeeAll: () => context.go('/merchants'),
                   ),
                   const SizedBox(height: AppSpacing.sm),
@@ -171,18 +177,20 @@ class _HomeBody extends ConsumerWidget {
                   // 6. Merchant Spotlight Showcase
                   HomeSectionHeader(
                     title: 'Merchant Spotlight',
-                    subtitle: 'Top-rated sellers providing exceptional quality & service',
+                    subtitle:
+                        'Top-rated sellers providing exceptional quality & service',
                     onSeeAll: () => context.go('/merchants'),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   const HomeMerchantSpotlightSection(),
                   const SizedBox(height: AppSpacing.xxl),
 
-                   // 7. Featured Products
+                  // 7. Featured Products
                   if (featured.isNotEmpty) ...[
                     HomeSectionHeader(
                       title: 'Featured on ${AppBrand.shortName}',
-                      subtitle: 'Popular items our customers are loving right now',
+                      subtitle:
+                          'Popular items our customers are loving right now',
                       onSeeAll: () => context.go('/shop'),
                     ),
                     const SizedBox(height: AppSpacing.sm),

@@ -84,7 +84,7 @@ class ABAApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
-      title: 'BUYNAIJA',
+      title: 'Naijahands',
       scaffoldMessengerKey: AppSnackbar.scaffoldMessengerKey,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

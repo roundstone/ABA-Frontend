@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
-        android:label="BuyNaija"
+        android:label="Naijahands"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
@@ -41,22 +41,21 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
 
-            <!-- Custom URI schemes: abaerp:// and buynaija:// -->
+            <!-- Custom URI schemes: naijahands:// and naijahands:// -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="abaerp" />
-                <data android:scheme="buynaija" />
+                <data android:scheme="naijahands" />
             </intent-filter>
 
-            <!-- App Links: https://app.abaerp.com and https://abaerp.com -->
+            <!-- App Links: https://app.naijahands.com and https://naijahands.com -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="app.abaerp.com" />
-                <data android:scheme="https" android:host="abaerp.com" />
+                <data android:scheme="https" android:host="app.naijahands.com" />
+                <data android:scheme="https" android:host="naijahands.com" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
