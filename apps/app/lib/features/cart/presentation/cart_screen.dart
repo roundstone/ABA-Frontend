@@ -120,7 +120,19 @@ class _CartBody extends ConsumerWidget {
         ),
         CartOrderSummary(
           cart: cart,
-          onCheckout: () => context.push('/checkout'),
+          onCheckout: () async {
+            final avail = await notifier.checkAvailability();
+            if (!context.mounted) return;
+            if (!avail.isAvailable) {
+              AppSnackbar.warning(
+                context,
+                avail.message ??
+                    'Some items in your cart are unavailable in the requested quantity.',
+              );
+              return;
+            }
+            context.push('/checkout');
+          },
           onClear: () {
             notifier
                 .clearCart()

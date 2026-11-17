@@ -46,64 +46,6 @@ void main() {
       expect(find.text('Logout'), findsOneWidget);
     });
 
-    testWidgets('Marketer more_menu_sheet shows only the 5 allowed items', (
-      tester,
-    ) async {
-      final container = ProviderContainer();
-      container.read(authStateProvider.notifier).state = AuthState(
-        user: AuthUser(
-          id: 'mkt-1',
-          name: 'David Marketer',
-          email: 'david@example.com',
-          phone: '+2348123456789',
-          role: UserRole.marketer,
-          referralCode: 'REF-DAVID-01',
-          token: 'token-marketer',
-          createdAt: DateTime.now(),
-        ),
-      );
-
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: Builder(
-                builder: (context) => Center(
-                  child: ElevatedButton(
-                    onPressed: () => showMoreMenu(context),
-                    child: const Text('Open Marketer Menu'),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Open Marketer Menu'));
-      await tester.pumpAndSettle();
-
-      // Only the 5 required items for marketers
-      expect(find.text('Notifications'), findsOneWidget);
-      expect(find.text('Referrals'), findsOneWidget);
-      expect(find.text('Reward Points'), findsOneWidget);
-      expect(find.text('Settings'), findsOneWidget);
-      expect(find.text('Logout'), findsOneWidget);
-
-      // Customer-only and merchant items must not display for marketers
-      expect(find.text('My Account'), findsNothing);
-      expect(find.text('Businesses'), findsNothing);
-      expect(find.text('Community'), findsNothing);
-      expect(find.text('My Orders'), findsNothing);
-      expect(find.text('Wishlist'), findsNothing);
-      expect(find.text('About Us'), findsNothing);
-      expect(find.text('Marketer Hub'), findsNothing);
-      expect(find.text('Saved Address'), findsNothing);
-      expect(find.text('Merchant Hub'), findsNothing);
-    });
-
     testWidgets('Merchant menu sheet shows all merchant sections and items', (
       tester,
     ) async {

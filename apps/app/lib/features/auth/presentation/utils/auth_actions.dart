@@ -28,11 +28,11 @@ Future<void> confirmLogout(BuildContext context, WidgetRef ref) async {
 
   if (nav.mounted) {
     try {
-      GoRouter.of(nav).go('/role-select');
+      GoRouter.of(nav).go('/login');
     } catch (_) {
       try {
         Navigator.of(nav).pushNamedAndRemoveUntil(
-          '/role-select',
+          '/login',
           (route) => false,
         );
       } catch (_) {}

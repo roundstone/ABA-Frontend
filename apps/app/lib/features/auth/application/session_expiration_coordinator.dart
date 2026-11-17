@@ -46,8 +46,7 @@ class SessionExpirationCoordinator {
 
       final isAlreadyOnAuth = currentLoc == '/login' ||
           currentLoc == '/login/customer' ||
-          currentLoc == '/login/merchant' ||
-          currentLoc == '/role-select';
+          currentLoc == '/login/merchant';
 
       if (isAlreadyOnAuth) {
         AppLogger.i('[SessionExpiration] User is already on $currentLoc. Skipping dialog.');

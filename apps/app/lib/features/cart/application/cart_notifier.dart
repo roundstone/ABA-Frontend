@@ -89,6 +89,8 @@ class CartNotifier extends AsyncNotifier<Cart> {
     String? color,
     String? size,
     int? variantId,
+    ProductVariant? variant,
+    double? unitPrice,
   }) async {
     lastErrorMessage = null;
     var effectiveProduct = product;
@@ -107,13 +109,37 @@ class CartNotifier extends AsyncNotifier<Cart> {
       size: size,
       variantId: variantId,
     );
+    final resolvedVariant = variant ??
+        (effectiveProduct.variants.isNotEmpty
+            ? effectiveProduct.variants.firstWhere(
+                (v) => v.id == vId,
+                orElse: () => effectiveProduct.variants.first,
+              )
+            : null);
     final previous = state.valueOrNull ?? const Cart();
+    if (effectiveProduct.stock > 0) {
+      final existingQty = previous.items
+          .where((i) =>
+              i.product.id == effectiveProduct.id &&
+              (i.effectiveVariantId == vId || vId <= 0))
+          .fold<int>(0, (sum, i) => sum + i.quantity);
+      if (existingQty + quantity > effectiveProduct.stock) {
+        lastErrorMessage =
+            'Only ${effectiveProduct.stock} item(s) available in stock.';
+        return false;
+      }
+    }
     final optimisticCart = previous.addItem(CartItem(
       product: effectiveProduct,
       quantity: quantity,
       productVariantId: vId,
-      selectedColor: color,
-      selectedSize: size,
+      variant: resolvedVariant,
+      selectedColor: color ?? resolvedVariant?.color,
+      selectedSize: size ?? resolvedVariant?.size,
+      unitPrice: unitPrice ??
+          (resolvedVariant != null && resolvedVariant.price > 0
+              ? resolvedVariant.price
+              : null),
     ));
     state = AsyncValue.data(optimisticCart);
     await _persist(optimisticCart);
@@ -174,6 +200,11 @@ class CartNotifier extends AsyncNotifier<Cart> {
     final current = state.valueOrNull ?? const Cart();
     final item = _findItem(current, productIdOrItemId);
     if (item == null) return;
+    if (item.product.stock > 0 && quantity > item.product.stock) {
+      lastErrorMessage =
+          'Only ${item.product.stock} item(s) available in stock.';
+      return;
+    }
 
     _qtyRollbackSnapshots.putIfAbsent(productIdOrItemId, () => current);
     final next = current.updateQuantity(productIdOrItemId, quantity);

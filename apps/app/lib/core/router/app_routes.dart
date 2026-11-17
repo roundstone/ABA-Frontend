@@ -3,17 +3,12 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/domain/auth_entities.dart';
 import '../../features/cart/domain/entities/cart_entities.dart';
 import '../../features/auth/presentation/splash_screen.dart';
-import '../../features/auth/presentation/role_selection_screen.dart';
 import '../../features/auth/presentation/customer_login_screen.dart';
 import '../../features/auth/presentation/customer_register_screen.dart';
 import '../../features/auth/presentation/merchant_login_screen.dart';
-import '../../features/auth/presentation/marketer_login_screen.dart';
 import '../../features/auth/presentation/merchant_onboarding_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/auth/presentation/reset_password_screen.dart';
-import '../../features/marketer/presentation/marketer_dashboard_screen.dart';
-import '../../features/marketer/presentation/marketer_add_customer_screen.dart';
-import '../../features/marketer/presentation/marketer_merchant_profile_screen.dart';
 import '../../features/customer/presentation/customer_shell.dart';
 import '../../features/customer/presentation/dashboard_screen.dart';
 import '../../features/customer/presentation/kyc_profile_screen.dart';
@@ -48,14 +43,12 @@ import '../../features/content/presentation/community_profile_screen.dart';
 
 List<RouteBase> buildAppRoutes(GlobalKey<NavigatorState> rootKey) => [
   GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
-  GoRoute(path: '/role-select', builder: (_, __) => const RoleSelectionScreen()),
   GoRoute(path: '/login', builder: (_, __) => const CustomerLoginScreen()),
   GoRoute(path: '/login/customer', redirect: (_, __) => '/login'),
   GoRoute(path: '/register', builder: (_, __) => const CustomerRegisterScreen()),
   GoRoute(path: '/register/customer', redirect: (_, __) => '/register'),
   GoRoute(path: '/login/merchant', builder: (_, __) => const MerchantLoginScreen()),
   GoRoute(path: '/merchants/onboarding', builder: (_, __) => const MerchantOnboardingScreen()),
-  GoRoute(path: '/login/marketer', builder: (_, __) => const MarketerLoginScreen()),
   GoRoute(
     path: '/forgot-password',
     builder: (_, s) => ForgotPasswordScreen(
@@ -128,10 +121,6 @@ List<RouteBase> buildAppRoutes(GlobalKey<NavigatorState> rootKey) => [
   GoRoute(path: '/rewards', parentNavigatorKey: rootKey, builder: (_, __) => const RewardsScreen()),
   GoRoute(path: '/account/rewards', redirect: (_, __) => '/rewards'),
   GoRoute(path: '/portal/rewards', redirect: (_, __) => '/rewards'),
-  GoRoute(path: '/marketer', parentNavigatorKey: rootKey, builder: (_, __) => const MarketerDashboardScreen()),
-  GoRoute(path: '/marketer/dashboard', redirect: (_, __) => '/marketer'),
-  GoRoute(path: '/marketer/add-customer', parentNavigatorKey: rootKey, builder: (_, __) => const MarketerAddCustomerScreen()),
-  GoRoute(path: '/marketer/merchant', parentNavigatorKey: rootKey, builder: (_, __) => const MarketerMerchantProfileScreen()),
   GoRoute(path: '/merchant', parentNavigatorKey: rootKey, builder: (_, __) => const MerchantDashboardScreen()),
   GoRoute(path: '/merchant/dashboard', redirect: (_, __) => '/merchant'),
   GoRoute(path: '/merchant/products', parentNavigatorKey: rootKey, builder: (_, __) => const MerchantProductsScreen()),

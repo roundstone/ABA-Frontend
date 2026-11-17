@@ -18,10 +18,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final VoidCallback? onLogout;
 
   static const String disallowedRoleError =
-      'Only customer or marketer accounts are allowed to use the mobile app.';
+      'Only customer accounts are allowed to use the mobile app.';
 
-  bool _isAllowedMobileRole(UserRole role) =>
-      role == UserRole.customer || role == UserRole.marketer;
+  bool _isAllowedMobileRole(UserRole role) => role == UserRole.customer;
 
   Future<void> _checkStoredUser() async {
     try {

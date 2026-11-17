@@ -12,11 +12,9 @@ String? appRouterRedirect(
   final loc = state.matchedLocation;
 
   final isPublicRoute = loc == '/splash' ||
-      loc == '/role-select' ||
       loc == '/login' ||
       loc == '/login/customer' ||
       loc == '/login/merchant' ||
-      loc == '/login/marketer' ||
       loc == '/register' ||
       loc == '/register/customer' ||
       loc == '/merchants/onboarding' ||
@@ -30,11 +28,8 @@ String? appRouterRedirect(
     if (loc == '/merchant' || loc.startsWith('/merchant/')) {
       return '/login/merchant';
     }
-    if (loc == '/marketer' || loc.startsWith('/marketer/')) {
-      return '/login/marketer';
-    }
     if (!isPublicRoute) {
-      return '/role-select';
+      return '/login';
     }
     return null;
   }
@@ -45,23 +40,14 @@ String? appRouterRedirect(
     return '/home';
   }
 
-  final isMarketerPortal =
-      loc == '/marketer' || loc.startsWith('/marketer/');
-  if (isMarketerPortal && !auth.isMarketer) {
-    return '/home';
-  }
-
   final isAuthScreen = loc == '/login' ||
       loc == '/login/customer' ||
       loc == '/login/merchant' ||
-      loc == '/login/marketer' ||
       loc == '/register' ||
-      loc == '/register/customer' ||
-      loc == '/role-select';
+      loc == '/register/customer';
 
   if (isAuthScreen) {
     if (auth.isMerchant) return '/merchant';
-    if (auth.isMarketer) return '/marketer';
     return '/home';
   }
 

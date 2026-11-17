@@ -12,6 +12,7 @@ import '../../../core/widgets/app_widgets.dart';
 import '../application/shop_providers.dart';
 import '../domain/shop_entities.dart';
 import '../../merchants/application/merchant_providers.dart';
+import '../../merchants/domain/merchant_entities.dart';
 import '../../wishlist/application/wishlist_providers.dart';
 import '../../wishlist/presentation/widgets/wishlist_button.dart';
 import 'widgets/about_seller_tab.dart';
@@ -34,6 +35,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   int _selectedImageIndex = 0;
   String? _selectedColor;
   String? _selectedSize;
+  int? _selectedVariantId;
   int _quantity = 1;
 
   final GlobalKey<_ProductInfoTabsState> _infoTabsKey = GlobalKey();
@@ -98,11 +100,21 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           selectedImageIndex: _selectedImageIndex,
           onImageSelect: (i) => setState(() => _selectedImageIndex = i),
           selectedColor: _selectedColor,
-          onColorSelect: (c) => setState(() => _selectedColor = c),
+          onColorSelect: (c) => setState(() {
+            _selectedColor = c;
+            _selectedVariantId = null;
+          }),
           selectedSize: _selectedSize,
-          onSizeSelect: (s) => setState(() => _selectedSize = s),
-          quantity: _quantity,
-          onQuantityChange: (q) => setState(() => _quantity = q),
+          onSizeSelect: (s) => setState(() {
+            _selectedSize = s;
+            _selectedVariantId = null;
+          }),
+          selectedVariantId: _selectedVariantId,
+          onVariantSelect: (id) => setState(() => _selectedVariantId = id),
+          quantity: product.stock > 0 ? _quantity.clamp(1, product.stock) : 1,
+          onQuantityChange: (q) => setState(() {
+            _quantity = product.stock > 0 ? q.clamp(1, product.stock) : 1;
+          }),
           infoTabsKey: _infoTabsKey,
           aboutSellerKey: _aboutSellerKey,
           reviewsKey: _reviewsKey,
@@ -157,6 +169,8 @@ class _ProductDetailBody extends ConsumerWidget {
     required this.onColorSelect,
     required this.selectedSize,
     required this.onSizeSelect,
+    required this.selectedVariantId,
+    required this.onVariantSelect,
     required this.quantity,
     required this.onQuantityChange,
     required this.infoTabsKey,
@@ -174,6 +188,8 @@ class _ProductDetailBody extends ConsumerWidget {
   final ValueChanged<String?> onColorSelect;
   final String? selectedSize;
   final ValueChanged<String?> onSizeSelect;
+  final int? selectedVariantId;
+  final ValueChanged<int?> onVariantSelect;
   final int quantity;
   final ValueChanged<int> onQuantityChange;
   final GlobalKey<_ProductInfoTabsState> infoTabsKey;
@@ -192,9 +208,40 @@ class _ProductDetailBody extends ConsumerWidget {
     final inCart = cart.containsProduct(product);
     final isWishlisted = ref.watch(isProductInWishlistProvider(product.id));
     final merchantId = (product.merchantId ?? product.vendorId)?.toString();
-    if (merchantId != null && merchantId.isNotEmpty) {
-      ref.watch(merchantDetailProvider(merchantId));
-    }
+    final merchantAsync = (merchantId != null && merchantId.isNotEmpty)
+        ? ref.watch(merchantDetailProvider(merchantId))
+        : null;
+    final merchant = merchantAsync?.valueOrNull;
+    final sellerName =
+        (merchant?.name.isNotEmpty == true) ? merchant!.name : product.brand;
+    final sellerSubtitle = _buildSellerSubtitle(merchant, merchantAsync);
+    final pid = int.tryParse(product.id) ??
+        int.tryParse(product.id.replaceAll(RegExp(r'[^0-9]'), ''));
+    final reviewsState = ref.watch(paginatedReviewsNotifierProvider(pid));
+    final effectiveReviewCount = reviewsState.totalCount > 0
+        ? reviewsState.totalCount
+        : product.reviewCount;
+    final effectiveRating = product.rating > 0
+        ? product.rating
+        : (reviewsState.items.isNotEmpty
+            ? reviewsState.items.fold<double>(0, (s, r) => s + r.rating) /
+                reviewsState.items.length
+            : 0.0);
+    final selectedVariant = _resolveSelectedVariant(
+      product,
+      selectedColor,
+      selectedSize,
+      selectedVariantId,
+    );
+    final basePrice =
+        (selectedVariant != null && selectedVariant.price > 0)
+            ? selectedVariant.price
+            : product.price;
+    final effectivePrice = product.hasDiscount
+        ? basePrice * (1 - product.discount! / 100)
+        : basePrice;
+    final effectiveQty =
+        product.stock > 0 ? quantity.clamp(1, product.stock) : 1;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -254,17 +301,19 @@ class _ProductDetailBody extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          product.rating > 0
+                          effectiveRating > 0
                               ? Icons.star_rounded
                               : Icons.star_border_rounded,
                           size: 18,
-                          color: product.rating > 0
+                          color: effectiveRating > 0
                               ? Colors.amber
                               : cs.onSurfaceVariant.withAlpha(100),
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          product.rating.toString(),
+                          effectiveRating > 0
+                              ? effectiveRating.toStringAsFixed(1)
+                              : '0.0',
                           style: AppTypography.bodySmall.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -278,7 +327,7 @@ class _ProductDetailBody extends ConsumerWidget {
                         ),
                         const SizedBox(width: AppSpacing.xs),
                         Text(
-                          '${product.reviewCount} Reviews',
+                          '$effectiveReviewCount ${effectiveReviewCount == 1 ? 'Review' : 'Reviews'}',
                           style: AppTypography.bodySmall.copyWith(
                             color: isDark ? AppColors.secondary : cs.primary,
                             decoration: TextDecoration.underline,
@@ -309,7 +358,7 @@ class _ProductDetailBody extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              product.brand,
+                              sellerName,
                               style: AppTypography.bodyMedium.copyWith(
                                 fontWeight: FontWeight.w700,
                               ),
@@ -318,10 +367,14 @@ class _ProductDetailBody extends ConsumerWidget {
                             ),
                             Row(
                               children: [
-                                Text(
-                                  '99.9% positive',
-                                  style: AppTypography.label.copyWith(
-                                    color: cs.onSurfaceVariant,
+                                Flexible(
+                                  child: Text(
+                                    sellerSubtitle,
+                                    style: AppTypography.label.copyWith(
+                                      color: cs.onSurfaceVariant,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 const SizedBox(width: 4),
@@ -373,7 +426,7 @@ class _ProductDetailBody extends ConsumerWidget {
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
-                        formatNaira(product.discountedPrice),
+                        formatNaira(effectivePrice),
                         style: AppTypography.h3.copyWith(
                           fontWeight: FontWeight.w800,
                           color: isDark ? AppColors.secondary : cs.primary,
@@ -382,7 +435,7 @@ class _ProductDetailBody extends ConsumerWidget {
                       if (product.hasDiscount) ...[
                         const SizedBox(width: AppSpacing.sm),
                         Text(
-                          formatNaira(product.price),
+                          formatNaira(basePrice),
                           style: AppTypography.bodyLarge.copyWith(
                             decoration: TextDecoration.lineThrough,
                             color: AppColors.grey,
@@ -470,6 +523,33 @@ class _ProductDetailBody extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.md),
                   ],
 
+                  if (product.variants.length > 1 &&
+                      (product.colors == null || product.colors!.isEmpty) &&
+                      (product.sizes == null || product.sizes!.isEmpty)) ...[
+                    _SelectorRow(
+                      title: 'Variant',
+                      selected: selectedVariant?.name.isNotEmpty == true
+                          ? selectedVariant!.name
+                          : selectedVariant?.sku,
+                      options: product.variants
+                          .map((v) => v.name.isNotEmpty ? v.name : v.sku)
+                          .where((s) => s.isNotEmpty)
+                          .toList(),
+                      onSelect: (label) {
+                        if (label == null) {
+                          onVariantSelect(null);
+                          return;
+                        }
+                        final match = product.variants.firstWhere(
+                          (v) => (v.name.isNotEmpty ? v.name : v.sku) == label,
+                          orElse: () => product.variants.first,
+                        );
+                        onVariantSelect(match.id);
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+
                   // Quantity & Stock
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -484,7 +564,8 @@ class _ProductDetailBody extends ConsumerWidget {
                         ),
                       ),
                       _QuantitySelector(
-                        quantity: quantity,
+                        quantity: effectiveQty,
+                        maxQuantity: product.stock,
                         onChanged: onQuantityChange,
                       ),
                       const SizedBox(width: AppSpacing.md),
@@ -510,25 +591,16 @@ class _ProductDetailBody extends ConsumerWidget {
                     label: 'Buy It Now',
                     onPressed: product.inStock
                         ? () {
-                            int? variantId;
-                            if (product.variants.isNotEmpty) {
-                              for (final v in product.variants) {
-                                final matchesColor = selectedColor == null ||
-                                    v.color == selectedColor;
-                                final matchesSize = selectedSize == null ||
-                                    v.size == selectedSize;
-                                if (matchesColor && matchesSize) {
-                                  variantId = v.id;
-                                  break;
-                                }
-                              }
-                            }
                             final directItem = CartItem(
                               product: product,
-                              quantity: quantity,
-                              selectedColor: selectedColor,
-                              selectedSize: selectedSize,
-                              productVariantId: variantId,
+                              quantity: effectiveQty,
+                              selectedColor:
+                                  selectedColor ?? selectedVariant?.color,
+                              selectedSize:
+                                  selectedSize ?? selectedVariant?.size,
+                              productVariantId: selectedVariant?.id,
+                              variant: selectedVariant,
+                              unitPrice: effectivePrice,
                             );
                             final directCart = Cart(items: [directItem]);
                             context.push('/checkout', extra: directCart);
@@ -997,8 +1069,9 @@ class _ProductDetailBody extends ConsumerWidget {
                   AboutSellerTab(
                     key: aboutSellerKey,
                     reviewsKey: reviewsKey,
-                    merchantName: product.brand,
+                    merchantName: sellerName,
                     merchantId: merchantId,
+                    merchant: merchant,
                     productId: product.id,
                     onMessageSeller: () =>
                         _messageSeller(context, ref, product, merchantId),
@@ -1014,24 +1087,41 @@ class _ProductDetailBody extends ConsumerWidget {
       bottomNavigationBar: _DetailBottomBar(
         product: product,
         inCart: inCart,
-        quantity: quantity,
-        selectedColor: selectedColor,
-        selectedSize: selectedSize,
+        quantity: effectiveQty,
+        selectedColor: selectedColor ?? selectedVariant?.color,
+        selectedSize: selectedSize ?? selectedVariant?.size,
         onAddToCart: () async {
           final ok = await cartNotifier.addToCart(
             product,
-            quantity: quantity,
-            color: selectedColor,
-            size: selectedSize,
+            quantity: effectiveQty,
+            color: selectedColor ?? selectedVariant?.color,
+            size: selectedSize ?? selectedVariant?.size,
+            variantId: selectedVariant?.id,
+            variant: selectedVariant,
+            unitPrice: effectivePrice,
           );
           if (!context.mounted) return;
           if (ok) {
-            AppSnackbar.success(
-              context,
-              'Added to cart!',
-              actionLabel: 'View Cart',
-              onAction: () => context.push('/cart'),
-            );
+            final avail = await cartNotifier.checkAvailability();
+            if (!context.mounted) return;
+            final vId = selectedVariant?.id;
+            final isVariantUnavailable = !avail.isAvailable &&
+                (vId == null || avail.unavailableVariantIds.contains(vId));
+            if (isVariantUnavailable) {
+              AppSnackbar.warning(
+                context,
+                avail.message ?? 'Limited stock available for this item.',
+                actionLabel: 'View Cart',
+                onAction: () => context.push('/cart'),
+              );
+            } else {
+              AppSnackbar.success(
+                context,
+                'Added to cart!',
+                actionLabel: 'View Cart',
+                onAction: () => context.push('/cart'),
+              );
+            }
           } else {
             AppSnackbar.error(
               context,
@@ -1069,6 +1159,49 @@ class _ProductDetailBody extends ConsumerWidget {
       sellerName: sellerName,
     );
   }
+}
+
+ProductVariant? _resolveSelectedVariant(
+  Product product,
+  String? selectedColor,
+  String? selectedSize,
+  int? selectedVariantId,
+) {
+  if (product.variants.isEmpty) return null;
+  if (selectedVariantId != null) {
+    for (final v in product.variants) {
+      if (v.id == selectedVariantId) return v;
+    }
+  }
+  if (selectedColor != null || selectedSize != null) {
+    for (final v in product.variants) {
+      final matchesColor = selectedColor == null ||
+          v.color?.toLowerCase() == selectedColor.toLowerCase();
+      final matchesSize = selectedSize == null ||
+          v.size?.toLowerCase() == selectedSize.toLowerCase();
+      if (matchesColor && matchesSize) return v;
+    }
+  }
+  return product.variants.first;
+}
+
+String _buildSellerSubtitle(
+  Merchant? merchant,
+  AsyncValue<Merchant?>? merchantAsync,
+) {
+  if (merchant != null) {
+    if (merchant.reviewCount > 0) {
+      return '${merchant.rating.toStringAsFixed(1)} ★ (${merchant.reviewCount})';
+    }
+    if (merchant.city.isNotEmpty) {
+      return merchant.state.isNotEmpty
+          ? '${merchant.city}, ${merchant.state}'
+          : merchant.city;
+    }
+    return merchant.isVerified ? 'Verified seller' : 'Marketplace seller';
+  }
+  if (merchantAsync?.isLoading == true) return 'Loading seller...';
+  return 'Marketplace seller';
 }
 
 // ─── Image gallery sliver app bar ─────────────────────────────────────────
@@ -1366,14 +1499,20 @@ class _SelectorRow extends StatelessWidget {
 // ─── Quantity selector ────────────────────────────────────────────────────
 
 class _QuantitySelector extends StatelessWidget {
-  const _QuantitySelector({required this.quantity, required this.onChanged});
+  const _QuantitySelector({
+    required this.quantity,
+    required this.maxQuantity,
+    required this.onChanged,
+  });
   final int quantity;
+  final int maxQuantity;
   final ValueChanged<int> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final canIncrement = maxQuantity > 0 && quantity < maxQuantity;
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF2A2A2A) : cs.surfaceContainerHighest,
@@ -1397,7 +1536,7 @@ class _QuantitySelector extends StatelessWidget {
           ),
           _QtyButton(
             icon: HugeIcons.strokeRoundedPlusSign,
-            onTap: () => onChanged(quantity + 1),
+            onTap: canIncrement ? () => onChanged(quantity + 1) : null,
           ),
         ],
       ),
@@ -1482,7 +1621,7 @@ class _DetailBottomBar extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
 
-          // Add to cart / view cart button
+          // Add to cart / view cart button 
           Expanded(
             child: FilledButton.icon(
               onPressed: product.inStock

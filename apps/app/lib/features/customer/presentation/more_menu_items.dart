@@ -24,41 +24,9 @@ class MoreMenuItem {
 List<MoreMenuItem> buildMoreMenuItems({
   required BuildContext context,
   required bool isMerchant,
-  bool isMarketer = false,
   required WidgetRef ref,
 }) {
   final logoutItem = _buildLogoutItem(ref);
-
-  if (isMarketer) {
-    return [
-      const MoreMenuItem(
-        icon: HugeIcons.strokeRoundedNotification01,
-        label: 'Notifications',
-        color: Color(0xFF6366F1),
-        route: '/notifications',
-      ),
-      const MoreMenuItem(
-        icon: HugeIcons.strokeRoundedNetwork,
-        label: 'Referrals',
-        color: Color(0xFFEC4899),
-        route: '/referrals',
-      ),
-      // Reward points are not yet implemented
-      // const MoreMenuItem(
-      //   icon: HugeIcons.strokeRoundedAward01,
-      //   label: 'Reward Points',
-      //   color: Color(0xFFF59E0B),
-      //   route: '/rewards',
-      // ),
-      const MoreMenuItem(
-        icon: HugeIcons.strokeRoundedSettings01,
-        label: 'Settings',
-        color: Color(0xFF64748B),
-        route: '/settings',
-      ),
-      logoutItem,
-    ];
-  }
 
   return [
     const MoreMenuItem(

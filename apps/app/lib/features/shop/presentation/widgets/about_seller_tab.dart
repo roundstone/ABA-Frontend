@@ -5,8 +5,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../merchants/domain/merchant_entities.dart';
 import 'product_reviews_section.dart';
-import 'seller_ratings_section.dart';
 
 class AboutSellerTab extends StatelessWidget {
   const AboutSellerTab({
@@ -14,6 +14,7 @@ class AboutSellerTab extends StatelessWidget {
     required this.merchantName,
     required this.productId,
     this.merchantId,
+    this.merchant,
     this.reviewsKey,
     this.onMessageSeller,
   });
@@ -21,6 +22,7 @@ class AboutSellerTab extends StatelessWidget {
   final String merchantName;
   final String productId;
   final String? merchantId;
+  final Merchant? merchant;
   final Key? reviewsKey;
   final VoidCallback? onMessageSeller;
 
@@ -33,6 +35,22 @@ class AboutSellerTab extends StatelessWidget {
     } else {
       context.push('/merchants');
     }
+  }
+
+  String _sellerStatsText() {
+    final m = merchant;
+    if (m == null) return 'Marketplace seller';
+    final parts = <String>[
+      if (m.reviewCount > 0)
+        '${m.rating.toStringAsFixed(1)} ★ (${m.reviewCount} reviews)',
+      if (m.ordersCount > 0) '${m.ordersCount} orders',
+      if (m.ordersCount == 0 && m.productCount > 0) '${m.productCount} products',
+    ];
+    if (parts.isNotEmpty) return parts.join(' • ');
+    if (m.city.isNotEmpty) {
+      return m.state.isNotEmpty ? '${m.city}, ${m.state}' : m.city;
+    }
+    return m.isVerified ? 'Verified seller' : 'Marketplace seller';
   }
 
   @override
@@ -79,7 +97,7 @@ class AboutSellerTab extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '99.9% positive feedback • 5.7K items sold',
+                      _sellerStatsText(),
                       style: AppTypography.bodySmall.copyWith(
                         color: cs.onSurfaceVariant,
                       ),
@@ -103,7 +121,9 @@ class AboutSellerTab extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.xs),
             Text(
-              'Joined Oct 2025',
+              merchant != null
+                  ? 'Joined ${merchant!.joinedYear}'
+                  : 'Marketplace seller',
               style: AppTypography.bodySmall.copyWith(
                 color: cs.onSurfaceVariant,
               ),

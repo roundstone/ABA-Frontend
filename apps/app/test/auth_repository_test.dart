@@ -6,7 +6,6 @@ import 'package:app/features/auth/data/auth_mock_repository.dart';
 import 'package:app/features/auth/application/auth_notifier.dart';
 import 'package:app/features/auth/application/auth_providers.dart';
 import 'package:app/features/auth/presentation/splash_screen.dart';
-import 'package:app/features/auth/presentation/role_selection_screen.dart';
 
 void main() {
   group('AuthMockRepository Tests', () {
@@ -239,30 +238,6 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
 
       expect(find.text('Continue to App'), findsOneWidget);
-    });
-
-    testWidgets('RoleSelectionScreen renders Customer and Merchant cards', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(800, 1200);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-
-      await tester.pumpWidget(
-        const ProviderScope(child: MaterialApp(home: RoleSelectionScreen())),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Naijahands'), findsWidgets);
-      expect(find.text('Customer'), findsOneWidget);
-      expect(find.text('Shop & Save'), findsOneWidget);
-      if (find.text('Merchant').evaluate().isNotEmpty) {
-        expect(find.text('Sell & Grow'), findsOneWidget);
-      }
-      expect(find.text('Marketer'), findsOneWidget);
-      expect(find.text('Promote & Earn'), findsOneWidget);
-      expect(find.text('About Naijahands'), findsOneWidget);
-      expect(find.text('Community'), findsOneWidget);
     });
   });
 }

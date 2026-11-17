@@ -102,6 +102,8 @@ class _FakeCartNotifier extends CartNotifier {
     String? color,
     String? size,
     int? variantId,
+    ProductVariant? variant,
+    double? unitPrice,
   }) async {
     addCalled = true;
     return true;

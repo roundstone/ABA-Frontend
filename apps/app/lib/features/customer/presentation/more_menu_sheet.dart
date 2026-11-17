@@ -30,12 +30,10 @@ class _MoreMenuSheet extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sheetBg = isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8F8F9);
     final isMerchant = ref.watch(isMerchantProvider);
-    final isMarketer = ref.watch(isMarketerProvider);
 
     final items = buildMoreMenuItems(
       context: parentContext ?? context,
       isMerchant: isMerchant,
-      isMarketer: isMarketer,
       ref: ref,
     );
 

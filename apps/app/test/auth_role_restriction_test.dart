@@ -5,15 +5,15 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('AuthNotifier Mobile Role Restriction', () {
-    test('allows customer and market/marketer roles after login and profile', () async {
+    test('allows customer role after login and profile', () async {
       expect(UserRole.fromString('market'), UserRole.marketer);
       expect(UserRole.fromString('customer'), UserRole.customer);
 
-      final repo = _FakeAuthRepo(UserRole.marketer);
+      final repo = _FakeAuthRepo(UserRole.customer);
       final notifier = AuthNotifier(repository: repo);
 
       final ok = await notifier.loginCustomer(
-        identifier: 'm@aba.ng',
+        identifier: 'c@aba.ng',
         password: 'password',
       );
       expect(ok, isTrue);
@@ -21,7 +21,22 @@ void main() {
       expect(notifier.state.errorMessage, isNull);
     });
 
-    test('logs out and sets error when profile role is not customer or market', () async {
+    test('logs out and sets error when profile role is marketer/market', () async {
+      final repo = _FakeAuthRepo(UserRole.marketer);
+      final notifier = AuthNotifier(repository: repo);
+
+      final ok = await notifier.loginCustomer(
+        identifier: 'm@aba.ng',
+        password: 'password',
+      );
+
+      expect(ok, isFalse);
+      expect(repo.logoutCalls, greaterThanOrEqualTo(1));
+      expect(notifier.state.isAuthenticated, isFalse);
+      expect(notifier.state.errorMessage, AuthNotifier.disallowedRoleError);
+    });
+
+    test('logs out and sets error when profile role is admin', () async {
       final repo = _FakeAuthRepo(UserRole.admin);
       final notifier = AuthNotifier(repository: repo);
 
